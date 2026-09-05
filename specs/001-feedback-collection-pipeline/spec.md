@@ -46,6 +46,13 @@ leaving care) needs its own exit-reason capture, delivered by email."
   per the operations lead's more recent and explicit instruction, this version uses email
   only, firing directly on the same trigger conditions without any call-attempt gate —
   see Assumptions.
+
+  Revised 2026-09-05 (third pass): corrected the trigger source for all six milestones.
+  The source Confluence doc describes Milestones 1–4 as triggering off the practice's
+  EHR (SimplePractice); the operations lead has explicitly corrected this — all six
+  milestones trigger off Zoho CRM, and the EHR is not part of the trigger loop at all.
+  Updated the Milestones table, the Prospect entity, and Assumptions accordingly, and
+  resolved (removed) the corresponding TODO(TRIGGER_SOURCE) in the constitution.
 -->
 
 ## User Scenarios & Testing *(mandatory)*
@@ -252,13 +259,15 @@ token/de-identification/rejoin mechanism as other milestones.
 
 ### Milestones
 
-Six milestones drive feedback requests. Trigger thresholds below (day windows, session
-counts, no-show counts) are the practice's current starting policy and are configurable,
-not fixed values defined by this specification (see Assumptions).
+Six milestones drive feedback requests. All six trigger off events/data recorded in
+Zoho CRM — the practice's EHR is not part of this pipeline's trigger loop. Trigger
+thresholds below (day windows, session counts, no-show counts) are the practice's
+current starting policy and are configurable, not fixed values defined by this
+specification (see Assumptions).
 
 | # | Name | Trigger | Notes |
 |---|------|---------|-------|
-| 0 | Free consult, no conversion | A free consult is completed and no first appointment is booked within 14 days | Applies to a prospect, not yet a patient; runs on CRM data only, since no patient/EHR record exists yet |
+| 0 | Free consult, no conversion | A free consult is completed and no first appointment is booked within 14 days | Applies to a prospect, not yet a patient |
 | 1 | Baseline intake | Automatic at the patient's first session (intake) | Establishes the patient's baseline wellbeing reading, used for later trend comparisons |
 | 2 | Early alliance check | Patient's session count reaches 3 | First alliance-only reading; no prior alliance data yet, so its flag rule (below) uses a fixed threshold rather than a trend |
 | 3 | Periodic consolidated | Every 4th session, recurring for the duration of treatment | Combines a wellbeing reading, an alliance reading, and operational/contractor items into one request |
@@ -335,10 +344,9 @@ starting policy, not validated cutoffs, and are configurable (see Assumptions).
 - **Patient**: The individual receiving care. Holds identity, care status, session
   history, and milestone state. Lives only in CRM in identified form.
 - **Prospect**: An individual who completed a free consult but has not become a patient
-  (no first appointment booked). Only Milestone 0 applies to a prospect; their milestone
-  and token data run on CRM data directly, since no patient/EHR record exists yet. A
-  prospect who later becomes a patient is a separate record moving into the Patient
-  lifecycle, not a conversion of the same record.
+  (no first appointment booked). Only Milestone 0 applies to a prospect. A prospect who
+  later becomes a patient is a separate record moving into the Patient lifecycle, not a
+  conversion of the same record.
 - **Milestone Trigger**: A system-detected condition on a patient's or prospect's record,
   matching one of the six defined milestones (0–5, see Milestones above), that causes a
   feedback request to be generated. Each instance is triggered and tracked
@@ -402,11 +410,12 @@ starting policy, not validated cutoffs, and are configurable (see Assumptions).
   decision (2026-09-05), this version uses email only: the emailed request fires
   directly on Milestone 5's trigger conditions (cancellation with no rebooking, or a
   no-show pattern), with no live-call step and no call-attempt gate of any kind.
-- Whether Milestones 1–4 trigger off the practice's EHR (SimplePractice, per the source
-  doc) or another source, and whether that integration exists yet, is a separate,
-  still-open decision not resolved by this specification — see constitution
-  TODO(TRIGGER_SOURCE). Milestone 0 is CRM-only regardless, since a prospect has no EHR
-  record.
+- The source Confluence doc describes Milestones 1–4 as triggering off the practice's
+  EHR (SimplePractice). Per explicit operations-lead correction (2026-09-05), this is
+  not accurate: all six milestones (0–5) trigger off events/data recorded in Zoho CRM,
+  and the EHR is not part of this pipeline's trigger loop at all. Treat the source doc's
+  EHR references as stale on this point; this specification's Milestones table above is
+  the current source of truth.
 - Which specific products are confirmed under the practice's BAA is a separate,
   still-open decision and is not resolved by this specification — see constitution
   TODO(BAA_SCHEDULE). This spec assumes that confirmation happens before any product is

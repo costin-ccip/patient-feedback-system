@@ -1,6 +1,6 @@
 <!--
 Sync Impact Report
-- Version change: 1.1.0 → 1.2.0
+- Version change: 1.2.0 → 1.2.1
 - Rationale for the original 1.0.0 (not a continuation of a previously-reported
   "v1.0.1"): this repository was found completely empty at the start of the session that
   first authored this file (zero commits, zero branches). An earlier working session had
@@ -20,27 +20,24 @@ Sync Impact Report
   current or recent clients). Added supporting bullets under Compliance & Data Handling
   Requirements and Development Workflow. This is a MINOR bump: a new principle, no
   existing principle removed or redefined.
-- Also refined the TODO(TRIGGER_SOURCE) note below with detail found in the milestone
-  detail pages (Confluence): the practice's EHR is SimplePractice, and per the source
-  doc's own open questions, integration from SimplePractice into this pipeline for
-  Milestones 1–4 triggers is still unbuilt; Milestone 0 (pre-patient) is CRM-only since
-  prospects have no EHR record yet. This is new information surfaced, not yet a decision,
-  so the TODO stays open.
+- 1.2.1 correction: TODO(TRIGGER_SOURCE) is now resolved and removed. The prior note
+  (based on the Confluence milestone detail pages) assumed Milestones 1–4 would trigger
+  off the practice's EHR (SimplePractice). The operations lead has explicitly corrected
+  this: ALL six milestones (0–5) trigger off events/data recorded in Zoho CRM; the EHR is
+  not part of this pipeline's trigger loop at all. This is a factual correction to a
+  TODO note, not a principle change, so no principle text changed — logged here as a
+  PATCH bump per Governance's "wording/clarification only" rule, since the constitution
+  file itself changed and the correction is worth a durable record. The Confluence
+  source doc's own EHR-based description is now known to be stale/inaccurate on this
+  point and should not be relied on for this detail.
 - Modified principles (1.1.0): IV. Contractor Blindness to Own Raw Feedback
 - Added sections (1.2.0): VI. Internal Use Only — Never a Testimonial or Marketing
   Pipeline
-- Removed sections: none
+- Removed sections (1.2.1): TODO(TRIGGER_SOURCE) — resolved, see above
 - Follow-up TODOs:
   - TODO(BAA_SCHEDULE): Confirm with the Zoho account manager which specific products
     (CRM, Flow, Mail, Forms, Analytics) are named in Cape Clarity's actual BAA schedule.
     Principle V is written to block on this per-product, not to assume it.
-  - TODO(TRIGGER_SOURCE): Milestones 1–4 are meant to trigger off session-count/status
-    data that lives in the practice's EHR (SimplePractice), per the source design doc;
-    Milestone 0 (pre-patient, no EHR record) triggers off Zoho CRM data directly. The
-    source doc's own open questions list an EHR-to-pipeline integration as still unbuilt.
-    Principle III requires automation of the *sending* of triggers once a milestone
-    condition is true, but does not yet resolve how or whether that EHR integration gets
-    built, nor confirm this understanding is current practice reality.
 -->
 
 # Cape Clarity Patient Feedback System Constitution
@@ -149,4 +146,4 @@ principle or materially expanded guidance, PATCH for wording/clarification only)
 or task generated under Spec Kit for this project MUST be checked for compliance with
 these principles before implementation begins.
 
-**Version**: 1.2.0 | **Ratified**: 2026-09-04 | **Last Amended**: 2026-09-05
+**Version**: 1.2.1 | **Ratified**: 2026-09-04 | **Last Amended**: 2026-09-05
