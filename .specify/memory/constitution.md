@@ -1,18 +1,25 @@
 <!--
 Sync Impact Report
-- Version change: (none) → 1.0.0
-- Rationale for this being 1.0.0 rather than a continuation of a previously-reported
-  "v1.0.1": this repository was found completely empty at the start of this session
-  (zero commits, zero branches). An earlier working session had reportedly ratified a
-  constitution and drafted a spec, but neither ever made it into this repository. Rather
-  than fabricate an amendment history that cannot be verified, this document is treated
-  as a fresh ratification of the five principles as described by the project's
-  operations lead, based on the source design doc (Confluence: "Feedback Collection —
-  Proposed Tech Stack").
-- Modified principles: N/A (initial ratification)
-- Added sections: Core Principles (5), Compliance & Data Handling Requirements,
-  Development Workflow, Governance
-- Removed sections: N/A
+- Version change: 1.0.0 → 1.1.0
+- Rationale for the original 1.0.0 (not a continuation of a previously-reported
+  "v1.0.1"): this repository was found completely empty at the start of the session that
+  first authored this file (zero commits, zero branches). An earlier working session had
+  reportedly ratified a constitution and drafted a spec, but neither ever made it into
+  this repository. Rather than fabricate an amendment history that cannot be verified,
+  that document was treated as a fresh ratification of five principles as described by
+  the project's operations lead, based on the source design doc (Confluence: "Feedback
+  Collection — Proposed Tech Stack").
+- 1.1.0 amendment: Principle IV (Contractor Blindness to Own Raw Feedback) narrowed for
+  the first version — contractors now have NO dashboard/feedback-data access at all
+  (previously they were described as having an aggregated, own-caseload dashboard). A
+  restricted contractor view is left open as a possible later-version addition, still
+  gated on the same blindness guarantee. This is a MINOR bump: it materially changes what
+  the principle currently permits without removing the underlying protection it exists
+  to guarantee.
+- Modified principles: IV. Contractor Blindness to Own Raw Feedback (dashboard access
+  narrowed to admins-only for v1)
+- Added sections: none this amendment
+- Removed sections: none this amendment
 - Follow-up TODOs:
   - TODO(BAA_SCHEDULE): Confirm with the Zoho account manager which specific products
     (CRM, Flow, Mail, Forms, Analytics) are named in Cape Clarity's actual BAA schedule.
@@ -55,12 +62,15 @@ operationally.
 
 ### IV. Contractor Blindness to Own Raw Feedback
 A contractor (the clinician who provided care) MUST NOT be able to see raw,
-patient-identified feedback about their own patients. Contractors may see aggregated
-dashboards limited to their own caseload under row-level security (trends, flags), but
-never a direct, identified link between one of their own patients and that patient's
-verbatim responses about them. Rationale: unblinded raw feedback creates pressure on
-patients (real or perceived) and undermines candid responses; aggregation preserves
-usefulness for self-improvement without that risk.
+patient-identified feedback about their own patients. In the first version of this
+system, contractors have NO access to feedback data or dashboards of any kind —
+dashboard access is limited entirely to practice admins. A later version MAY introduce a
+restricted, aggregated view for contractors of their own caseload, but only if it
+continues to guarantee no contractor ever sees a direct, identified link between one of
+their own patients and that patient's verbatim responses about them. Rationale:
+unblinded raw feedback creates pressure on patients (real or perceived) and undermines
+candid responses; starting with no contractor access at all is the simplest way to
+guarantee that risk doesn't exist in the first version.
 
 ### V. BAA-Gated Adoption
 No Zoho product may be used to process, store, or transmit patient data — including
@@ -92,9 +102,9 @@ convenience.
 ## Development Workflow
 
 - Any change to the trigger logic, token generation/validation, the CRM rejoin step, or
-  either dashboard's access rules MUST be checked against Principles I–IV before being
+  any dashboard's access rules MUST be checked against Principles I–IV before being
   merged; a change that would let an un-rejoined system see both token and identity, or
-  that would let a contractor see their own patient's raw response, MUST be rejected
+  that would let a contractor see feedback data or a dashboard at all, MUST be rejected
   regardless of any other benefit it offers.
 - Before wiring up a new Zoho product (or a new use of an existing one) to touch patient
   data, Principle V's BAA confirmation MUST be completed and recorded first.
@@ -110,4 +120,4 @@ principle or materially expanded guidance, PATCH for wording/clarification only)
 or task generated under Spec Kit for this project MUST be checked for compliance with
 these principles before implementation begins.
 
-**Version**: 1.0.0 | **Ratified**: 2026-09-04 | **Last Amended**: 2026-09-04
+**Version**: 1.1.0 | **Ratified**: 2026-09-04 | **Last Amended**: 2026-09-05

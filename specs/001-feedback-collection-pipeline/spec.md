@@ -9,11 +9,11 @@
 **Input**: User description: "Cape Clarity needs an automated, de-identified patient
 feedback collection pipeline: feedback requests fire on system-detected milestones (not
 left to contractors to remember), the survey tool never sees patient identity, only CRM
-ever rejoins a response to a patient, contractors never see their own patients' raw
-feedback, and there are two separate reporting dashboards — one aggregate view for the
-practice owner and one per-clinician view restricted to that clinician's own caseload.
-Discontinuation (a patient leaving care) needs its own exit-reason capture, delivered by
-email only for this version — no live-call collection path."
+ever rejoins a response to a patient, contractors have no access to feedback data or
+dashboards in the first version, and there is one admin-only reporting dashboard with a
+patient-level view (scores per patient) and an overall view across all patients that can
+be filtered by clinician. Discontinuation (a patient leaving care) needs its own
+exit-reason capture, delivered by email."
 
 <!--
   Recreated from a description of prior, undocumented work: the repository holding this
@@ -21,6 +21,12 @@ email only for this version — no live-call collection path."
   Content below reconstructs the four user stories, requirements, and scope described by
   the project's operations lead, cross-checked against the constitution
   (.specify/memory/constitution.md) and the source design doc.
+
+  Revised 2026-09-05 per operations-lead feedback: (1) contractors have no dashboard
+  access at all in v1 — dashboards are admin-only; (2) the dashboard is redefined as one
+  admin-facing tool with a patient-level view and a clinician-filterable overall view,
+  rather than two separate dashboards; (3) all references to a live-call discontinuation
+  path removed — that was an old requirement no longer under consideration.
 -->
 
 ## User Scenarios & Testing *(mandatory)*
@@ -92,54 +98,56 @@ happening in CRM.
 
 ---
 
-### User Story 3 - Two separate reporting dashboards (Priority: P3)
+### User Story 3 - Admin dashboard for reviewing feedback data (Priority: P3)
 
-As the practice owner, I need an aggregate view across all patients and all contractors
-so I can see trends without seeing any single patient's identity. As a contractor, I need
-a view of only my own caseload's outcome trends, without ever seeing another
-contractor's caseload or my own patients' raw, identified responses.
+As a practice admin, I need to be able to see that feedback is actually being collected
+and to interpret it — both at the level of an individual patient (to sanity-check the
+pipeline is working and understand one patient's results) and across the whole practice,
+with the ability to narrow that overall view down to one clinician's caseload at a time.
+In this first version, this dashboard is admin-only; contractors have no access to
+feedback data or dashboards of any kind.
 
 **Why this priority**: Reporting is what turns collected feedback into something useful,
 but it depends entirely on Stories 1 and 2 already working — there's nothing to report on
 until requests go out and responses get collected and rejoined.
 
 **Independent Test**: Can be fully tested by seeding feedback data across multiple
-contractors and patients, then confirming the practice-owner view shows aggregated,
-non-drill-down trends across everyone, while each contractor's own view shows only their
-own caseload's trends and never another contractor's data or an identified link to their
-own patients' verbatim responses.
+patients and clinicians, then confirming an admin can (a) open a patient-level view and
+see that patient's recorded scores/responses, and (b) open an overall view showing
+practice-wide trends that can be filtered down to a single clinician's caseload — while
+confirming no contractor account can reach either view.
 
 **Acceptance Scenarios**:
 
-1. **Given** feedback responses exist across multiple patients and contractors, **When**
-   the practice owner opens their dashboard, **Then** they see aggregated trends
-   (satisfaction, communication, billing, discontinuation reasons, likelihood-to-refer,
-   per-contractor professionalism averages) with no per-patient drill-down available.
-2. **Given** a contractor opens their own dashboard, **When** they view their caseload's
-   trends, **Then** they see only outcome/alliance trends and flags for their own
-   patients, and cannot see any other contractor's caseload.
-3. **Given** a contractor's own patient has submitted raw, identified feedback, **When**
-   that contractor views their dashboard, **Then** they cannot see that patient's raw
-   verbatim response — only aggregated trend data, consistent with the constitution's
-   contractor-blindness principle.
+1. **Given** a patient has submitted feedback, **When** an admin opens that patient's
+   record in the dashboard, **Then** they see that patient's recorded scores/responses,
+   confirming the response was captured and rejoined correctly.
+2. **Given** feedback responses exist across multiple patients and clinicians, **When**
+   an admin opens the overall view with no filter applied, **Then** they see aggregated,
+   practice-wide trends (satisfaction, communication, billing, discontinuation reasons,
+   likelihood-to-refer, per-clinician professionalism averages).
+3. **Given** the same overall view, **When** an admin filters it to a single clinician,
+   **Then** they see trends limited to that clinician's own caseload.
+4. **Given** any contractor account, **When** that contractor attempts to access the
+   dashboard, **Then** access is denied — no contractor-facing dashboard or feedback data
+   view exists in this version.
 
 ---
 
-### User Story 4 - Discontinuation exit-reason capture, email only (Priority: P4)
+### User Story 4 - Discontinuation exit-reason capture (Priority: P4)
 
 As the practice, when a patient stops care (discontinuation), we need to capture why —
 using the same de-identified, automated flow as every other milestone, delivered by
-email only. A live-call collection path is explicitly out of scope for this version.
+email.
 
 **Why this priority**: This is a specific milestone instance built on top of Stories 1–3
 rather than a separate mechanism; it's the last story because it depends on all three
-being in place, and it's the milestone most likely to need product refinement later
-(e.g. adding a live-call path) once the core pipeline is proven.
+being in place, and it's the milestone most likely to need product refinement later once
+the core pipeline is proven.
 
 **Independent Test**: Can be fully tested by moving a test patient into discontinuation
-status and confirming an exit-reason feedback request is sent by email (using the same
-token/de-identification/rejoin mechanism as other milestones), with no live-call step
-anywhere in the flow.
+status and confirming an exit-reason feedback request is sent by email, using the same
+token/de-identification/rejoin mechanism as other milestones.
 
 **Acceptance Scenarios**:
 
@@ -147,12 +155,13 @@ anywhere in the flow.
    this, **Then** an exit-reason feedback request is sent to the patient by email
    automatically, using the same token-based, de-identified mechanism as other
    milestones.
-2. **Given** the discontinuation milestone has fired for a patient, **When** the
-   feedback pipeline processes it, **Then** no live-call step is scheduled, attempted, or
-   required anywhere in the flow — email is the only delivery channel for this version.
+2. **Given** a discontinuation feedback request is generated, **When** its token is
+   issued, **Then** it follows the same single-use token rules as every other milestone
+   (Story 2) — no separate identity-collecting mechanism is introduced for
+   discontinuation.
 3. **Given** a discontinued patient does not respond to the emailed request, **When** the
    practice reviews discontinuation data, **Then** the absence of a response is visible
-   as such (not silently dropped), without triggering any live-call fallback.
+   as such, not silently dropped.
 
 ### Edge Cases
 
@@ -194,22 +203,21 @@ anywhere in the flow.
 - **FR-006**: The system MUST purge the raw submission held by the collection tool
   within a short, defined retention window after the response has been recorded against
   the patient in CRM.
-- **FR-007**: The system MUST provide a practice-wide dashboard, restricted to the
-  practice owner, showing aggregated trends across all patients and contractors with no
-  per-patient drill-down.
-- **FR-008**: The system MUST provide a per-contractor dashboard, restricted by
-  row-level access so each contractor sees only their own caseload's outcome/alliance
-  trends and flags.
-- **FR-009**: The system MUST NOT expose a contractor's own patient's raw, identified
-  feedback response to that contractor, in either dashboard or any other view.
+- **FR-007**: The system MUST provide a dashboard, restricted to practice admins, with a
+  patient-level view showing recorded scores/responses for an individual patient, so
+  admins can confirm responses are being collected and interpret an individual result.
+- **FR-008**: The system MUST provide, within that same admin dashboard, an overall view
+  across all patients that can be filtered to a single clinician's caseload, so admins
+  can see both practice-wide trends and any one clinician's trends on demand.
+- **FR-009**: The system MUST NOT provide any contractor-facing dashboard or grant
+  contractors any access to feedback data in this version; dashboard access is limited
+  to practice admins.
 - **FR-010**: The system MUST detect a patient's discontinuation status change and
   automatically send an exit-reason feedback request by email, using the same
   token-based, de-identified mechanism as other milestones.
-- **FR-011**: The system MUST NOT include or require a live-call step for
-  discontinuation exit-reason capture in this version.
-- **FR-012**: The system MUST make non-response to a feedback request (including
+- **FR-011**: The system MUST make non-response to a feedback request (including
   discontinuation) visible in reporting rather than silently omitting it.
-- **FR-013**: The system MUST NOT process, store, or transmit any patient data through a
+- **FR-012**: The system MUST NOT process, store, or transmit any patient data through a
   given underlying product until that product's BAA coverage has been explicitly
   confirmed, per the constitution's BAA-gated adoption principle.
 
@@ -227,12 +235,13 @@ anywhere in the flow.
   instance. Exists briefly in raw form in the collection tool, then is rejoined to the
   patient and persisted in CRM; the raw copy is purged after a short retention window.
 - **Contractor (Clinician)**: The care provider associated with a patient's sessions.
-  Has access to an own-caseload dashboard but never to raw, identified feedback about
-  their own patients.
-- **Practice Dashboard**: Aggregate reporting view, practice-owner only, no per-patient
-  drill-down.
-- **Clinician Dashboard**: Per-contractor reporting view, restricted to that
-  contractor's own caseload via row-level access.
+  Has no dashboard or feedback-data access in this version. A later version may
+  introduce a restricted, aggregated view of their own caseload, but never raw,
+  identified feedback about their own patients.
+- **Admin Dashboard**: The single reporting tool for this version, restricted to
+  practice admins. Has a patient-level view (scores/responses for one patient) and an
+  overall view across all patients that can be filtered to a single clinician's
+  caseload.
 
 ## Success Criteria *(mandatory)*
 
@@ -244,17 +253,18 @@ anywhere in the flow.
   or stored by the collection tool.
 - **SC-003**: 100% of valid, submitted responses are correctly matched to the right
   patient in CRM.
-- **SC-004**: 0 instances of a contractor viewing their own patient's raw, identified
-  feedback response.
+- **SC-004**: 0 instances of a contractor account accessing any feedback dashboard or
+  feedback data — dashboard access is limited to practice admins in this version.
 - **SC-005**: 100% of discontinuation milestones result in an emailed exit-reason
-  request, with 0 live-call steps required or attempted.
+  request.
 - **SC-006**: Raw feedback submissions are purged from the collection tool within the
   defined retention window in 100% of completed (rejoined) cases.
 
 ## Assumptions
 
-- The practice owner is the sole audience for the aggregate practice dashboard; no
-  additional aggregate-view roles (e.g. office manager) are in scope for this version.
+- Practice admins (which may be more than one person, and includes the practice owner)
+  are the sole audience for the dashboard; no contractor-facing or other role has
+  dashboard access in this version.
 - "Contractor" and "clinician" are used interchangeably to mean the care-providing
   professional associated with a patient's sessions.
 - Milestone condition thresholds (e.g. specific session counts) are configurable
@@ -265,6 +275,7 @@ anywhere in the flow.
 - Which specific products are confirmed under the practice's BAA is a separate, still-open
   decision and is not resolved by this specification — see constitution
   TODO(BAA_SCHEDULE). This spec assumes that confirmation happens before any product is
-  wired into the live pipeline, per FR-013.
-- A live-call discontinuation path is a deliberately deferred, later enhancement, not an
-  oversight — it is out of scope for this version by product decision.
+  wired into the live pipeline, per FR-012.
+- The exact set of milestones (which conditions exist, and their trigger thresholds) is
+  tracked separately and is not yet enumerated in this specification — see the open
+  question raised alongside this revision.
