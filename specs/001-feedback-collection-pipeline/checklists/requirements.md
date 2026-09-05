@@ -34,7 +34,13 @@
 - This spec was reconstructed after the repository was found empty at session start;
   see the note at the top of spec.md and the Sync Impact Report in
   `.specify/memory/constitution.md`.
+- Revised twice on 2026-09-05 per operations-lead review: first pass narrowed dashboard
+  access to admins-only and dropped the live-call discontinuation path; second pass
+  added the six enumerated milestones (User Story 1 / Requirements), a new clinical
+  safety flag mechanism (User Story 4), and Principle VI (no testimonial/marketing use).
+  All checklist items above still hold after both revisions.
 - Two items remain genuinely open by product decision, not spec ambiguity, and are
   tracked as TODOs in the constitution rather than as [NEEDS CLARIFICATION] markers
-  here: how CRM's trigger fields get populated, and which Zoho products are confirmed
-  under the BAA. Neither blocks proceeding to `/speckit-plan`.
+  here: whether/how Milestones 1–4 integrate with the practice's EHR for trigger data,
+  and which Zoho products are confirmed under the BAA. Neither blocks proceeding to
+  `/speckit-plan`.

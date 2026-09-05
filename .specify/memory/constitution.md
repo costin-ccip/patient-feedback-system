@@ -1,6 +1,6 @@
 <!--
 Sync Impact Report
-- Version change: 1.0.0 → 1.1.0
+- Version change: 1.1.0 → 1.2.0
 - Rationale for the original 1.0.0 (not a continuation of a previously-reported
   "v1.0.1"): this repository was found completely empty at the start of the session that
   first authored this file (zero commits, zero branches). An earlier working session had
@@ -13,21 +13,34 @@ Sync Impact Report
   the first version — contractors now have NO dashboard/feedback-data access at all
   (previously they were described as having an aggregated, own-caseload dashboard). A
   restricted contractor view is left open as a possible later-version addition, still
-  gated on the same blindness guarantee. This is a MINOR bump: it materially changes what
-  the principle currently permits without removing the underlying protection it exists
-  to guarantee.
-- Modified principles: IV. Contractor Blindness to Own Raw Feedback (dashboard access
-  narrowed to admins-only for v1)
-- Added sections: none this amendment
-- Removed sections: none this amendment
+  gated on the same blindness guarantee.
+- 1.2.0 amendment: Added Principle VI (Internal Use Only — Never a Testimonial or
+  Marketing Pipeline), sourced from the parent Confluence design page's ethics/compliance
+  guardrails (APA 5.05 / ACA A.3.b / NASW 4.07(b) restrict soliciting testimonials from
+  current or recent clients). Added supporting bullets under Compliance & Data Handling
+  Requirements and Development Workflow. This is a MINOR bump: a new principle, no
+  existing principle removed or redefined.
+- Also refined the TODO(TRIGGER_SOURCE) note below with detail found in the milestone
+  detail pages (Confluence): the practice's EHR is SimplePractice, and per the source
+  doc's own open questions, integration from SimplePractice into this pipeline for
+  Milestones 1–4 triggers is still unbuilt; Milestone 0 (pre-patient) is CRM-only since
+  prospects have no EHR record yet. This is new information surfaced, not yet a decision,
+  so the TODO stays open.
+- Modified principles (1.1.0): IV. Contractor Blindness to Own Raw Feedback
+- Added sections (1.2.0): VI. Internal Use Only — Never a Testimonial or Marketing
+  Pipeline
+- Removed sections: none
 - Follow-up TODOs:
   - TODO(BAA_SCHEDULE): Confirm with the Zoho account manager which specific products
     (CRM, Flow, Mail, Forms, Analytics) are named in Cape Clarity's actual BAA schedule.
     Principle V is written to block on this per-product, not to assume it.
-  - TODO(TRIGGER_SOURCE): Decide whether CRM session-count/status fields that drive
-    milestone triggers are populated manually or derived from Zoho Bookings. Principle
-    III requires automation of the *sending* of triggers once a milestone condition is
-    true in CRM, but does not yet resolve how that condition gets set.
+  - TODO(TRIGGER_SOURCE): Milestones 1–4 are meant to trigger off session-count/status
+    data that lives in the practice's EHR (SimplePractice), per the source design doc;
+    Milestone 0 (pre-patient, no EHR record) triggers off Zoho CRM data directly. The
+    source doc's own open questions list an EHR-to-pipeline integration as still unbuilt.
+    Principle III requires automation of the *sending* of triggers once a milestone
+    condition is true, but does not yet resolve how or whether that EHR integration gets
+    built, nor confirm this understanding is current practice reality.
 -->
 
 # Cape Clarity Patient Feedback System Constitution
@@ -82,6 +95,17 @@ future addition) MUST be checked individually. Rationale: the BAA only covers wh
 actually named in its schedule; assuming broader coverage is a compliance risk, not a
 convenience.
 
+### VI. Internal Use Only — Never a Testimonial or Marketing Pipeline
+This system exists solely for internal clinical-quality and practice-operations
+purposes. Data collected through it MUST NOT be solicited, displayed, or repurposed as a
+public testimonial, review, or marketing material, and MUST remain fully separate from
+any public-facing or marketing tool or workflow. Rationale: professional ethics codes
+governing the practice's clinicians (e.g. APA Ethical Standard 5.05, ACA Code of Ethics
+A.3.b, NASW Code of Ethics 4.07(b)) restrict soliciting testimonials from current or
+recently-former clients; keeping this system structurally walled off from anything
+public-facing prevents it from ever being repurposed that way, whether deliberately or
+through later feature creep.
+
 ## Compliance & Data Handling Requirements
 
 - Raw survey entries (Zoho Forms submissions) MUST be purged on a short, defined
@@ -98,6 +122,8 @@ convenience.
   Security Rule's technical safeguards in active use (TLS enforcement, MFA, blocked
   auto-forwarding, audit log retention, access restrictions) before it is relied on for
   this pipeline, independent of its BAA status.
+- No system, integration, or export in this pipeline may feed a public-facing website,
+  social media tool, review platform, or marketing system, per Principle VI.
 
 ## Development Workflow
 
@@ -108,6 +134,9 @@ convenience.
   regardless of any other benefit it offers.
 - Before wiring up a new Zoho product (or a new use of an existing one) to touch patient
   data, Principle V's BAA confirmation MUST be completed and recorded first.
+- Any proposal to connect this pipeline's data to a website, social media, review, or
+  marketing tool MUST be rejected per Principle VI, regardless of the business case
+  offered for it.
 
 ## Governance
 
@@ -120,4 +149,4 @@ principle or materially expanded guidance, PATCH for wording/clarification only)
 or task generated under Spec Kit for this project MUST be checked for compliance with
 these principles before implementation begins.
 
-**Version**: 1.1.0 | **Ratified**: 2026-09-04 | **Last Amended**: 2026-09-05
+**Version**: 1.2.0 | **Ratified**: 2026-09-04 | **Last Amended**: 2026-09-05
