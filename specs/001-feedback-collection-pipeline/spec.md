@@ -410,6 +410,12 @@ starting policy, not validated cutoffs, and are configurable (see Assumptions).
   decision (2026-09-05), this version uses email only: the emailed request fires
   directly on Milestone 5's trigger conditions (cancellation with no rebooking, or a
   no-show pattern), with no live-call step and no call-attempt gate of any kind.
+  Confirmed against the live build: the practice's Zoho CRM `Milestone_Instances` module
+  does contain leftover picklist values for a live-capture path (`5A - Discontinuation,
+  Live Capture`, a `Staff Live Entry` capture method, and a `Captured Live` status). Per
+  the operations lead, this was built before the decision to drop live calls and is dead,
+  unused configuration — it should be disregarded (and ideally cleaned up in CRM) rather
+  than treated as part of the current design.
 - The source Confluence doc describes Milestones 1–4 as triggering off the practice's
   EHR (SimplePractice). Per explicit operations-lead correction (2026-09-05), this is
   not accurate: all six milestones (0–5) trigger off events/data recorded in Zoho CRM,
