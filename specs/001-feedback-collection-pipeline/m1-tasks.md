@@ -15,18 +15,39 @@ advance.
 
 ## Phase 1: Setup
 
-- [ ] T001 Build the public "Cape Clarity Wellbeing Check-In" Zoho Form: 5
+- [x] T001 Build the public "Cape Clarity Wellbeing Check-In" Zoho Form: 5
       sliders (Personal wellbeing, Coping, Relationships and support, Hope
       and outlook, Sense of control — each 0-10, exact prompt text per
       `m1-research.md`), plus a hidden/single-line `Token` field. No name,
       email, or phone field, per Principle I. Build it generically
       (parameterized so it can be reused unmodified at M3/M4), not as an
       M1-only artifact.
-- [ ] T002 Confirm the `Milestone_Instances` module's existing `Milestone`
+      **Done (2026-09-06)**: built via Zoho Forms builder (Claude in Chrome,
+      non-PII product, no Leads/Patients module touched). All 5 sliders
+      range 0-10, mandatory, Min/Max labels shown, instructions carry the
+      domain name for at-a-glance identification during testing. `Token`
+      field is a hidden Single Line field; field alias `token` configured
+      under Settings > Prefill > Field Alias - Prefill URL, so the survey
+      link pattern is `<form permalink>?token=<value>`, matching M0's
+      token-in-URL pattern. Form permalink:
+      `https://forms.zohopublic.com/lianapreudhommecapec1/form/CapeClarityWellbeingCheckIn/formperma/Qlvh_FeoU3Oof7fQz4WEeQBoFvQHYl2TLdNlQPON_Eg`.
+      Note: this account is on the Zoho Forms Free plan, so the form-level
+      HIPAA compliance add-on (Settings > Compliance & Audit > HIPAA) is
+      unavailable, same constraint already logged in
+      `data-retention-purge.md`. Not a blocker for this form specifically
+      since it carries no PII (only a token and 0-10 scores), same design
+      basis M0 already validated as compliant without that add-on.
+- [x] T002 Confirm the `Milestone_Instances` module's existing `Milestone`
       picklist has a clean `"1 - Baseline Intake"` value (it does, per
       `m0-implementation-notes.md` §5) and that the `Patient` lookup field
       is in place and unused so far — no schema changes needed for M1 beyond
       what M0 already built.
+      **Done (2026-09-06)**: confirmed via `getFields` (Zoho CRM MCP, schema
+      read only, no record data touched). `Milestone` picklist includes
+      `"1 - Baseline Intake"`; `Patient` (lookup), `Token` (text),
+      `Response_Data` (textarea), `Expiry_Date_Time` (datetime), `Status`
+      (picklist: Issued/Submitted/Expired/Superseded/Captured Live) all
+      already exist from M0's build. No schema changes needed.
 
 ## Phase 2: Foundational
 
