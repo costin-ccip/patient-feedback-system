@@ -74,13 +74,15 @@ convert M0 to a fully automatic trigger without new CRM signal design.
       T007) — response lands only on the matched CRM record.
 - [x] T013 [US2] Reuse rejection implemented via `Status != "Issued"` check
       (satisfies spec.md Acceptance Scenario 2 for User Story 2).
-- [ ] T014 [US2] **Open / compliance gap**: 24-hour purge of the raw Zoho Forms
-      submission entry (constitution's Data Handling & Retention requirement,
-      spec.md FR-007) is **not implemented**. `submitFeedbackResponse` copies
-      data into CRM but never deletes or schedules deletion of the original
-      Form entry. Needs either a scheduled Flow (e.g., a nightly purge flow
-      keyed on submission timestamp) or a Zoho Forms retention setting review.
-      Treat as a go-live blocker, not a nice-to-have.
+- [ ] T014 [US2] **Open / compliance gap**: purge of the raw Zoho Forms
+      submission entry within "a short, defined retention window" (spec.md
+      FR-006; the constitution's own wording — the window is not literally
+      fixed at 24 hours anywhere ratified, though that's the working target)
+      is **not implemented**. `submitFeedbackResponse` copies data into CRM
+      but never deletes or schedules deletion of the original Form entry.
+      Investigated a generic fix and hit real technical blockers — see
+      `data-retention-purge.md`. Treat as a go-live blocker, not a
+      nice-to-have.
 
 **Checkpoint**: Core de-identified rejoin works end-to-end; retention purge is
 a known, tracked gap.
@@ -99,10 +101,12 @@ only needed to prove out its own reporting slice.*
       Distribution (bar chart), M0 % Reachable (KPI tile).
 - [x] T017 Assemble "M0 - Free Consult Non-Conversion Feedback" dashboard (7
       panels total, including 3 pre-existing panels).
-- [ ] T018 Not started: any per-contractor (Clinician Dashboard) view or
-      row-level security — out of scope for M0, tracked at the spec level
-      under User Story 3 / FR-010 for whichever milestone first needs
-      multi-contractor scoping.
+- [ ] T018 Not applicable as previously framed: the authoritative spec.md
+      does not call for any per-contractor dashboard — Principle IV
+      (Contractor Blindness to Own Raw Feedback) and FR-009 require zero
+      contractor-facing dashboard/feedback-data access in this version, not a
+      scoped view to build later. Nothing to do here for M0 or any future
+      milestone unless that principle is itself amended.
 
 ## Phase 6: Test data & validation
 
@@ -133,7 +137,7 @@ only needed to prove out its own reporting slice.*
   signal becomes available.
 - **T014**: 24-hour raw-Forms-entry purge is unimplemented — real compliance
   gap, go-live blocker.
-- **T018**: No per-contractor dashboard scoping yet (not required for M0 alone).
+- **T018**: Not applicable — no contractor dashboard is called for by the ratified spec at all (Principle IV / FR-009), so there's nothing to build here, only to keep respecting.
 - **T021**: Dashboard-against-new-sample-data re-verification not yet done.
 - Constitution-level, cross-milestone blockers (not M0-specific but gate M0
   going live with real data too): `TODO(BAA_SCHEDULE)` unresolved; CRM

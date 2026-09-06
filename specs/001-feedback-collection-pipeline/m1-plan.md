@@ -147,9 +147,9 @@ storage decision now settled (see Complexity Tracking below and
 to conserve `Milestone_Instances`' CRM field budget for M2 and M5 (whose
 question sets aren't designed yet).
 
-**Tradeoff accepted**: M3's trend-flagging logic (comparing a patient's
-current Wellbeing Check-In reading against their prior one — stalled/
-deteriorating/case-consultation rules) will need to parse and compare
+**Tradeoff accepted**: M3's evaluation against the ratified Clinical Safety
+Flag Rules (comparing a patient's current Wellbeing Check-In reading against
+their prior one or two readings) will need to parse and compare
 `Response_Data` blobs across multiple `Milestone_Instances` records per
 patient, rather than doing direct CRM-field arithmetic. This is solvable
 (Analytics can join/compare rows, or a Deluge function can do the comparison
