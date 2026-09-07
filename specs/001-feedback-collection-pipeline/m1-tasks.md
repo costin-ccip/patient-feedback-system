@@ -51,13 +51,13 @@ advance.
 
 ## Phase 2: Foundational
 
-- [ ] T003 Build "M1 - Session 1 Trigger" flow: watch
+- [x] T003 Build "M1 - Session 1 Trigger" flow: watch
       `Patients1.Session_Count` for the transition to `1`.
-- [ ] T004 Implement the idempotency check inside that flow (query
+- [x] T004 Implement the idempotency check inside that flow (query
       `Milestone_Instances` for an existing `Patient` + `Milestone = "1 -
       Baseline Intake"` record before creating a new one) — satisfies spec.md
       FR-002. This has no M0 equivalent; M0's manual trigger didn't need it.
-- [ ] T005 On no existing record found: create a new `Milestone_Instances`
+- [x] T005 On no existing record found: create a new `Milestone_Instances`
       record (`Patient` = triggering patient, `Milestone = "1 - Baseline
       Intake"`, `Status = "Issued"`, fresh `Token`, `Expiry_Date_Time` —
       reuse M0's expiry window unless Costin specifies otherwise for M1) and
