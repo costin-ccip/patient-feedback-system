@@ -35,9 +35,7 @@ workflow where practical.
 
 Do not open the CRM's Leads or Patients modules in the browser without explicit
 permission from Costin — use MCP tool calls (getRecords/createRecords/etc.) for
-any CRM module that doesn't carry PII instead. Never populate or query the
-`Patient` lookup field on `Milestone_Instances` (it points to the Patients module)
-from any automation, report, or session.
+any CRM module that doesn't carry PII instead.
 
 
 ## Branch reconciliation (2026-09-06)
