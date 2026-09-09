@@ -53,6 +53,11 @@ advance.
 
 - [x] T003 Build "M1 - Session 1 Trigger" flow: watch
       `Patients1.Session_Count` for the transition to `1`.
+      **Now ON/live (2026-09-09)** — the flow refused to switch on
+      ("You need at least one action") because two of its three links were
+      never actually wired despite looking connected; fixed by rewiring
+      trigger→`checkBaselineIntakeExists` and If-else→"Call a subflow". See
+      `m1-implementation-notes.md` §12.
 - [x] T004 Implement the idempotency check inside that flow (query
       `Milestone_Instances` for an existing `Patient` + `Milestone = "1 -
       Baseline Intake"` record before creating a new one) — satisfies spec.md
@@ -69,8 +74,9 @@ advance.
       Check-In form. Connected to `submitWellbeingCheckInResponse` (T007).
       Confirmed correctly wired (not just visually adjacent — see
       `m1-implementation-notes.md` §5 for the connector-verification gotcha
-      hit along the way). Flow saved, still OFF/unpublished. See
-      `m1-implementation-notes.md` §4A for the full step-by-step.
+      hit along the way). Flow saved. **Now ON/live (2026-09-09)** — see
+      `m1-implementation-notes.md` §4A for the full step-by-step and §12 for
+      the "M1 - Session 1 Trigger" connector bug found while going live.
 - [x] T007 Implement the write-back function: token lookup, `Status !=
       "Issued"` rejection (reuse protection, same pattern as M0's
       `submitFeedbackResponse`), expiry check + auto-expire, delimited

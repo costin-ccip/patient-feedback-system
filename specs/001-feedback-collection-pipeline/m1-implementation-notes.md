@@ -12,9 +12,9 @@
 > (T003–T007, including the write-back flow), and Phase 5 reporting (T015
 > Analytics formula columns, T016 "M1 Submitted Responses" report) are all
 > built and saved. Both flows ("M1 - Session 1 Trigger" and "M1 - Wellbeing
-> Check-In Write-back") are still OFF/unpublished — no live test has been run
-> yet, per Costin's explicit instruction to test M1 and re-verify M0
-> end-to-end only once all pieces are in place.
+> Check-In Write-back") are now ON/live (see §12) — a real connector bug
+> blocked "M1 - Session 1 Trigger" from switching on until it was found and
+> fixed this session.
 
 ## 1. What M1 does
 
@@ -333,6 +333,11 @@ session.
   (T017–T020) all depend on Costin's deferred end-to-end live test and a test
   Patient record ID (per the standing Patients-module access restriction, see
   `m1-data-model.md`) and have not been started.
+- Both flows are now ON/live (§12) — Costin attempted to switch on "M1 -
+  Session 1 Trigger" directly and hit a real bug (see §12), which is now
+  fixed. A basic (non-trigger) test scenario for verifying the response-data
+  pipeline is drafted in `m1-test-scenario.md`; the full end-to-end trigger
+  test (T008-T010, T017-T020) is still pending Costin's test Patient ID.
 
 ## 9. Analytics formula columns and "M1 Submitted Responses" report (T015/T016)
 
@@ -437,3 +442,47 @@ intentionally not included, matching T016's "raw blob hidden" requirement. No
 `Patient`/identity column either, consistent with §9.1. Currently renders
 correctly with zero rows (expected — no M1 submissions exist yet); will
 populate once Costin runs the deferred end-to-end live test (§7).
+
+## 12. Bug found and fixed: "M1 - Session 1 Trigger" couldn't switch on (2026-09-09)
+
+Costin tried to switch "M1 - Session 1 Trigger" ON and got: **"You need at
+least one action to switch on this flow."** Investigated directly in the
+Zoho Flow Builder canvas (DOM inspection, same connector-verification method
+as the §5 write-back-flow gotcha).
+
+**Root cause**: two of the flow's three links were never actually wired,
+despite looking connected in the canvas layout — the same "a drag-and-drop
+that visually places a node next to another does not necessarily connect it"
+gotcha as §5, just undiscovered until Costin tried to go live:
+
+1. Trigger ("Updated module entry") → `checkBaselineIntakeExists` — **not
+   connected**.
+2. "If else" (true/then branch) → "Call a subflow" — **not connected**.
+
+Only the middle link (`checkBaselineIntakeExists` → "If else") was actually
+wired. Confirmed via the DOM: `jsplumb-connected` class was present on only
+2 of the 6 relevant endpoint anchors before the fix. Since the trigger itself
+had zero connected outgoing actions, Zoho Flow correctly refused to switch
+the flow on.
+
+**Fix**: rewired both missing connections directly via jsPlumb's own
+drag-endpoint elements (`.jsplumb-endpoint.jsplumb-draggable.jsplumb-droppable`,
+the actual interactive 20×20 overlay — not the smaller `.jsplumb-endpoint-anchor`
+markers, which don't respond to the drag gesture on their own) — dispatching
+real `mousedown` → many `mousemove` steps → `mouseover`/`mouseup` MouseEvents
+between each source/target pair's live `getBoundingClientRect()` centers, via
+`javascript_tool` rather than the coordinate-based `computer` click tool
+(the same environment-specific screen/DOM coordinate mismatch noted in §5
+made screenshot-coordinate clicks land on the wrong element — one attempt
+even opened the trigger node's title-rename field instead of dragging it).
+Verified via a hard reload that both connections persisted
+(`jsplumb-connected` present on all 6 endpoints, connector lines rendering
+in the canvas), then switched the flow on successfully ("Awesome! This flow
+has been switched on").
+
+**Result**: both "M1 - Session 1 Trigger" and "M1 - Wellbeing Check-In
+Write-back" are now ON/live. This was not Costin's deferred coordinated
+end-to-end test (§7) — it was fixing a build defect Costin surfaced by
+trying to use the toggle — so treat the flows as live starting now, but note
+that the full trigger test (T008-T010) and Phase 6 validation (T017-T020)
+still haven't been run.
