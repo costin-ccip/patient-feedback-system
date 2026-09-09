@@ -6,16 +6,24 @@
 > future session (human or AI) understand exactly what was built, why, and where the
 > sharp edges are, without having to reverse-engineer it from Zoho.
 >
-> Last updated: 2026-09-06
-> Status: M0 is live and functional end-to-end (form → CRM write-back → Analytics
-> reporting). See "Process note" at the end — this milestone was built ad hoc,
+> Last updated: 2026-09-08
+> Status: M0 is built end-to-end (trigger → form → CRM write-back → Analytics
+> reporting). As of this update, both "M0 - Lost Lead Feedback Token" and "M0 -
+> Feedback Survey Write-back" are deliberately toggled OFF in Zoho Flow — per
+> Costin, several flows are intentionally paused pending coordinated
+> end-to-end testing (see `m1-implementation-notes.md`), not because of a
+> defect. See "Process note" at the end — this milestone was built ad hoc,
 > outside the spec-kit plan/tasks workflow the project constitution calls for.
+> See §11 for a 2026-09-08 correction to the token-issuance trigger mechanism.
 
 ## 1. What M0 does
 
 M0 fires when a lead has a free consultation and does not convert to a paying client.
-The clinician (Liana) triggers issuance of a feedback survey token for that lead. The
-lead receives a link to a public Zoho Form. When they submit it, a Zoho Flow captures
+Token issuance is automatic: when someone on the team sets that Lead's `Lead_Status`
+field to `Lost Lead` in CRM — a normal part of working the lead, not a separate
+"start feedback" action — a realtime trigger flow fires and issues the token. (An
+earlier version of this doc described this as a step the clinician triggered by
+hand; §11 corrects that.) The lead receives a link to a public Zoho Form. When they submit it, a Zoho Flow captures
 the response, matches it back to the correct `Milestone_Instances` CRM record by
 token, validates the token hasn't expired and hasn't already been used, and writes the
 parsed response data back onto that CRM record. Zoho Analytics syncs from CRM and
@@ -31,7 +39,8 @@ this flow (see §5, `Patient` field note).
 | Component | Name | Where |
 |---|---|---|
 | Public form | M0 feedback survey (Zoho Forms) | Linked from the token issuance email/flow |
-| Token issuance | "Subflow - Issue Feedback Token" | Zoho Flow, folder "Customer Feedback System" |
+| Trigger flow | "M0 - Lost Lead Feedback Token" | Zoho Flow, folder "Customer Feedback System" — realtime "Updated module entry" on `Leads`, fires when `Lead_Status` (picklist field, confirmed via CRM `getFields`; label "Lead Status") transitions to `Lost Lead`. Calls the shared subflow below. See §11. |
+| Token issuance (shared) | "Subflow - Issue Feedback Token" | Zoho Flow, folder "Customer Feedback System" — called by the trigger flow above; also reused by M1 |
 | Write-back flow | "M0 - Feedback Survey Write-back" | Zoho Flow, folder "Customer Feedback System" |
 | Write-back logic | Custom Deluge function `submitFeedbackResponse` | Inside the write-back flow |
 | CRM module | `Milestone_Instances` | Zoho CRM |
@@ -306,3 +315,46 @@ This file is offered as retroactive input material if Costin later wants to back
 formal `plan.md`/`tasks.md` for M0 to bring it into compliance with the constitution,
 and as a cautionary note for future milestones: the constitution's own rule is to spec
 first, not after the fact.
+
+## 11. Correction (2026-09-08) — token issuance is automatic, not manual
+
+A session picking up M1 work found a flow in Zoho Flow, "M0 - Lost Lead Feedback
+Token," that isn't named anywhere in this file or in `m0-plan.md`/`m0-tasks.md`.
+Those documents describe M0's token issuance as a manual step the clinician
+performs by hand (framed as a documented Principle III fallback, since a
+free-consult non-conversion has no natural automatic trigger condition). Checking
+the live flow's execution history (filter criteria: `Lead_Status equals Lost
+Lead`) and confirming the field via CRM `getFields` (schema only, no Lead records
+opened — `Lead_Status`, label "Lead Status", picklist, includes the value `Lost
+Lead`) showed this is not what's actually built.
+
+**Confirmed with Liana (2026-09-08)**: the real mechanism is that someone on the
+team sets a Lead's `Lead_Status` to `Lost Lead` in CRM as a normal part of working
+that lead — not a dedicated "start feedback" action. That field change fires "M0 -
+Lost Lead Feedback Token" (a realtime "Updated module entry" trigger) automatically,
+which calls the shared "Subflow - Issue Feedback Token" to create the
+`Milestone_Instances` record, generate the token, and send the email. There is no
+separate manual token-issuance step beyond the ordinary act of marking a lead lost.
+
+This is a real, load-bearing correction, not just a naming fix: `m0-plan.md`'s
+Constitution Check flags an open question against Principle III (Automated
+Milestone Triggers) specifically because it believed M0's issuance was manual.
+With an automatic CRM-field trigger in place — the same pattern M1 uses for
+`Session_Count` — that open question is substantially addressed, though whether
+"a team member changes a Lead's status" counts as sufficiently automatic (versus
+M1's fully system-detected `Session_Count` threshold) is still worth Costin's
+explicit sign-off rather than assuming resolved by this note alone. `m0-plan.md`
+and `m0-tasks.md` (T008/T010) have not been rewritten to preserve their original
+retroactive record, but T010 should be treated as resolved — see the dated
+addendum at the end of each of those files rather than treating their original
+Constitution Check / task text as current.
+
+Separately, both "M0 - Lost Lead Feedback Token" and "M0 - Feedback Survey
+Write-back" were found toggled OFF in Zoho Flow on 2026-09-08. Per Costin, this is
+intentional — several flows are deliberately paused pending a coordinated
+end-to-end test of M0 and M1 together, not a sign anything is broken. Execution
+history shows real runs going back to 2026-09-03 (16 total: 4 completed, 8
+filtered, 4 failed); this session did not open individual executions' input/output
+data (which would show a real Lead's name/email), per the standing restriction on
+viewing Lead/Patient PII in the browser, so whether those runs processed real or
+test leads was not verified here.
