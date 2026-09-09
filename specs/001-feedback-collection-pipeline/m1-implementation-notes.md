@@ -7,13 +7,14 @@
 > tracks what has actually been built in Zoho, as it's built, per the CLAUDE.md
 > convention of updating implementation notes in the same session as the change.
 >
-> Last updated: 2026-09-08
+> Last updated: 2026-09-09
 > Status: Phase 1 (Setup: T001 form, T002 schema confirm), Phase 2 Foundational
-> (T003–T007, including the write-back flow) are all built and saved. Both
-> flows ("M1 - Session 1 Trigger" and "M1 - Wellbeing Check-In Write-back") are
-> still OFF/unpublished — no live test has been run yet, per Costin's explicit
-> instruction to test M1 and re-verify M0 end-to-end only once all pieces are
-> in place.
+> (T003–T007, including the write-back flow), and Phase 5 reporting (T015
+> Analytics formula columns, T016 "M1 Submitted Responses" report) are all
+> built and saved. Both flows ("M1 - Session 1 Trigger" and "M1 - Wellbeing
+> Check-In Write-back") are still OFF/unpublished — no live test has been run
+> yet, per Costin's explicit instruction to test M1 and re-verify M0
+> end-to-end only once all pieces are in place.
 
 ## 1. What M1 does
 
@@ -324,6 +325,115 @@ session.
   `submitWellbeingCheckInResponse` function are built, saved, and confirmed
   correctly wired (trigger connected to function; see the connector gotcha
   in §5).
-- Phase 3+ (US1/US2 verification tasks, T008–T014, Phase 5 reporting T015–T016,
-  Phase 6 test/validation T017–T020) all depend on Costin's deferred
-  end-to-end live test and have not been started.
+- T015/T016 are done (see §9) — the Analytics formula columns and the "M1
+  Submitted Responses" report are built and saved, verified against the
+  current (all-M0) sample data, and currently render correctly empty pending
+  real M1 submissions.
+- Phase 3+ (US1/US2 verification tasks, T008–T014) and Phase 6 test/validation
+  (T017–T020) all depend on Costin's deferred end-to-end live test and a test
+  Patient record ID (per the standing Patients-module access restriction, see
+  `m1-data-model.md`) and have not been started.
+
+## 9. Analytics formula columns and "M1 Submitted Responses" report (T015/T016)
+
+Built directly in the Zoho CRM Analytics workspace (`3251423000000083002`), on
+the shared "Milestone Instances" table (view ID `3251423000000083317`) that M0
+also uses. This table is shared across all six milestones via the `Milestone`
+field, not milestone-specific, so every formula below fires against every row
+regardless of milestone and had to be written defensively (see §9.3).
+
+### 9.1 Data source integration re-verified (not changed)
+
+Before building the formulas, re-confirmed the Zoho CRM → Analytics sync
+configuration for the "Milestone Instances" module already includes every
+field M1's Analytics work depends on: Response Data, Milestone, Status,
+Clinician, Token, Expiry Date Time, Submitted Date Time, Lead Reference.
+`Patient` (lookup) and `Capture Method` remain deliberately UNCHECKED /
+unsynced. This matters specifically for M1: M1 populates the `Patient` lookup
+in CRM (§1, §6) but that identity link is intentionally never pulled into
+Analytics, so no Analytics report — including the one in §9.4 — can join a
+Wellbeing Check-In response back to a named patient. Changing this would need
+explicit sign-off from Costin.
+
+(Context for future readers: this sync briefly broke in early September 2026
+when the Zoho Analytics account was downgraded to the Free plan, which cannot
+run CRM integrations. Costin resolved this by upgrading back to Basic
+Edition, which automatically restored the integration and all 34
+previously-deleted Analytics items, including the M0 dashboard/report/formula
+columns this section builds on — no manual restore action was needed from
+this session.)
+
+### 9.2 Formula columns on "Milestone Instances"
+
+Six new formula columns (right-click column header → Add Formula → Formula
+Column), matching `m1-data-model.md`'s planned formulas and mirroring M0's
+`substring_between`/`SUBSTR` pattern (`m0-implementation-notes.md` §6):
+
+| Column | Formula | Type |
+|---|---|---|
+| Domain: Wellbeing | `substring_between("Milestone Instances"."Response Data", 'Personal wellbeing (0-10): ', '---', 1)` | Text |
+| Domain: Coping | `substring_between("Milestone Instances"."Response Data", 'Coping (0-10): ', '---', 1)` | Text |
+| Domain: Relationships | `substring_between("Milestone Instances"."Response Data", 'Relationships and support (0-10): ', '---', 1)` | Text |
+| Domain: Hope | `substring_between("Milestone Instances"."Response Data", 'Hope and outlook (0-10): ', '---', 1)` | Text |
+| Domain: Control | guarded `SUBSTR`/`INSTR`/`LENGTH` expression, see §9.3 | Text |
+| Wellbeing Check-In Total | `to_integer("Milestone Instances"."Domain: Wellbeing") + to_integer("Milestone Instances"."Domain: Coping") + to_integer("Milestone Instances"."Domain: Relationships") + to_integer("Milestone Instances"."Domain: Hope") + to_integer("Milestone Instances"."Domain: Control")` | Number |
+
+`to_integer()` (found via the formula editor's Functions panel, searching
+"to" — `to_number`/`getnumber` do not exist as functions) is needed because
+`+` on formula-column text output isn't auto-coerced to numeric.
+
+### 9.3 Bug found and fixed: unbounded last-field formula returns garbage, not blank, on non-matching rows
+
+"Sense of control (0-10): " is the last field in the M1 blob (no trailing
+`---` to bound it), so — per the plan in `m1-data-model.md` — it needs M0's
+`SUBSTR`/`INSTR`/`LENGTH` pattern instead of `substring_between`
+(`m0-implementation-notes.md` §6, "Anything Else"). The naive version:
+
+```
+SUBSTR("Milestone Instances"."Response Data", INSTR("Milestone Instances"."Response Data",'Sense of control (0-10): ')+LENGTH('Sense of control (0-10): '), LENGTH("Milestone Instances"."Response Data"))
+```
+
+returns garbage (a large chunk of the row's raw blob, not blank) on any row
+where the label isn't found — e.g. every pre-existing M0 sample row — because
+`INSTR` returns `0` on no-match, and `0 + LENGTH(label)` is still a valid
+(wrong) `SUBSTR` start position rather than an error or empty result.
+
+Fixed for "Domain: Control" with a guard:
+
+```
+if(INSTR("Milestone Instances"."Response Data",'Sense of control (0-10): ') = 0, '', SUBSTR("Milestone Instances"."Response Data", INSTR("Milestone Instances"."Response Data",'Sense of control (0-10): ')+LENGTH('Sense of control (0-10): '), LENGTH("Milestone Instances"."Response Data")))
+```
+
+Verified via `get_page_text` on the raw "Milestone Instances" table: all four
+`substring_between`-based domain columns and the fixed "Domain: Control" now
+render blank (not garbage) on all 7 existing rows (all M0, none M1 yet), and
+"Wellbeing Check-In Total" is correspondingly blank rather than a
+garbage-derived number.
+
+**Known related bug, not fixed this session**: M0's original "Anything Else"
+formula (`m0-implementation-notes.md` §6) uses the same unbounded pattern
+without this guard, and will show garbage instead of blank on any non-M0 row
+sharing this table (e.g. once real M1/M3/M4 rows exist, if that formula is
+ever surfaced in a cross-milestone view). Confirmed live today in the "M0
+Submitted Responses" report for the one M0 sample row whose "Anything else on
+your mind" answer is blank — the bug is dormant/cosmetic there only because
+that report already filters to `Milestone = "0 - No Conversion"`, so no
+non-M0 rows currently pass its filter. Worth the same
+`IF(INSTR(...) = 0, '', ...)` fix eventually, but out of scope for this
+session since it wasn't part of M1's ask — flagged here for whoever picks it
+up next.
+
+### 9.4 "M1 Submitted Responses" report (T016)
+
+New Tabular View, saved to the "Zoho CRM Modules (Data)" folder alongside
+"Milestone Instances" and "M0 Submitted Responses" (view ID
+`3251423000000120049`). Base table: "Milestone Instances". Filter: `Milestone`
+exactly matches `1 - Baseline Intake` (entered via the Wildcard / "Exactly
+Matches" filter option, not the Individual Values picklist, since no M1 rows
+exist yet to populate that picklist). Columns: Submitted Date Time, Token,
+Domain: Wellbeing, Domain: Coping, Domain: Relationships, Domain: Hope,
+Domain: Control, Wellbeing Check-In Total — the raw `Response Data` blob is
+intentionally not included, matching T016's "raw blob hidden" requirement. No
+`Patient`/identity column either, consistent with §9.1. Currently renders
+correctly with zero rows (expected — no M1 submissions exist yet); will
+populate once Costin runs the deferred end-to-end live test (§7).

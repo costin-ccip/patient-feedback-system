@@ -138,14 +138,23 @@ purge remains a known, tracked, cross-milestone gap.
 "Out of scope for M1." M1's reporting need is limited to proving the pipeline
 actually captured and parsed data correctly.*
 
-- [ ] T015 Build Analytics formula columns on "Milestone Instances" for the
+- [x] T015 Build Analytics formula columns on "Milestone Instances" for the
       5 Wellbeing Check-In domains (`substring_between`/`SUBSTR` pattern from
       `m0-implementation-notes.md` §6, applied to the new blob format) plus
       a `SUM`-based Wellbeing Check-In Total column.
-- [ ] T016 Build a minimal "M1 Submitted Responses" report (parsed domain
+      **Done** (2026-09-09) — see `m1-implementation-notes.md` §9.2/§9.3. All
+      6 columns built and verified against current (all-M0) sample data. Also
+      found and fixed a real bug in the "Domain: Control" formula (unbounded
+      last-field pattern returned garbage instead of blank on non-matching
+      rows); flagged an equivalent pre-existing bug in M0's "Anything Else"
+      formula as known-but-not-fixed (out of scope here).
+- [x] T016 Build a minimal "M1 Submitted Responses" report (parsed domain
       columns + total, raw blob hidden) — same pattern as M0's, scoped to
       `Milestone = "1 - Baseline Intake"` — just enough to confirm the
       pipeline is working, not a full dashboard.
+      **Done** (2026-09-09) — see `m1-implementation-notes.md` §9.4. Saved as
+      a Tabular View (view ID `3251423000000120049`), correctly renders empty
+      pending real M1 submissions.
 
 ## Phase 6: Test data & validation
 
