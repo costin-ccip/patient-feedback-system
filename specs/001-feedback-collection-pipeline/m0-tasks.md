@@ -57,10 +57,12 @@ Future milestones (M1+) should have this file generated prospectively by
 - [x] T009 [US1] Token single-use enforcement via `Status` gate (T007) satisfies
       spec.md Acceptance Scenario 3 (no duplicate send/accept for the same
       milestone occurrence).
-- [ ] T010 [US1] **Open**: no automatic detection path exists or is planned for
-      M0 (by design — see T008); if this ever needs to become automatic,
-      requires a proxy CRM signal (e.g., a specific Lead stage) that doesn't
-      exist yet.
+- [x] T010 [US1] **Superseded 2026-09-08** (was: Open, no automatic detection
+      path). A proxy CRM signal now exists and is wired up: "M0 - Lost Lead
+      Feedback Token" fires automatically off `Leads.Lead_Status` transitioning
+      to `Lost Lead`. See `m0-implementation-notes.md` §11 for the discovery
+      and the remaining open question (Costin sign-off on whether this counts
+      as sufficiently automatic under Principle III).
 
 **Checkpoint**: US1 satisfied for M0's manual-fallback case; not applicable to
 convert M0 to a fully automatic trigger without new CRM signal design.
@@ -133,8 +135,9 @@ only needed to prove out its own reporting slice.*
 
 ## Outstanding items (carried forward, not closed by this backfill)
 
-- **T010**: M0's trigger stays manual by design; revisit only if an automatic
-  signal becomes available.
+- **T010**: **Superseded 2026-09-08** — resolved, not open. An automatic signal
+  now exists: "M0 - Lost Lead Feedback Token" fires off `Leads.Lead_Status`
+  transitioning to `Lost Lead`. See `m0-implementation-notes.md` §11.
 - **T014**: 24-hour raw-Forms-entry purge is unimplemented — real compliance
   gap, go-live blocker.
 - **T018**: Not applicable — no contractor dashboard is called for by the ratified spec at all (Principle IV / FR-009), so there's nothing to build here, only to keep respecting.
