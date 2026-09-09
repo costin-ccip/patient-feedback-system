@@ -53,6 +53,21 @@ leaving care) needs its own exit-reason capture, delivered by email."
   milestones trigger off Zoho CRM, and the EHR is not part of the trigger loop at all.
   Updated the Milestones table, the Prospect entity, and Assumptions accordingly, and
   resolved (removed) the corresponding TODO(TRIGGER_SOURCE) in the constitution.
+
+  Revised 2026-09-09 (fourth pass): added User Story 6 (Baseline interpretive reporting
+  per milestone) plus FR-018/FR-019 and SC-008. Prompted by the practice admin noticing
+  that M0 ended up with real interpretive dashboard panels only because she happened to
+  ask for them after the fact, while M1's reporting — built exactly to its own
+  written-down Phase 5 scope — shipped with nothing but a raw submitted-responses table.
+  User Story 3's admin dashboard (FR-007–009) is a separate, correctly-deferred
+  capability: a unified view aggregating ACROSS milestones, which only becomes
+  meaningful once enough milestone data exists. The gap this pass closes is different —
+  there was no requirement at all for a baseline reporting bar each milestone clears on
+  its OWN as it ships, so quality depended entirely on whether anyone thought to ask.
+  Added as a new story (not folded into Story 3) to keep Story 3's cross-milestone
+  acceptance criteria distinct from this per-milestone floor, and numbered last to avoid
+  renumbering Stories 4–5 and their existing cross-references from the m0/m1
+  implementation docs.
 -->
 
 ## User Scenarios & Testing *(mandatory)*
@@ -229,6 +244,43 @@ token/de-identification/rejoin mechanism as other milestones.
    practice reviews discontinuation data, **Then** the absence of a response is visible
    as such, not silently dropped.
 
+---
+
+### User Story 6 - Baseline interpretive reporting per milestone (Priority: P3)
+
+As a practice admin, I need each milestone's collected feedback to come with at least
+basic interpretive views — not just a raw list of submitted responses — as soon as that
+milestone goes live, so I can actually make sense of what's coming in without having to
+separately request visualizations for every new milestone one at a time.
+
+**Why this priority**: Tied with Story 3, since both are about turning collected data
+into something usable once Stories 1–2 exist. It is a distinct capability from Story 3,
+not a smaller version of it: Story 3 is a unified view aggregating trends *across*
+milestones, which reasonably waits until enough milestone data exists for that
+aggregation to mean anything. This story is a floor each milestone clears *on its own*,
+immediately, and is not gated on Story 3 or on any other milestone existing.
+
+**Independent Test**: Can be fully tested by looking at any single milestone's reporting
+deliverable once that milestone is live and confirming it includes, beyond a raw
+submitted-responses table, at least a status/volume view and one distribution or summary
+view of that milestone's own scored or categorical answers.
+
+**Acceptance Scenarios**:
+
+1. **Given** a milestone has gone live and is collecting responses, **When** that
+   milestone's reporting is built, **Then** it includes more than a raw tabular list of
+   submitted responses — at minimum a status/volume view (e.g. issued/submitted/expired
+   counts or an issuance trend) and one distribution or summary view of that milestone's
+   own scored or categorical data.
+2. **Given** a milestone's survey includes at least one numeric or categorical
+   (non-freeform) question, **When** that milestone's reporting is built, **Then** that
+   question has a distribution, breakdown, or summary panel — not just a column in a raw
+   table.
+3. **Given** a new milestone is being scoped for its own reporting work, **When** its
+   task list is written, **Then** the task list is checked against this story's baseline
+   bar rather than defaulting to the minimum needed to merely confirm the pipeline is
+   working.
+
 ### Edge Cases
 
 - What happens if a patient crosses two different milestone conditions at nearly the
@@ -338,6 +390,14 @@ starting policy, not validated cutoffs, and are configurable (see Assumptions).
 - **FR-017**: The system MUST NOT make any data collected through this pipeline
   available to a public-facing website, review platform, social media tool, or marketing
   system, per the constitution's internal-use-only principle.
+- **FR-018**: For every milestone, the system MUST provide reporting beyond a raw
+  tabular list of submitted responses — including, at minimum, a status/volume view and
+  at least one distribution or summary view of that milestone's own scored or
+  categorical data — before that milestone's reporting work is considered complete.
+- **FR-019**: FR-018's baseline reporting requirement MUST NOT be deferred pending the
+  unified, cross-milestone Admin Dashboard (User Story 3, FR-007–008); each milestone's
+  own baseline reporting is independent of, and does not substitute for, that later
+  capability.
 
 ### Key Entities
 
@@ -390,6 +450,9 @@ starting policy, not validated cutoffs, and are configurable (see Assumptions).
   defined retention window in 100% of completed (rejoined) cases.
 - **SC-007**: 100% of readings that meet a Clinical Safety Flag Rule result in a flag
   visible to admins, with 0 automatic notifications sent to the treating contractor.
+- **SC-008**: 100% of shipped milestones have, beyond a raw submitted-responses list, at
+  least one distribution or summary reporting view for their own scored or categorical
+  data.
 
 ## Assumptions
 

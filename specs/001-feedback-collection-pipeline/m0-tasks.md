@@ -103,6 +103,11 @@ only needed to prove out its own reporting slice.*
       Distribution (bar chart), M0 % Reachable (KPI tile).
 - [x] T017 Assemble "M0 - Free Consult Non-Conversion Feedback" dashboard (7
       panels total, including 3 pre-existing panels).
+      **Retroactively satisfies spec.md User Story 6 / FR-018** (added
+      2026-09-09, after the practice admin noticed M1 hadn't gotten the same
+      treatment): T016's distribution/KPI panels plus this dashboard already
+      give M0 a baseline beyond a raw submitted-responses table. No further
+      action needed for M0 specifically.
 - [ ] T018 Not applicable as previously framed: the authoritative spec.md
       does not call for any per-contractor dashboard — Principle IV
       (Contractor Blindness to Own Raw Feedback) and FR-009 require zero

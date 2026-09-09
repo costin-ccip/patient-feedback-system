@@ -338,6 +338,16 @@ session.
   fixed. A basic (non-trigger) test scenario for verifying the response-data
   pipeline is drafted in `m1-test-scenario.md`; the full end-to-end trigger
   test (T008-T010, T017-T020) is still pending Costin's test Patient ID.
+- Costin ran an end-to-end test with a fictional patient (2026-09-09) —
+  data flowed CRM → Analytics correctly, confirming T015/T016 work in practice,
+  not just against sample M0 data.
+- T016's "M1 Submitted Responses" report alone does not meet the new
+  baseline-reporting bar (`spec.md` User Story 6 / FR-018, added 2026-09-09
+  after Costin noticed M0 got real dashboard panels only because she asked,
+  while M1 shipped with just a raw-ish table). See `m1-tasks.md` T024 — needs
+  at least a status/volume view and one distribution/summary view of the
+  Wellbeing Check-In domains or Total, mirroring `m0-implementation-notes.md`
+  §7. Not yet built.
 
 ## 9. Analytics formula columns and "M1 Submitted Responses" report (T015/T016)
 
