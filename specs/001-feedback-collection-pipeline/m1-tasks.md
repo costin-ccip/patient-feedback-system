@@ -62,14 +62,27 @@ advance.
       Intake"`, `Status = "Issued"`, fresh `Token`, `Expiry_Date_Time` —
       reuse M0's expiry window unless Costin specifies otherwise for M1) and
       send the Wellbeing Check-In link via Zoho Mail.
-- [ ] T006 Build "M1 - Wellbeing Check-In Write-back" flow: realtime
+- [x] T006 Build "M1 - Wellbeing Check-In Write-back" flow: realtime
       Form-submission trigger on T001's form -> write-back custom function.
-- [ ] T007 Implement the write-back function: token lookup, `Status !=
+      **Done (2026-09-08)**: built via Zoho Flow (Browser pane automation).
+      Trigger: Zoho Forms "Form entry submitted" (Realtime) on the Wellbeing
+      Check-In form. Connected to `submitWellbeingCheckInResponse` (T007).
+      Confirmed correctly wired (not just visually adjacent — see
+      `m1-implementation-notes.md` §5 for the connector-verification gotcha
+      hit along the way). Flow saved, still OFF/unpublished. See
+      `m1-implementation-notes.md` §4A for the full step-by-step.
+- [x] T007 Implement the write-back function: token lookup, `Status !=
       "Issued"` rejection (reuse protection, same pattern as M0's
       `submitFeedbackResponse`), expiry check + auto-expire, delimited
       `Response_Data` write-back in the format from `m1-data-model.md`
       (`---`-joined, 5 domains, total NOT stored in the blob), `Status ->
       "Submitted"`.
+      **Done (2026-09-08)**: `submitWellbeingCheckInResponse` custom function,
+      directly mirroring M0's `submitFeedbackResponse` pattern field-for-field.
+      Parameters mapped to the Wellbeing Check-In form's internal field names
+      (`Slider`, `Slider1`...`Slider4`, `SingleLine`), discovered via direct
+      Forms-builder DOM inspection (no PII exposed). Verbatim source in
+      `m1-implementation-notes.md` §4A.1.
 
 **Checkpoint**: Core pipeline (auto-trigger -> issue -> collect -> rejoin)
 functional and idempotent.
