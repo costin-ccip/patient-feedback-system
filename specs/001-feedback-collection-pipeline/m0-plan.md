@@ -168,3 +168,16 @@ configuration (custom function code, formulas, field schemas).
 |---|---|---|
 | `Response_Data` stored as one delimited text blob instead of discrete CRM fields | `Milestone_Instances` is shared across all six milestones and Zoho CRM custom fields are capped; six milestones x several open-ended questions each would exhaust the field cap | Dedicated fields per milestone question was the natural first approach but doesn't scale across 6 milestones sharing one module |
 | Manual (not CRM-field-triggered) token issuance for M0 | A free-consult non-conversion isn't a "session count crosses N" event like the other five milestones — there's no natural automatic trigger condition to detect | Automatic detection would need a proxy signal (e.g., a specific Lead status change) that doesn't exist in CRM yet; deferred rather than force-fit |
+
+## Addendum (2026-09-08) — superseded: token issuance is now automatic
+
+The Constitution Check's Principle III entry above, and this table's "Manual...
+token issuance" row, describe the state as understood on 2026-09-06. A later
+session found this is no longer accurate: a flow ("M0 - Lost Lead Feedback
+Token") fires automatically off `Leads.Lead_Status` transitioning to `Lost Lead`
+— the proxy CRM signal this table said didn't exist yet has since been built.
+See `m0-implementation-notes.md` §11 for the full correction, including what's
+still an open question (whether a team member changing a Lead's status counts as
+sufficiently "automatic" under Principle III, versus M1's fully system-detected
+trigger). This section is left in place as the retroactive record of the
+2026-09-06 build; treat §11 as the current source of truth on this point.
