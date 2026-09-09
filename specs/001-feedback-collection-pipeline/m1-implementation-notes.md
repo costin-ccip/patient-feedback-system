@@ -10,11 +10,12 @@
 > Last updated: 2026-09-09
 > Status: Phase 1 (Setup: T001 form, T002 schema confirm), Phase 2 Foundational
 > (T003–T007, including the write-back flow), and Phase 5 reporting (T015
-> Analytics formula columns, T016 "M1 Submitted Responses" report) are all
-> built and saved. Both flows ("M1 - Session 1 Trigger" and "M1 - Wellbeing
-> Check-In Write-back") are now ON/live (see §12) — a real connector bug
-> blocked "M1 - Session 1 Trigger" from switching on until it was found and
-> fixed this session.
+> Analytics formula columns, T016 "M1 Submitted Responses" report, T024
+> baseline dashboard) are all built and saved. Both flows ("M1 - Session 1
+> Trigger" and "M1 - Wellbeing Check-In Write-back") are now ON/live (see
+> §12) — a real connector bug blocked "M1 - Session 1 Trigger" from
+> switching on until it was found and fixed this session. M1's reporting now
+> meets the spec.md User Story 6 / FR-018 baseline bar (see §13).
 
 ## 1. What M1 does
 
@@ -341,13 +342,11 @@ session.
 - Costin ran an end-to-end test with a fictional patient (2026-09-09) —
   data flowed CRM → Analytics correctly, confirming T015/T016 work in practice,
   not just against sample M0 data.
-- T016's "M1 Submitted Responses" report alone does not meet the new
+- T016's "M1 Submitted Responses" report alone did not meet the new
   baseline-reporting bar (`spec.md` User Story 6 / FR-018, added 2026-09-09
   after Costin noticed M0 got real dashboard panels only because she asked,
-  while M1 shipped with just a raw-ish table). See `m1-tasks.md` T024 — needs
-  at least a status/volume view and one distribution/summary view of the
-  Wellbeing Check-In domains or Total, mirroring `m0-implementation-notes.md`
-  §7. Not yet built.
+  while M1 shipped with just a raw-ish table). **Done (2026-09-09)** — see
+  §13 for the two new reports and dashboard built to close this gap.
 
 ## 9. Analytics formula columns and "M1 Submitted Responses" report (T015/T016)
 
@@ -496,3 +495,77 @@ end-to-end test (§7) — it was fixing a build defect Costin surfaced by
 trying to use the toggle — so treat the flows as live starting now, but note
 that the full trigger test (T008-T010) and Phase 6 validation (T017-T020)
 still haven't been run.
+
+## 13. T024: baseline reporting bar (spec.md User Story 6 / FR-018) (2026-09-09)
+
+Built the two "at minimum" views T024 called for, plus a dashboard bundling
+them with T016's existing report — same shape as M0's dashboard (§7 in
+`m0-implementation-notes.md`), built directly in the Zoho CRM Analytics
+workspace (`3251423000000083002`) via "Save As" off the matching M0 report
+(preserves chart type/config exactly, then the Milestone filter and X-axis
+column were swapped for M1's equivalents) rather than building from scratch.
+
+By the time this was built, Costin's fictional-patient end-to-end test (§7,
+§8) had already created one real `Milestone_Instances` row at
+`Milestone = "1 - Baseline Intake"`, so every panel below is verified against
+that real row, not an empty chart — Status = Submitted, Wellbeing Check-In
+Total = 29.
+
+### 13.1 "M1 Status Breakdown" (status/volume view)
+
+Saved via "Save As" off "M0 Status Breakdown" (`m0-implementation-notes.md`
+§7), same bar chart config: X-Axis `Status` (dimension/Actual), Y-Axis `Id`
+(Count). Only change: the Milestone individual-values filter was flipped from
+`0 - No Conversion` to `1 - Baseline Intake`. View ID `3251423000000120056`.
+
+### 13.2 "M1 Wellbeing Check-In Total Distribution" (distribution/summary view)
+
+Saved via "Save As" off "M0 Feeling Heard Distribution"
+(`m0-implementation-notes.md` §7), same bar chart shape but deliberately
+diverges from that reference in one way: M0's version has no Milestone filter
+at all (so it lumps every non-M0 row into an "Unknown" bucket on the X-axis —
+harmless for M0 today only because no other milestone had data yet). For M1
+this report adds an explicit `Milestone = "1 - Baseline Intake"` filter, same
+as §13.1, so M0's 7 existing rows (blank on all M1 domain/total columns per
+the §9.3 guard) don't dominate the chart as a giant "blank" bar. X-Axis
+column was changed from "Feeling Heard Score" to "Wellbeing Check-In Total",
+switched to `Dimension [Actual(D)] / Treat as Text` mode (not the default
+`Measure [Actual(M)]` a numeric column gets when first dropped onto an axis)
+so each distinct total value renders as its own bar/category, matching how
+M0's Feeling Heard Score axis behaves. Y-Axis unchanged: `Id` (Count). View ID
+`3251423000000120076`.
+
+**Scope note**: T024 said "a distribution/summary view of the 5 Wellbeing
+Check-In domains **or** the Total" — built against the Total (one combined
+view) rather than five separate per-domain distribution charts, matching the
+level of effort M0's single "M0 Feeling Heard Distribution" panel represents
+for its one scored field. Five per-domain charts would be a reasonable
+follow-up once there's enough real M1 volume to make five separate
+distributions worth looking at, but isn't needed to clear T024's baseline bar.
+
+### 13.3 "M1 - Session 1 Baseline Intake Feedback" dashboard
+
+New dashboard, view ID `3251423000000120137`, built via "Create New
+Dashboards" (not "Save As" off M0's dashboard, since M0's has panels — M0
+Response Rate, M0 Volume by Week, M0 Biggest Factor, M0 % Reachable — with no
+M1 equivalent built and no data behind them yet; building those would mean
+inventing new M1 metrics beyond what T024 asked for). Bundles exactly three
+panels, dragged in from the existing saved reports:
+
+- M1 Status Breakdown (§13.1)
+- M1 Wellbeing Check-In Total Distribution (§13.2)
+- M1 Submitted Responses (§9.4 / T016 — the raw-ish tabular list T024 says
+  isn't sufficient alone, still useful alongside the two summary views)
+
+Left at "Auto Add User Filters" on (the dashboard-builder default) and
+"Make User Filters Global" off, matching M0's dashboard defaults — not
+changed since this session had no reason to touch dashboard-level filter
+behavior.
+
+**Not built, and deliberately out of scope for T024**: per-domain distribution
+charts for the other 4 Wellbeing Check-In domains (see §13.2 scope note); any
+M1 equivalent of M0's Response Rate / % Reachable KPIs, since those depend on
+M0-specific concepts (a lead's reachability, a response rate against manually
+issued tokens) that don't have an obvious M1 analogue defined anywhere yet —
+would need its own spec/data-model discussion, not an ad hoc dashboard
+addition.

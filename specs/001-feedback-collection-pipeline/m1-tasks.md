@@ -161,16 +161,19 @@ actually captured and parsed data correctly.*
       **Done** (2026-09-09) — see `m1-implementation-notes.md` §9.4. Saved as
       a Tabular View (view ID `3251423000000120049`), correctly renders empty
       pending real M1 submissions.
-- [ ] T024 [Spec.md User Story 6 / FR-018] Bring M1's reporting up to the new
+- [x] T024 [Spec.md User Story 6 / FR-018] Bring M1's reporting up to the new
       baseline-reporting bar: T016 alone (a raw-ish tabular list of parsed
       columns) does not satisfy it. Add, at minimum, a status/volume view
       (Issued/Submitted/Expired counts, mirroring M0's "M0 Status Breakdown")
       and one distribution/summary view of the 5 Wellbeing Check-In domains or
       the Total (e.g. a distribution chart per domain, or a summary/KPI on the
-      Total) — same UX pattern as `m0-implementation-notes.md` §7. Not
-      urgent to build ahead of real M1 submissions existing (an empty
-      distribution chart proves little), but should not wait for another
-      ad hoc request either.
+      Total) — same UX pattern as `m0-implementation-notes.md` §7.
+      **Done (2026-09-09)** — built by the time a real M1 submission existed
+      (Costin's fictional-patient end-to-end test), so verified against real
+      data rather than an empty chart. See `m1-implementation-notes.md` §13
+      for the two new reports ("M1 Status Breakdown", "M1 Wellbeing Check-In
+      Total Distribution") and the new "M1 - Session 1 Baseline Intake
+      Feedback" dashboard bundling them with T016's "M1 Submitted Responses".
 
 ## Phase 6: Test data & validation
 
