@@ -1,6 +1,6 @@
 <!--
 Sync Impact Report
-- Version change: 1.2.0 → 1.2.1
+- Version change: 1.2.1 → 1.3.0
 - Rationale for the original 1.0.0 (not a continuation of a previously-reported
   "v1.0.1"): this repository was found completely empty at the start of the session that
   first authored this file (zero commits, zero branches). An earlier working session had
@@ -30,9 +30,26 @@ Sync Impact Report
   file itself changed and the correction is worth a durable record. The Confluence
   source doc's own EHR-based description is now known to be stale/inaccurate on this
   point and should not be relied on for this detail.
+- 1.3.0 amendment: Added Principle VII (Analytics Is Where Derived Values Get
+  Computed). Prompted by Liana's review of M2's planning: the original M2 design
+  computed the Clinical Safety Flag inside a Deluge write-back function and stored
+  the result in the Response_Data blob, which duplicated logic Zoho Analytics
+  already has to perform for other derived values (the 0-40 Total, deliberately
+  never stored) and made M2's write-back function meaningfully more complex than
+  M0/M1's for no functional benefit — nothing earlier in the pipeline needs a
+  derived value to exist before Analytics query time. This principle generalizes
+  that correction pipeline-wide, ahead of M3/M4's own derived wellbeing-flag work:
+  default to computing derived values/scores/flags in Zoho Analytics, not
+  duplicating them into Deluge or any other collection/CRM-side script, unless a
+  documented reason applies (the constitution and M2's own planning both note a
+  plausible exception — a trend-based rule that must compare across multiple
+  stored records for one patient — as a call for that milestone's own plan.md to
+  make, not a blanket carve-out). This is a MINOR bump: a new principle, no
+  existing principle removed or redefined.
 - Modified principles (1.1.0): IV. Contractor Blindness to Own Raw Feedback
 - Added sections (1.2.0): VI. Internal Use Only — Never a Testimonial or Marketing
   Pipeline
+- Added sections (1.3.0): VII. Analytics Is Where Derived Values Get Computed
 - Removed sections (1.2.1): TODO(TRIGGER_SOURCE) — resolved, see above
 - Follow-up TODOs:
   - TODO(BAA_SCHEDULE): Confirm with the Zoho account manager which specific products
@@ -103,6 +120,23 @@ recently-former clients; keeping this system structurally walled off from anythi
 public-facing prevents it from ever being repurposed that way, whether deliberately or
 through later feature creep.
 
+### VII. Analytics Is Where Derived Values Get Computed
+Any calculation, score, threshold evaluation, or other interpretation derived from data
+already collected into this pipeline MUST be computed in Zoho Analytics (formula
+columns, reports) — not duplicated into a Deluge write-back function, a Flow step, or
+any other collection/CRM-side script — unless a specific, documented reason makes an
+Analytics formula column impractical for that case (e.g. a rule that must compare across
+multiple stored records for one patient, which may be awkward to express as a single
+formula column; a milestone reaching for this exception MUST record its reasoning in
+that milestone's own plan.md, not merely assume it applies). Rationale: Zoho Analytics is
+this pipeline's single system of interpretation. Computing a derived value a second time
+in Deluge creates two places a rule can drift out of sync, freezes that value into a
+record at submission time so it does not update when the rule is later revised — unlike
+an Analytics formula column, which recalculates retroactively across every existing
+record — and adds write-back complexity for no functional benefit, since nothing earlier
+in the pipeline (survey collection, token rejoin, CRM record creation) ever needs a
+derived value to exist before Analytics query time.
+
 ## Compliance & Data Handling Requirements
 
 - Raw survey entries (Zoho Forms submissions) MUST be purged on a short, defined
@@ -134,6 +168,10 @@ through later feature creep.
 - Any proposal to connect this pipeline's data to a website, social media, review, or
   marketing tool MUST be rejected per Principle VI, regardless of the business case
   offered for it.
+- Any new derived value, score, or flag MUST default to a Zoho Analytics formula column
+  or report per Principle VII; computing it in Deluge or another collection/CRM-side
+  script instead requires a documented reason recorded in that milestone's own plan.md,
+  not an unstated assumption.
 
 ## Governance
 
@@ -146,4 +184,4 @@ principle or materially expanded guidance, PATCH for wording/clarification only)
 or task generated under Spec Kit for this project MUST be checked for compliance with
 these principles before implementation begins.
 
-**Version**: 1.2.1 | **Ratified**: 2026-09-04 | **Last Amended**: 2026-09-05
+**Version**: 1.3.0 | **Ratified**: 2026-09-04 | **Last Amended**: 2026-09-10
