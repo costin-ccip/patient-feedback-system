@@ -93,17 +93,24 @@ Deferring it here would leave FR-010/FR-011's alliance half unbuilt with no
 principled reason, unlike M1 where deferral was the only coherent reading of
 the requirement (a trend rule literally cannot evaluate on a first reading).
 
-**Where the evaluation happens**: in the write-back custom function itself
-(Deluge), not in Analytics. Unlike M0/M1's write-back functions — which only
-ever concatenate raw answers into the `Response_Data` blob and leave all
-arithmetic to Analytics formula columns — M2's write-back function already
-receives the four domain scores as individual string parameters before
-building the blob, so it can parse them to numbers and evaluate both flag
-conditions (total ≤20, any domain ≤4) inline, without waiting for an
-Analytics sync round-trip. See `m2-data-model.md` for exactly how the result
-is stored — **revised 2026-09-10** (see "Storage" below): folded into the
-existing `Response_Data` blob, not new CRM fields, because
-`Milestone_Instances` is at its CRM custom-field cap.
+**Where the evaluation happens**: **revised 2026-09-10 (second correction,
+Liana)** — in Zoho Analytics, as formula columns, not in the write-back
+function. The original reasoning here (evaluate inline in Deluge so the flag
+doesn't wait on an Analytics sync round-trip) didn't survive scrutiny: FR-013
+only requires the flag to be visible "within that patient's dashboard view" —
+an Analytics-based view either way, per the FR-013 decision below — and
+FR-012 bans any automated, time-critical action keyed off the flag firing, so
+nothing in this system actually depends on the flag existing at the instant
+of submission rather than at the instant an Analytics report/dashboard is
+queried. Given that, computing the flag in Deluge and writing the result back
+into `Response_Data` duplicated logic Analytics already has to do for the
+0-40 total (see "Storage" below, and `m2-data-model.md`) — the total is
+deliberately **not** stored, precisely because it's fully derivable from the
+four domain values already in the blob. The flag conditions use that same
+total plus those same four domain values; there is no new information in the
+flag that Analytics can't already see. M2's write-back function stays pure
+string concatenation, the same shape as M0/M1's — see `m2-data-model.md` for
+the corrected design.
 
 ## Reconciling a stale instruction in the source Confluence page
 
@@ -177,12 +184,18 @@ constraint `m1-plan.md`'s Complexity Tracking already named as the reason to
 keep the blob pattern in the first place ("conserve `Milestone_Instances`'
 CRM field budget for M2 and M5"), now hit in practice.
 
-**Final decision**: the two flag values are appended as two more segments on
-the existing `Response_Data` blob (see `m2-data-model.md`), not new fields.
-Detection/filtering happens via two new **Zoho Analytics formula columns**
-(same `substring_between`/guarded-`SUBSTR` pattern already used for every
-other parsed value) — Analytics formula columns are not CRM custom fields and
-are not subject to the module's field cap, so this fully sidesteps the
-limitation while keeping the same "parse the blob in Analytics" architecture
-every other milestone already uses. No `createFields` CRM call is needed for
-this milestone at all.
+**Final decision, revised 2026-09-10 (second correction, Liana)**: the two
+flag values are **not stored anywhere** — not as new CRM fields (ruled out by
+the field cap, per Costin) and not as appended blob segments either (the
+first-draft correction). They're computed live as two new **Zoho Analytics
+formula columns** (`IF`/`AND`/`OR`/`CONCATENATE`, same category of expression
+as the `SUM`/`to_integer()` pattern already used for the Alliance Check-In
+Total) directly from the four already-parsed domain columns — the same data
+those domain columns already expose, no blob-segment detour needed. This
+keeps `Response_Data`'s blob format for M2 identical in shape to M1's (4
+domain segments, nothing appended), and means a future change to the flag
+thresholds is a one-line Analytics formula edit that applies retroactively to
+every existing response, rather than a value frozen into old records at
+submission time. No `createFields` CRM call is needed for this milestone at
+all, and no new write-back logic beyond M0/M1's existing pattern is needed
+either.

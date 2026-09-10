@@ -12,9 +12,14 @@ Safety Flag Rules and User Story 6 / FR-018), `m2-research.md`,
 start unchecked; check them off as they're actually done, not in advance.
 **Revised 2026-09-10** (Costin): `Milestone_Instances` is at its CRM
 custom-field cap — the original T002 ("add 2 new CRM fields for the flag")
-is removed. The flag is instead folded into the existing `Response_Data`
-blob and detected via Analytics formula columns; see `m2-data-model.md`
-"Revision" section. Task numbering below reflects this removal.
+is removed. Task numbering below reflects this removal.
+**Revised again 2026-09-10** (second correction, Liana): the flag is not
+folded into the `Response_Data` blob either — it's computed entirely as two
+new Zoho Analytics formula columns from data already parsed out of the blob's
+4 domain segments, never stored in `Milestone_Instances` at all. See
+`m2-data-model.md` "Revision 2" section. T006 reverts to M0/M1's plain
+string-concatenation shape; the flag-detection work moves to T017 (Analytics)
+instead.
 
 ## Phase 1: Setup
 
@@ -58,20 +63,19 @@ blob and detected via Analytics formula columns; see `m2-data-model.md`
       just visually adjacent, before considering this done.
 - [ ] T006 Implement the write-back function `submitAllianceCheckInResponse`:
       token lookup, `Status != "Issued"` rejection, expiry check +
-      auto-expire — same shape as M0/M1's `submitFeedbackResponse` /
-      `submitWellbeingCheckInResponse` (`m1-implementation-notes.md` §4A.1)
-      — **plus new logic** (per `m2-data-model.md`): parse the four domain
-      answers to numbers, compute the 0-40 total, evaluate both Clinical
-      Safety Flag Rules (total ≤20; any domain ≤4), and **append** the
-      result as two more `---`-delimited segments (`Clinical Safety Flag:
-      true|false`, `Flag Rule Triggered: <text or blank>`) onto the same
-      `responseText` string already being built — written to `Response_Data`
-      in the same single `zoho.crm.updateRecord` call that sets `Status`/
-      `Submitted_Date_Time`. **No new CRM field targets** in that update map
-      — `Milestone_Instances` takes no schema changes for this milestone.
+      auto-expire, then concatenate the four domain answers into
+      `Response_Data` — **same shape as M0/M1's `submitFeedbackResponse` /
+      `submitWellbeingCheckInResponse`** (`m1-implementation-notes.md`
+      §4A.1), pure string concatenation, no numeric parsing or conditional
+      logic. **Revised 2026-09-10 (second correction)**: the flag evaluation
+      originally planned for this function has moved entirely to Analytics
+      (T017) — T006 carries no flag-related logic at all. **No new CRM field
+      targets** in the update map — `Milestone_Instances` takes no schema
+      changes for this milestone.
 
-**Checkpoint**: Core pipeline (auto-trigger -> issue -> collect -> rejoin ->
-flag-evaluate) functional and idempotent, with zero CRM schema changes.
+**Checkpoint**: Core pipeline (auto-trigger -> issue -> collect -> rejoin)
+functional and idempotent, with zero CRM schema changes. Flag evaluation
+happens downstream in Analytics (Phase 6), not in this pipeline.
 
 ## Phase 3: User Story 1 - Automated milestone trigger and de-identified delivery (Priority: P1)
 
@@ -92,9 +96,10 @@ table, row 2; Acceptance Scenario 1).
 ## Phase 4: User Story 2 - De-identified response collection and CRM rejoin (Priority: P1)
 
 - [ ] T010 [US2] Confirm no patient identifier appears in the Alliance
-      Check-In Form, the flow's parameters, or `Response_Data` (including its
-      2 new flag segments) — Principle I — same field-by-field review
-      approach as `m0-implementation-notes.md` §5 / `m1-tasks.md` T011.
+      Check-In Form, the flow's parameters, or `Response_Data` (4 domain
+      segments only, same shape as M1's blob — no flag segments, per
+      Revision 2) — Principle I — same field-by-field review approach as
+      `m0-implementation-notes.md` §5 / `m1-tasks.md` T011.
 - [ ] T011 [US2] Token match + rejoin implemented (T006) — response lands
       only on the matched `Patient`'s CRM record, never anywhere else.
 - [ ] T012 [US2] Reuse rejection implemented via `Status != "Issued"` check
@@ -117,19 +122,20 @@ only (spec.md — "flag for admin review when either: the total alliance score
 is 20 or below (out of 40); or any single domain scores 4 or below"). The
 wellbeing half (FR-010) is out of scope until M3, per `m2-research.md`.
 
-- [ ] T014 [US4] Confirm the flag evaluation logic (T006) correctly fires on
-      every documented case: total ≤20 alone, a single domain ≤4 alone, both
-      at once (confirm the `Flag Rule Triggered` segment records every
-      condition that fired, not just the first match), and confirm it does
-      **not** fire for a reading that clears both thresholds — satisfies
-      FR-011 / Acceptance Scenario 2.
+- [ ] T014 [US4] Confirm the flag evaluation logic (T017's Analytics formula
+      columns, revised 2026-09-10 — no longer T006) correctly fires on every
+      documented case: total ≤20 alone, a single domain ≤4 alone, both at
+      once (confirm the `Flag Rule Triggered` formula records every condition
+      that fired, not just the first match), and confirm it does **not** fire
+      for a reading that clears both thresholds — satisfies FR-011 /
+      Acceptance Scenario 2.
 - [ ] T015 [US4] Confirm no automated notification, email, or CRM action of
       any kind reaches a contractor when a flag fires — satisfies FR-012 /
       Acceptance Scenario 3. This is a "confirm absence," not a build task:
-      review T006's function and the flow for any contractor-facing action
-      and verify there is none, per `m2-research.md`'s reconciliation of the
-      source Confluence page's stale "routes to the treating clinician"
-      language.
+      review T006's function, the flow, and T017's Analytics formula columns
+      for any contractor-facing action and verify there is none, per
+      `m2-research.md`'s reconciliation of the source Confluence page's stale
+      "routes to the treating clinician" language.
 - [ ] T016 [US4] Build the "M2 Flagged for Review" Analytics report (per
       `m2-data-model.md`, filtered on the new `Clinical Safety Flag` formula
       column `= "true"`) and confirm a flagged record is visible there with
@@ -150,14 +156,20 @@ just a raw submitted-responses table, per `m1-implementation-notes.md` §13's
 established pattern for what "clearing the bar" looks like in this project.*
 
 - [ ] T017 Build Analytics formula columns on "Milestone Instances" for the
-      4 Alliance Check-In domains (`substring_between` — all 4 are bounded
-      now that the flag segments follow them in the blob, per
-      `m2-data-model.md`'s revised blob format), an "Alliance Check-In Total"
-      column (`SUM`/`to_integer()` pattern, per `m1-implementation-notes.md`
-      §9.2), and the 2 new flag-detection columns: "Clinical Safety Flag"
-      (`substring_between`, bounded) and "Flag Rule Triggered" (guarded
-      `SUBSTR`/`INSTR`/`LENGTH` with the zero-guard from the start, per
-      `m1-implementation-notes.md` §9.3 — it's the true last field now).
+      4 Alliance Check-In domains — 3 bounded (`substring_between`: Connection,
+      Understanding, Shared Direction) and 1 unbounded (Fit Of Approach, the
+      true last field in the blob — guarded `SUBSTR`/`INSTR`/`LENGTH` with the
+      zero-guard from the start, per `m1-implementation-notes.md` §9.3) — an
+      "Alliance Check-In Total" column (`SUM`/`to_integer()` pattern, per
+      `m1-implementation-notes.md` §9.2), and, **revised 2026-09-10 (second
+      correction)**, the 2 flag-detection columns computed directly from the
+      Total/Domain columns rather than parsed from the blob: "Clinical Safety
+      Flag" (`IF(OR(Total<=20, [Domain: Connection]<=4, ...), "true",
+      "false")`) and "Flag Rule Triggered" (nested `IF`/`CONCATENATE`
+      building a description of every condition that fired, per
+      `m2-data-model.md`'s "Clinical Safety Flag evaluation" section). No
+      substring parsing needed for either flag column — no flag data exists
+      in the blob for them to parse.
 - [ ] T018 Build a minimal "M2 Submitted Responses" report (parsed domain
       columns + total + the 2 flag columns, raw blob hidden) — same pattern
       as M0/M1's, scoped to `Milestone = "2 - Early Alliance Check"`.
@@ -194,7 +206,8 @@ established pattern for what "clearing the bar" looks like in this project.*
 
 - [ ] T024 Write `m2-implementation-notes.md` (as-built reference, mirroring
       `m1-implementation-notes.md`'s structure: component inventory, verbatim
-      Deluge source for the new write-back function including flag logic,
+      Deluge source for the new write-back function (plain string
+      concatenation, no flag logic — that's Analytics-only, per Revision 2),
       the confirmed blob format, Analytics formulas including the 2 flag
       columns, CRM field reference confirming no schema changes, test-data
       approach, access constraints) once M2 is actually built — per
@@ -210,20 +223,32 @@ established pattern for what "clearing the bar" looks like in this project.*
 
 ## Notes for whoever implements this
 
-- T006 (write-back function with inline flag evaluation and blob-append) is
-  the highest-risk task in this milestone — it's the first write-back
-  function in this project to do real arithmetic and conditional logic in
-  Deluge rather than pure string concatenation. Test the numeric parsing
-  (`.toLong()` on slider string values) carefully; a silent parse failure
-  would either crash the function or (worse) silently fail to flag a patient
-  who should have been flagged.
+- T006 is **not** an elevated-risk task, revised 2026-09-10 (second
+  correction) — it's the same pure string-concatenation shape as M0/M1's
+  write-back functions, no numeric parsing or conditional logic. The
+  first-draft design had put real arithmetic and flag evaluation inline in
+  this function; that moved entirely to Analytics (T017) after Liana pointed
+  out it duplicated logic Analytics already had to do for the Total column,
+  for no benefit. T017's `Flag Rule Triggered` formula (nested `IF`/
+  `CONCATENATE` across 5 conditions) is now the more novel piece of this
+  milestone — test it against each documented flag case (T014) rather than
+  assuming a formula-column implementation is inherently lower-risk than a
+  Deluge one just because it's declarative.
 - T015 is a verification task, not a build task — the correct outcome is
   confirming nothing was built that shouldn't exist, not writing code.
 - `Milestone_Instances` has **no CRM field budget left** — this was
   discovered during M2's planning (Costin, 2026-09-10) and applies to every
-  future milestone too, not just M2. M3/M4's wellbeing trend-flag data will
-  need the same blob-segment approach this document establishes, not
-  dedicated fields. Worth calling out explicitly in T025's CLAUDE.md update.
+  future milestone too, not just M2. Separately, M2's own build then
+  established a second, narrower precedent worth carrying forward too:
+  default to computing derived values (like the flag) in Analytics formula
+  columns rather than in Deluge, even when a field-budget workaround like the
+  blob would technically make Deluge-side storage possible — Analytics
+  formula columns recalculate retroactively on a rule change, and Deluge-time
+  computation doesn't. M3/M4's wellbeing trend-flag data should start from
+  that position, adjusting only if trend evaluation turns out to be
+  genuinely awkward to express as a single Analytics formula column (see
+  `m2-data-model.md` "Out of scope for M2"). Worth calling out explicitly in
+  T025's CLAUDE.md update.
 - The Alliance Check-In Form and its blob/flag pattern are shared
   infrastructure for M3 (per `m2-research.md`) — build them generically and
   update this note (and `CLAUDE.md`) if that reuse plan changes.

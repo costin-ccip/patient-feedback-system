@@ -18,14 +18,18 @@ M2 fires automatically when a patient's `Session_Count` (the same CRM field
 M1 already watches) reaches 3. A new Zoho Flow issues a single-use token and
 emails a link to the **Cape Clarity Alliance Check-In** — a 4-domain, 0-10
 slider custom survey — via the same de-identified Zoho Form + Flow write-back
-pattern M0/M1 validated. Unlike M1, M2's write-back function also evaluates
-spec.md's Clinical Safety Flag Rules (Alliance half) in real time, since
-those rules are absolute-threshold and can fire on this very first alliance
-reading — no prior data point is needed, unlike the wellbeing rules M1
-deferred to M3. M2 is therefore the first milestone to build real
-clinical-safety-flag infrastructure (generic fields on `Milestone_Instances`,
-reusable by M3/M4), not just the survey/trigger/reporting scaffolding M0/M1
-already established.
+pattern M0/M1 validated, and the write-back function itself is unchanged in
+kind from M0/M1's (pure string concatenation into `Response_Data`, no new
+arithmetic or branching). Unlike M1, M2 also evaluates spec.md's Clinical
+Safety Flag Rules (Alliance half), since those rules are absolute-threshold
+and can fire on this very first alliance reading — no prior data point is
+needed, unlike the wellbeing rules M1 deferred to M3. **Revised 2026-09-10
+(second correction, Liana)**: that evaluation happens entirely in Zoho
+Analytics, as formula columns computed from the domain values already parsed
+out of the blob — not in Deluge, and not stored anywhere in CRM. M2 is
+therefore the first milestone to build real clinical-safety-flag reporting
+infrastructure (new Analytics formula columns and a flagged-records report,
+reusable by M3/M4), not new CRM schema or write-back complexity.
 
 ## Technical Context
 
@@ -33,19 +37,21 @@ already established.
 stack as M0/M1).
 
 **Primary Dependencies**: Zoho CRM (`Patients1.Session_Count` — existing,
-already automated; `Milestone_Instances` — existing, extended with 2 new
-fields), Zoho Flow (new trigger flow + new write-back flow, both mirroring
-M1's pattern), Zoho Forms (new Alliance Check-In form), Zoho Mail, Zoho
-Analytics.
+already automated; `Milestone_Instances` — existing, no schema changes), Zoho
+Flow (new trigger flow + new write-back flow, both mirroring M1's pattern),
+Zoho Forms (new Alliance Check-In form), Zoho Mail, Zoho Analytics.
 
 **Storage**: `Milestone_Instances` remains the system of record. Reuses
-M0/M1's delimited-blob pattern for the 4 survey answers (`Response_Data`).
-**Revised 2026-09-10 (Costin)**: `Milestone_Instances` is at its CRM
-custom-field cap, so the flag data is **not** new CRM fields — it's appended
-as two more `---`-delimited segments on the existing `Response_Data` blob,
-detected via two new Zoho Analytics formula columns instead (not subject to
-the CRM field cap). See `m2-data-model.md` "Revision" section. No
-`createFields` CRM call is part of this build.
+M0/M1's delimited-blob pattern for the 4 survey answers (`Response_Data`),
+identical in shape to M1's blob — nothing appended for the flag. **Revised
+2026-09-10 (Costin)**: `Milestone_Instances` is at its CRM custom-field cap,
+so the flag data is **not** new CRM fields. **Revised again 2026-09-10
+(second correction, Liana)**: the flag data also isn't appended to the
+`Response_Data` blob — it's computed entirely as two new Zoho Analytics
+formula columns, derived from the same 4 domain values Analytics already
+parses out of the blob for the Total column, and never stored in CRM at all.
+See `m2-data-model.md` "Revision 2" section. No `createFields` CRM call is
+part of this build, and no Deluge-side flag logic either.
 
 **Testing**: Same as M0/M1 — manual + Zoho CRM MCP tool-driven sample data,
 no automated test suite. No live/end-to-end test without Costin (standing
@@ -85,17 +91,20 @@ storage/scoring pattern must be designed for reuse at M3 (per
 - **Principle IV (Contractor Blindness to Own Raw Feedback)**: **This is the
   first milestone where this principle is directly load-bearing, not just
   trivially satisfied by "no dashboard exists yet."** M2 introduces the first
-  real clinical-safety-flag data. Design response: the flag is stored inside
+  real clinical-safety-flag data. Design response, **revised 2026-09-10
+  (second correction)**: the flag is computed entirely by two new Zoho
+  Analytics formula columns from data already inside
   `Milestone_Instances.Response_Data` (a module/field contractors have no
   access to, same as every other field in this system — confirmed per Cape
-  Clarity's current tooling, only Liana holds a CRM/Analytics login),
-  detected via Analytics formula columns, and surfaced only through a new
-  Analytics report restricted the same way every other report in this
-  workspace already is. No email, Flow action, or any other mechanism sends
-  flag data toward a contractor. See `m2-research.md`'s reconciliation of the
-  source Confluence page's stale "routes to the treating clinician" language
-  against ratified FR-012. PASS, but flagged here as the principle actually
-  being tested for the first time, not a formality.
+  Clarity's current tooling, only Liana holds a CRM/Analytics login) — the
+  flag value itself is never stored anywhere, only computed at query time —
+  and surfaced only through a new Analytics report restricted the same way
+  every other report in this workspace already is. No email, Flow action, or
+  any other mechanism sends flag data toward a contractor. See
+  `m2-research.md`'s reconciliation of the source Confluence page's stale
+  "routes to the treating clinician" language against ratified FR-012. PASS,
+  but flagged here as the principle actually being tested for the first time,
+  not a formality.
 - **Principle V (BAA-Gated Adoption)**: Same open gate as M0/M1 —
   `TODO(BAA_SCHEDULE)` still unresolved. M2 stays in test/sample-data mode
   until that's resolved.
@@ -144,59 +153,72 @@ fully specified by the survey content and blob format above.
 Customer Feedback System (Zoho Flow folder)
 ├── [existing] Subflow - Issue Feedback Token, M0/M1 flows
 ├── [new] M2 - Session 3 Trigger               # watches Patients1.Session_Count == 3, issues token
-├── [new] M2 - Alliance Check-In Write-back    # realtime Form-submission trigger + write-back function (incl. flag evaluation)
+├── [new] M2 - Alliance Check-In Write-back    # realtime Form-submission trigger + write-back function (plain string concatenation, same shape as M0/M1 — no flag evaluation here, see Zoho Analytics below)
 
 Zoho CRM
 ├── Patients1 module: Session_Count (existing, already automated)
 └── Milestone_Instances module (existing, NO new custom fields — at CRM field cap) —
     Patient lookup populated (not Lead_Reference);
-    Response_Data reused for the 4-domain + 2-flag-segment blob format (see m2-data-model.md)
+    Response_Data reused for the 4-domain blob format, same shape as M1's —
+    no flag segments (see m2-data-model.md "Revision 2")
 
 Zoho Forms
 └── [new] Cape Clarity Alliance Check-In (4 sliders + hidden token) — designed for reuse at M3
 
 Zoho Analytics
 └── [extend] Milestone Instances table — new formula columns parsing the M2 blob format
-    (4 domain columns, Total, plus 2 new flag-detection columns: Clinical Safety Flag,
-    Flag Rule Triggered — these formula columns are how the flag becomes queryable,
-    since Milestone_Instances itself gets no new CRM fields);
+    (4 domain columns, Total) plus 2 new flag-detection columns: Clinical Safety Flag,
+    Flag Rule Triggered — computed directly from the Total/Domain columns via IF/AND/OR/
+    CONCATENATE, not parsed from the blob (there's nothing flag-related in the blob to
+    parse — revised 2026-09-10, second correction);
     [new] M2 Status Breakdown, M2 Alliance Check-In Total Distribution, M2 Flagged for Review reports;
     [new] "M2 - Early Alliance Check Feedback" dashboard bundling them (same shape as M0/M1's dashboards)
 ```
 
-**Structure Decision**: Same configuration-only approach as M0/M1, with one
-correction from this plan's first draft: `Milestone_Instances` gets **no**
-new CRM fields (it's at its custom-field cap, per Costin 2026-09-10) — the
-flag data lives in the `Response_Data` blob instead, same schema-light
-approach the survey answers already use, with Analytics formula columns
-(not CRM fields) doing the parsing/filtering work. See `m2-data-model.md`
-"Revision" section.
+**Structure Decision**: Same configuration-only approach as M0/M1, with two
+corrections from this plan's first draft. First (Costin, 2026-09-10):
+`Milestone_Instances` gets **no** new CRM fields — it's at its custom-field
+cap. Second (Liana, same day): the flag data doesn't live in the
+`Response_Data` blob either — it isn't stored anywhere in CRM at all. Both
+the total and the flag are computed live by Analytics formula columns from
+the 4 domain values the blob already carries, the same schema-light approach
+the survey answers already used, now extended to the flag as well. See
+`m2-data-model.md` "Revision" and "Revision 2" sections.
 
 ## Complexity Tracking / Design Decisions
 
 | Decision | Chosen | Rejected Alternative |
 |---|---|---|
 | How to store the 4 domain scores | **Delimited blob** (M0/M1's `Response_Data` pattern) | Dedicated numeric fields per domain |
-| Where to evaluate the Clinical Safety Flag Rules | **In the write-back Deluge function**, at submission time | In Analytics, as formula columns computed after CRM sync |
-| How to store the flag result | **Two more segments appended to the `Response_Data` blob**, parsed by new Analytics formula columns | Two new dedicated CRM fields (`Clinical_Safety_Flag`, `Flag_Rule_Triggered`) — **rejected 2026-09-10**: `Milestone_Instances` is at its CRM custom-field cap (Costin), so this option isn't actually available, not merely dispreferred |
+| Where to evaluate the Clinical Safety Flag Rules | **In Analytics, as formula columns** computed from the already-parsed Domain/Total columns — **revised 2026-09-10 (second correction, Liana)** | In the write-back Deluge function, at submission time — this session's first-draft choice, reversed once challenged (see decision note below) |
+| How to store the flag result | **Not stored at all** — computed live by the two Analytics formula columns above, revised 2026-09-10 (second correction) | (a) Two new dedicated CRM fields (`Clinical_Safety_Flag`, `Flag_Rule_Triggered`) — **rejected 2026-09-10**: `Milestone_Instances` is at its CRM custom-field cap (Costin), not actually available. (b) Two more segments appended to the `Response_Data` blob, computed in Deluge — this session's second design, itself **rejected 2026-09-10** once (a) had already been reconsidered: duplicated logic Analytics already needed for the Total column |
 | How flag data reaches admins (FR-013) | **Milestone-scoped Analytics report** (same pattern as M1's User Story 6 reporting), not the unified FR-007 dashboard | Building FR-007's cross-milestone Admin Dashboard early, just to house this one flag view |
 
-**Decision (flag evaluation location)**: computing the flag in Deluge rather
-than Analytics keeps the "visible to admins" guarantee (FR-013) independent
-of the CRM→Analytics sync ever running — the flag exists on the CRM record
-itself the moment the patient submits, which is also the more defensible
-reading of FR-010/011 ("the system MUST evaluate each ... reading against the
-Clinical Safety Flag Rules ... whenever a rule is met") as an event-driven
-requirement rather than a downstream reporting computation.
+**Decision (flag evaluation location), revised 2026-09-10 (second
+correction, Liana)**: the original reasoning for evaluating the flag in
+Deluge — keeping the "visible to admins" guarantee independent of the
+CRM→Analytics sync ever running — didn't hold up. FR-013 only requires the
+flag be visible within an Analytics-based dashboard view either way (see
+`m2-research.md`'s FR-013 decision), and FR-012 bans any automated,
+time-critical action keyed off the flag, so nothing in this system actually
+needs the flag to exist at the instant of submission rather than at report
+query time. Meanwhile Deluge-side evaluation duplicated logic Analytics
+already had to do for the 0-40 total (deliberately never stored, precisely
+because it's fully derivable from the blob) — the flag conditions use that
+same total plus the same four domain values, no new information. Computing
+the flag in Analytics instead is not just simpler; it's also more correct
+under a future rule change, since a formula-column edit recalculates every
+existing response retroactively, where a value frozen into old records at
+Deluge submission time would not.
 
-**Tradeoff accepted**: this makes M2's write-back function meaningfully more
-complex than M0/M1's (real numeric parsing and conditional logic, not just
-string concatenation) — flagged explicitly here since it's a genuine
-precedent for this project's Deluge functions, not because the added
-complexity is a problem in itself. Worth keeping in mind if M3/M4's wellbeing
-trend rules turn out to need cross-record comparison that's awkward to do
-inside a single write-back function call (per `m1-plan.md`'s own note that
-trend evaluation "will need to parse and compare `Response_Data` blobs across
-multiple `Milestone_Instances` records per patient") — that may end up as a
-separate scheduled/triggered function rather than inline in the write-back
-path, a decision for M3's own plan, not resolved here.
+**Precedent for M3/M4**: default to Analytics formula columns for derived
+values (like flags), not Deluge, even where a field-budget workaround (like
+the blob) would technically make Deluge-side storage and computation
+possible. The one place this default may not hold: M3/M4's wellbeing trend
+rules need cross-record comparison (per `m1-plan.md`'s own note that trend
+evaluation "will need to parse and compare `Response_Data` blobs across
+multiple `Milestone_Instances` records per patient") — that may turn out to
+be awkward to express as a single Analytics formula column, in which case a
+separate scheduled/triggered function might still be justified. That's a
+decision for M3's own plan, to be argued from "why does this case need
+Deluge" rather than assumed by default, not resolved here.
