@@ -77,7 +77,7 @@ storage/scoring pattern must be designed for reuse at M3 (per
 ## Constitution Check
 
 *Principle names/numbers match the repository's authoritative constitution
-(v1.2.1).*
+(v1.3.0).*
 
 - **Principle I (De-Identification by Design)**: PASS — Alliance Check-In
   Form gets a hidden token field only, no name/email/phone, same as every
@@ -111,6 +111,17 @@ storage/scoring pattern must be designed for reuse at M3 (per
 - **Principle VI (Internal Use Only)**: PASS by construction, same as M0/M1
   — no connection to any public-facing or marketing tool anywhere in this
   design.
+- **Principle VII (Analytics Is Where Derived Values Get Computed)**: PASS —
+  and the direct source of this principle. Liana's 2026-09-10 challenge to
+  M2's original design (flag computed in the Deluge write-back function,
+  stored in the blob) is what prompted this principle's addition to the
+  constitution; M2's own redesign — flag computed entirely by Analytics
+  formula columns, `submitAllianceCheckInResponse` doing pure string
+  concatenation with no arithmetic or conditional logic — is the first
+  build to conform to it. No documented exception is claimed for M2; the
+  one plausible exception noted in the constitution (a trend-based rule
+  needing cross-record comparison) does not apply here, since the Alliance
+  Check-In flag rule is evaluable on a single reading.
 - **User Story 4 / FR-010–013 (Clinical Safety Flag)**: Newly **in scope**
   for M2's alliance half (see `m2-research.md` — this is a real scope
   addition versus M1, not carried-over infrastructure). The wellbeing half
