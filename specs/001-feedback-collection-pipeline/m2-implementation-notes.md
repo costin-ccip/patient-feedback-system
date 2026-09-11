@@ -9,14 +9,15 @@
 > as the change.
 >
 > Last updated: 2026-09-11
-> Status: T001 (Cape Clarity Alliance Check-In form) and T002/T003/T004 (the
+> Status: T001 (Cape Clarity Alliance Check-In form), T002/T003/T004 (the
 > "M2 - Session 3 Trigger" Zoho Flow, its idempotency-check custom function,
-> and the parameterized "Call a subflow" step) are built and saved. The flow
-> is currently **OFF** (not yet enabled) pending the same live-test-data
-> confirmation M1 required. Not yet started: T005/T006 (the write-back flow
-> and its custom function), Analytics formula columns/reports/dashboard
-> (T017-T019), and all live-test tasks (T020-T023, blocked on a test Patient
-> ID from Costin). See §5 for the full remaining-work list.
+> and the parameterized "Call a subflow" step), and T005/T006 (the
+> "M2 - Alliance Check-In Write-back" Zoho Flow and its
+> `submitAllianceCheckInResponse` custom function) are built and saved. Both
+> flows are currently **OFF** (not yet enabled) pending the same live-test-data
+> confirmation M1 required. Not yet started: Analytics formula columns/
+> reports/dashboard (T017-T019), and all live-test tasks (T020-T023, blocked
+> on a test Patient ID from Costin). See §5 for the full remaining-work list.
 
 ## 1. What's built so far (T001)
 
@@ -43,26 +44,22 @@ correcting here:
 
 ### 1.1 Fields, in canvas order
 
-| Order | Field type | Internal name (discovered, not yet DOM-confirmed the way M1's were) | Label | Notes |
+| Order | Field type | Internal name (DOM-verified) | Label | Notes |
 |---|---|---|---|---|
 | 0 | Description | n/a (not a data-bearing field) | "Intro" (admin-only label) | Free-tier workaround for the Welcome Page paywall — see §1.2. Renders as plain text above the first slider. |
-| 1 | Slider | `Slider` (by M1's type+order naming convention — not yet DOM-verified for this form the way M1's were) | "Overall, how comfortable have you felt being open and honest with your therapist so far?" | Domain: Connection. Instructions: "Domain: Connection. 0 = Not comfortable, 10 = Very comfortable." Range 0-10, Mandatory. |
-| 2 | Slider | `Slider1` (expected, not yet DOM-verified) | "Overall, how well do you feel your therapist has understood what matters to you so far?" | Domain: Understanding. Instructions: "Domain: Understanding. 0 = Not understood, 10 = Fully understood." Range 0-10, Mandatory. |
-| 3 | Slider | `Slider2` (expected, not yet DOM-verified) | "Overall, how much do you feel you and your therapist agree on what you're working toward?" | Domain: Shared direction. Instructions: "Domain: Shared direction. 0 = Not aligned, 10 = Fully aligned." Range 0-10, Mandatory. |
-| 4 | Slider | `Slider3` (expected, not yet DOM-verified) | "Overall, how well has your therapist's approach been working for you so far?" | Domain: Fit of approach. Instructions: "Domain: Fit of approach. 0 = Hasn't worked, 10 = Worked well." Range 0-10, Mandatory. |
-| 5 | Single Line | `SingleLine` (expected, not yet DOM-verified) | "Token" | Visibility set to **Hide**, matching the Wellbeing Check-In form's Token field pattern (`m1-implementation-notes.md` §4A's field table). Confirmed hidden in the live respondent-view render (no Token input visible on the public form; only in the builder canvas). |
+| 1 | Slider | `Slider` | "Overall, how comfortable have you felt being open and honest with your therapist so far?" | Domain: Connection. Instructions: "Domain: Connection. 0 = Not comfortable, 10 = Very comfortable." Range 0-10, Mandatory. |
+| 2 | Slider | `Slider1` | "Overall, how well do you feel your therapist has understood what matters to you so far?" | Domain: Understanding. Instructions: "Domain: Understanding. 0 = Not understood, 10 = Fully understood." Range 0-10, Mandatory. |
+| 3 | Slider | `Slider2` | "Overall, how much do you feel you and your therapist agree on what you're working toward?" | Domain: Shared direction. Instructions: "Domain: Shared direction. 0 = Not aligned, 10 = Fully aligned." Range 0-10, Mandatory. |
+| 4 | Slider | `Slider3` | "Overall, how well has your therapist's approach been working for you so far?" | Domain: Fit of approach. Instructions: "Domain: Fit of approach. 0 = Hasn't worked, 10 = Worked well." Range 0-10, Mandatory. |
+| 5 | Single Line | `SingleLine` | "Token" | Visibility set to **Hide**, matching the Wellbeing Check-In form's Token field pattern (`m1-implementation-notes.md` §4A's field table). Confirmed hidden in the live respondent-view render (no Token input visible on the public form; only in the builder canvas). |
 
-**Important carry-over task before building T006's write-back function**:
-M1's notes (§4A) explicitly warn that Zoho Forms names fields by type +
-creation order, not by label, and that the only reliable way to get the exact
-internal names is DOM inspection of the form builder
-(`id="<InternalName>-li"` on each field's wrapper `<div>`), not assumption.
-The `Slider`/`Slider1`/`Slider2`/`Slider3`/`SingleLine` names above are
-inferred from M1's naming pattern and this form's build order, but **were not
-independently DOM-verified for this form** the way M1's were — do that
-verification before writing `submitAllianceCheckInResponse`'s
-`${trigger.<InternalName>}` parameter mappings (T006), rather than trusting
-this table blindly.
+**DOM verification done (2026-09-11)**: confirmed via the live public form's
+own rendered DOM (`forms.zoho.com` respondent view — each field's wrapper
+`<div>` carries `id="<InternalName>-li"`, same pattern M1's notes describe for
+the builder canvas) rather than assumption. All five inferred names above
+(`Slider`, `Slider1`, `Slider2`, `Slider3`, `SingleLine`) matched exactly —
+no surprises. Safe to use directly in `submitAllianceCheckInResponse`'s
+`${trigger.<InternalName>}` parameter mappings (T006).
 
 ### 1.2 Welcome/closing copy — paid-plan blocker and workarounds
 
@@ -325,6 +322,144 @@ The flow was left **OFF** after this build (same as M1's own build-first,
 verify-later approach) — not yet switched on, pending the same live-test-data
 step T020-T023 already require.
 
+## 3.4 "M2 - Alliance Check-In Write-back" flow, step by step (T005/T006 — built)
+
+Built as a **brand-new flow** (Create flow → App trigger → configure), not by
+cloning M1's write-back flow — deliberately, to avoid a repeat of §3.2's
+shared-custom-function-across-clones gotcha. New flow name
+"M2 - Alliance Check-In Write-back", placed in the "Customer Feedback System"
+folder alongside the other 7 flows.
+
+1. **Trigger** — Zoho Forms "Form entry submitted" (Realtime). Connection:
+   "Connection to Cape Clarity Zoho Forms" (pre-selected by default). Form:
+   "Cape Clarity Alliance Check-In". Output variable left as the default
+   `trigger`. No filter criteria (mirrors M1's write-back trigger).
+2. **Custom Function** — `submitAllianceCheckInResponse`, created from
+   scratch via Built-ins → Developer Tools → Custom Functions →
+   "+Custom Function" (the click-triggered quick-create wizard, per §3.2's
+   documented mechanic — not cloned from any existing function). Return type
+   `map`; five string input parameters: `token`, `connection`,
+   `understanding`, `sharedDirection`, `fitOfApproach`. Full source in §3.4.1.
+3. **Placing and wiring the function node**: dragged the saved function from
+   the Built-ins sidebar list (a genuine jQuery UI `ui-draggable` item, same
+   as §3.2) onto the canvas near the trigger. Unlike §3.2's build, this
+   single drag-and-drop **both placed and auto-wired** the node to the
+   trigger's output in one action — confirmed via the DOM connector-element
+   count (`[class*="connector" i]` → 2 elements = 1 wired connection) both
+   immediately after the drop and again after running "Auto Arrange" (the
+   hierarchy icon in the canvas toolbar), which cleanly restacked the two
+   nodes vertically (trigger on top, function below) without breaking the
+   connection (count stayed at 2). A first attempt at the drag using a
+   synthetic `mousedown`/stepped-`mousemove`/`mouseup` sequence dispatched
+   via `javascript_tool` produced no visible effect (item never left the
+   sidebar) even with added `mouseover`, `pageX`/`pageY`/`screenX`/`screenY`
+   properties and small `await sleep(...)` delays between steps; what
+   actually worked was the `computer` tool's built-in `left_click_drag`
+   action with plain start/end coordinates — worth trying first before
+   reaching for the manual synthetic-event approach in future milestones.
+4. **Parameter mapping**: dropping the function node opened its parameter
+   panel directly (no separate "configure" click needed). The Insert
+   Variable panel's right-hand pane showed only "System Variables" plus a
+   collapsed "Form entry submitted" trigger category with no field-level
+   entries — consistent with §5's M1-era finding that a brand-new,
+   never-run trigger's Insert Variable panel doesn't surface per-field
+   variables yet. Typed the five `${trigger.<InternalName>}` expressions
+   directly into the plain-text parameter fields instead, using the
+   DOM-verified internal names from §1.1 (`SingleLine`, `Slider`, `Slider1`,
+   `Slider2`, `Slider3`):
+
+   | Function parameter | Value | Alliance Check-In field (friendly label) |
+   |---|---|---|
+   | `token` | `${trigger.SingleLine}` | Token (hidden) |
+   | `connection` | `${trigger.Slider}` | Domain: Connection (0-10) |
+   | `understanding` | `${trigger.Slider1}` | Domain: Understanding (0-10) |
+   | `sharedDirection` | `${trigger.Slider2}` | Domain: Shared direction (0-10) |
+   | `fitOfApproach` | `${trigger.Slider3}` | Domain: Fit of approach (0-10) |
+
+   Each field's value was confirmed via `document.activeElement.value`
+   immediately after typing (not trusted from the screenshot), per the
+   verification discipline §4's last bullet documents.
+
+### 3.4.1 `submitAllianceCheckInResponse` — verbatim Deluge source
+
+```
+map submitAllianceCheckInResponse(string token,string connection,string understanding,string sharedDirection,string fitOfApproach)
+{
+	resp = Map();
+	if(token == null || token.trim() == "")
+	{
+		resp.put("status","error");
+		resp.put("message","Missing token");
+		return resp;
+	}
+	rec = Map();
+	found = false;
+	qmap = Map();
+	allRecs = zoho.crm.getRecords("Milestone_Instances",1,200,qmap,"crm_connection");
+	for each  r in allRecs
+	{
+		if(r.get("Token") == token)
+		{
+			rec = r;
+			found = true;
+		}
+	}
+	if(!found)
+	{
+		resp.put("status","error");
+		resp.put("message","No Milestone Instance found for token");
+		return resp;
+	}
+	recStatus = rec.get("Status");
+	expiry = rec.get("Expiry_Date_Time");
+	if(recStatus != "Issued")
+	{
+		resp.put("status","error");
+		resp.put("message","Milestone Instance is not in Issued status (current: " + recStatus + ")");
+		resp.put("recordId",rec.get("id"));
+		return resp;
+	}
+	if(expiry != null && expiry != "" && expiry < zoho.currenttime)
+	{
+		expUpdateMap = Map();
+		expUpdateMap.put("Status","Expired");
+		zoho.crm.updateRecord("Milestone_Instances",rec.get("id"),expUpdateMap,Map(),"crm_connection");
+		resp.put("status","error");
+		resp.put("message","Token has expired");
+		resp.put("recordId",rec.get("id"));
+		return resp;
+	}
+	responseText = "Connection (0-10): " + ifnull(connection,"") + "---";
+	responseText = responseText + "Understanding (0-10): " + ifnull(understanding,"") + "---";
+	responseText = responseText + "Shared direction (0-10): " + ifnull(sharedDirection,"") + "---";
+	responseText = responseText + "Fit of approach (0-10): " + ifnull(fitOfApproach,"");
+	updateMap = Map();
+	updateMap.put("Response_Data",responseText);
+	updateMap.put("Status","Submitted");
+	updateMap.put("Submitted_Date_Time",zoho.currenttime.toString("yyyy-MM-dd'T'HH:mm:ssXXX"));
+	updateResp = zoho.crm.updateRecord("Milestone_Instances",rec.get("id"),updateMap,Map(),"crm_connection");
+	resp.put("status","success");
+	resp.put("message","Milestone Instance updated");
+	resp.put("recordId",rec.get("id"));
+	return resp;
+}
+```
+
+Return type `map`. Five string inputs: `token`, `connection`, `understanding`,
+`sharedDirection`, `fitOfApproach`. Connection name `crm_connection`, reused
+verbatim from M0/M1's pattern. Directly mirrors
+`submitWellbeingCheckInResponse` (`m1-implementation-notes.md` §4A.1)
+field-for-field, adapted to the 4 Alliance Check-In domains. `Response_Data`
+format matches `m2-data-model.md`'s Revision 2 exactly: four `---`-joined
+domains, pure string concatenation, no numeric parsing or flag logic of any
+kind (the Clinical Safety Flag and Flag Rule Triggered values are computed
+entirely in Analytics formula columns per constitution Principle VII — not
+this function's job, and not stored anywhere in `Milestone_Instances`).
+
+The flow was left **OFF** after this build, same as "M2 - Session 3 Trigger"
+— not yet switched on, pending the same live-test-data step T020-T023
+already require.
+
 ## 4. Zoho Forms automation gotchas
 
 - **"Duplicate" form action is non-functional via browser automation in this
@@ -382,28 +517,11 @@ step T020-T023 already require.
 
 ## 5. Remaining work (not yet built)
 
-T001-T004 are done (§1, §3). Not yet built: the write-back flow and its
-function, all Analytics work, and all live-test tasks. Per `m2-tasks.md` and
-`m2-data-model.md` (Revision 2 — flag computed entirely in Analytics, per
-constitution Principle VII), the next steps in order are:
+T001-T006 are done (§1, §3, §3.4). Not yet built: all Analytics work and all
+live-test tasks. Per `m2-tasks.md` and `m2-data-model.md` (Revision 2 — flag
+computed entirely in Analytics, per constitution Principle VII), the next
+steps in order are:
 
-- **T005**: Build "M2 - Alliance Check-In Write-back" Zoho Flow — realtime
-  Form-submission trigger on the Cape Clarity Alliance Check-In form →
-  `submitAllianceCheckInResponse`. Same connector-verification discipline as
-  T002 (§3's DOM connector-element check); given §3.2's finding, if this flow
-  is built by cloning M1's write-back flow, do **not** edit/step-clone its
-  cloned-in `submitWellbeingCheckInResponse` node — create a genuinely new
-  function via the Built-ins panel instead, same as T002/T003 did.
-- **T006**: `submitAllianceCheckInResponse` — mirror
-  `submitWellbeingCheckInResponse` (`m1-implementation-notes.md` §4A.1)
-  field-for-field, adapted to the 4 Alliance Check-In domains, writing the
-  blob format `m2-data-model.md` specifies: `"Connection (0-10): {value}---
-  Understanding (0-10): {value}---Shared direction (0-10): {value}---Fit of
-  approach (0-10): {value}"`. **No flag-related logic of any kind** — pure
-  string concatenation only, per constitution Principle VII and this
-  milestone's Revision 2 correction. Field internal names (`Slider`,
-  `Slider1`, etc.) need the DOM-verification pass §1.1 flags before writing
-  the `${trigger.<InternalName>}` parameter mappings.
 - **T007-T016**: Verification/confirmation tasks (US1/US2/US4), including
   confirming with Costin whether the raw-Forms-entry retention-purge gap is
   still being deliberately deferred, and confirming no contractor-facing
