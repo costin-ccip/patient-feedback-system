@@ -1,5 +1,12 @@
 # Phase 0 Research: M1 - Baseline Intake Survey
 
+> **RETIRED (2026-09-11)**: Milestone 1 has been eliminated per an operations-lead
+> decision following a review of clinical/EHR overlap — see `spec.md`'s fifth-pass
+> revision note and Assumptions. This file is kept as the historical record of what
+> was researched and built, not deleted; it no longer reflects the live system. The
+> corresponding Zoho objects are being decommissioned — see `m1-implementation-notes.md`'s
+> own RETIRED note for their disposition.
+
 **Feature**: `specs/001-feedback-collection-pipeline/spec.md` (User Stories 1 & 2, M1 scope)
 
 **Date**: 2026-09-06

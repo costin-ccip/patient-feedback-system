@@ -68,6 +68,38 @@ leaving care) needs its own exit-reason capture, delivered by email."
   acceptance criteria distinct from this per-milestone floor, and numbered last to avoid
   renumbering Stories 4–5 and their existing cross-references from the m0/m1
   implementation docs.
+
+  Revised 2026-09-11 (fifth pass), per practice review of clinical/EHR overlap:
+  Milestone 1 (Baseline Intake) is eliminated. Its only content was the Wellbeing
+  Check-In instrument — a standardized clinical outcome measure. Having the practice's
+  ops layer administer and interpret a uniform outcome measure across every patient
+  duplicated what each clinician (a 1099 contractor who owns their own clinical
+  methods, documented in their own EHR) already does, and risked blurring the line
+  between running the business and directing clinical care. The alliance track (a
+  relationship/satisfaction signal, not a clinical assessment) doesn't have that
+  problem and is unchanged. Concretely: (1) Milestone 1 is removed with no
+  replacement — see the "RETIRED" note atop its per-milestone files
+  (`m1-plan.md`/`m1-research.md`/`m1-data-model.md`/`m1-tasks.md`/
+  `m1-test-scenario.md`/`m1-implementation-notes.md`); (2) milestone numbering is
+  deliberately NOT shifted — the active sequence is 0 → 2 → 3 → 4 → 5, with a
+  permanent gap where 1 used to be, so existing FR-### and CRM `Milestone` picklist
+  values already built for M2 keep citing the same numbers; (3) Milestone 3's
+  Wellbeing Check-In section is removed and its cadence changes from every 4th to
+  every 8th session; its "likelihood to continue/refer" question is also removed
+  (already captured at Milestone 4); remaining sections renumber to Alliance
+  Check-In (1), practice experience (2), therapist professionalism (3);
+  (4) Milestone 4's Wellbeing Check-In (final reading) section is removed; Alliance
+  Check-In and "Looking ahead" renumber to Sections 1–2; the discharge milestone no
+  longer closes any pre/post wellbeing comparison, since no milestone collects a
+  wellbeing reading anymore; (5) Milestone 0, Milestone 2, and Milestone 5 are
+  unchanged; (6) with no milestone collecting a wellbeing reading anymore, the
+  Clinical Safety Flag Rules' Wellbeing rule and User Story 4's wellbeing scenario
+  become permanently unreachable and are removed from this spec (User Story 4 is now
+  alliance-only) — FR-010, which required wellbeing-rule evaluation, is retired and
+  its number intentionally left unused rather than reassigned, so FR-011–FR-013
+  (already built into M2) keep citing the same numbers. Source: Confluence "Customer
+  Feedback Collection" and its milestone detail pages, updated by the operations
+  lead ahead of this revision; Milestone 2's own page is explicitly unchanged.
 -->
 
 ## User Scenarios & Testing *(mandatory)*
@@ -75,11 +107,12 @@ leaving care) needs its own exit-reason capture, delivered by email."
 ### User Story 1 - Feedback requests fire automatically on milestones (Priority: P1)
 
 As the practice, we need feedback requests to go out the moment a patient (or, for
-Milestone 0, a prospect) hits one of six defined points in their journey, without any
-clinician having to remember to ask or manually kick it off. The six milestones are: 0 —
-free consult with no conversion, 1 — baseline intake, 2 — early alliance check, 3 —
-periodic consolidated check-in, 4 — discharge, and 5 — discontinuation. Full trigger
-definitions are in the Milestones subsection under Requirements.
+Milestone 0, a prospect) hits one of five defined points in their journey, without any
+clinician having to remember to ask or manually kick it off. The five active milestones
+are: 0 — free consult with no conversion, 2 — early alliance check, 3 — periodic
+consolidated check-in, 4 — discharge, and 5 — discontinuation. (Milestone 1 — baseline
+intake — was retired; the numbering gap is deliberate, see the Milestones subsection.)
+Full trigger definitions are in the Milestones subsection under Requirements.
 
 **Why this priority**: Every other part of this feature depends on requests actually
 going out reliably. If sending is contractor-dependent, coverage silently degrades to
@@ -181,35 +214,37 @@ confirming no contractor account can reach either view.
 
 ### User Story 4 - Automated clinical safety flag to admin (Priority: P4)
 
-As a practice admin, I need to be notified automatically when a patient's wellbeing or
-alliance score data crosses a defined clinical concern threshold (a stall, a
-deterioration, or a low alliance reading), so I can decide whether to request a case
-consultation with that patient's treating contractor. The contractor is never
-automatically notified of the flag — reaching out to them is my decision to make.
+As a practice admin, I need to be notified automatically when a patient's alliance score
+data crosses a defined clinical concern threshold (a low alliance reading), so I can
+decide whether to request a case consultation with that patient's treating contractor.
+The contractor is never automatically notified of the flag — reaching out to them is my
+decision to make.
+
+> Originally also covered wellbeing-score stall/deterioration rules; retired in the
+> fifth-pass revision (see the note atop this document) along with Milestone 1 and the
+> Wellbeing Check-In instrument, since no milestone collects a wellbeing reading
+> anymore. This story is now alliance-only.
 
 **Why this priority**: This is a patient-safety mechanism, distinct from general
 reporting, so it's prioritized ahead of discontinuation handling. It depends on scored
 milestone data already existing (Stories 1–2) and surfaces through the same admin-facing
 dashboard as Story 3, so it follows both.
 
-**Independent Test**: Can be fully tested by seeding a patient's wellbeing or alliance
-score data to cross one of the defined flag rules (see Requirements) and confirming an
-admin sees a flag identifying that patient and the rule that fired, while confirming the
-treating contractor receives no automated notification or visibility into it.
+**Independent Test**: Can be fully tested by seeding a patient's alliance score data to
+cross the defined low-alliance flag rule (see Requirements) and confirming an admin sees
+a flag identifying that patient and the rule that fired, while confirming the treating
+contractor receives no automated notification or visibility into it.
 
 **Acceptance Scenarios**:
 
-1. **Given** a patient's wellbeing score data meets a defined stall or deterioration
-   rule, **When** the system evaluates the new reading, **Then** a flag is raised for
-   practice-admin review identifying the patient and which rule fired.
-2. **Given** a patient's alliance score data meets the defined low-alliance rule, **When**
+1. **Given** a patient's alliance score data meets the defined low-alliance rule, **When**
    the system evaluates the new reading, **Then** a flag is raised for practice-admin
    review identifying the patient and which rule fired.
-3. **Given** a flag has been raised for a patient, **When** the system processes it,
+2. **Given** a flag has been raised for a patient, **When** the system processes it,
    **Then** the patient's treating contractor receives no automated notification or view
    of the flag — only a practice admin can see it, and only an admin can decide to
    request a case consultation from that contractor.
-4. **Given** a flag exists for a patient, **When** an admin opens that patient's record in
+3. **Given** a flag exists for a patient, **When** an admin opens that patient's record in
    the dashboard (Story 3), **Then** the flag and the rule that triggered it are visible
    there.
 
@@ -311,8 +346,12 @@ view of that milestone's own scored or categorical answers.
 
 ### Milestones
 
-Six milestones drive feedback requests. All six trigger off events/data recorded in
-Zoho CRM — the practice's EHR is not part of this pipeline's trigger loop. Trigger
+Five active milestones drive feedback requests, numbered 0, 2, 3, 4, 5 — Milestone 1
+(Baseline Intake) was retired in the fifth-pass revision (see the note atop this
+document) and its number is deliberately left unused rather than reassigned, so
+existing CRM `Milestone` picklist values and FR-### cross-references built for later
+milestones don't need to change. All five trigger off events/data recorded in Zoho
+CRM — the practice's EHR is not part of this pipeline's trigger loop. Trigger
 thresholds below (day windows, session counts, no-show counts) are the practice's
 current starting policy and are configurable, not fixed values defined by this
 specification (see Assumptions).
@@ -320,23 +359,25 @@ specification (see Assumptions).
 | # | Name | Trigger | Notes |
 |---|------|---------|-------|
 | 0 | Free consult, no conversion | A free consult is completed and no first appointment is booked within 14 days | Applies to a prospect, not yet a patient |
-| 1 | Baseline intake | Automatic at the patient's first session (intake) | Establishes the patient's baseline wellbeing reading, used for later trend comparisons |
+| 1 | *(retired)* | — | Was Baseline Intake (Wellbeing Check-In); eliminated, no replacement. See the fifth-pass revision note. |
 | 2 | Early alliance check | Patient's session count reaches 3 | First alliance-only reading; no prior alliance data yet, so its flag rule (below) uses a fixed threshold rather than a trend |
-| 3 | Periodic consolidated | Every 4th session, recurring for the duration of treatment | Combines a wellbeing reading, an alliance reading, and operational/contractor items into one request |
-| 4 | Discharge | Discharge is marked in the system of record | One-time final reading; closes the pre/post comparison against Milestones 1 and 2 |
+| 3 | Periodic consolidated | Every 8th session, recurring for the duration of treatment | An alliance reading plus operational/contractor items (practice experience, therapist professionalism) in one request; no wellbeing reading. Cadence changed from every 4th to every 8th session, and a "likelihood to continue/refer" question was removed (already captured at Milestone 4), in the fifth-pass revision |
+| 4 | Discharge | Discharge is marked in the system of record | An alliance reading (final reading) plus a "looking ahead" exit section; no wellbeing reading, so this milestone no longer closes any pre/post wellbeing comparison |
 | 5 | Discontinuation | Cancellation with no rebooking within 14 days, OR 2 consecutive no-shows with no reschedule in between | Captures exit reason; delivered by email (User Story 5) — see Assumptions for why no live-call path exists in this version |
 
 ### Clinical Safety Flag Rules
 
-These rules apply to wellbeing readings (Milestones 1, 3, 4) and alliance readings
-(Milestones 2, 3, 4), and drive User Story 4. Thresholds are the practice's current
-starting policy, not validated cutoffs, and are configurable (see Assumptions).
+These rules apply to alliance readings (Milestones 2, 3, 4), and drive User Story 4.
+Thresholds are the practice's current starting policy, not validated cutoffs, and are
+configurable (see Assumptions).
 
-- **Wellbeing** — flag for admin review when any of: the total score drops 5 or more
-  points from the previous reading; any single domain drops 4 or more points from the
-  previous reading; any single domain scores 3 or below at two consecutive readings; or
-  the total score has not moved more than ±3 points across 3 consecutive readings
-  (stalled).
+> A Wellbeing rule (total score drops 5+ points, any domain drops 4+ points, any domain
+> scores 3 or below at two consecutive readings, or the total stalls within ±3 points
+> across 3 consecutive readings) previously applied to wellbeing readings at Milestones
+> 1, 3, and 4. It's removed as of the fifth-pass revision (see note atop this document):
+> Milestone 1 is retired and Milestones 3/4 no longer collect a wellbeing reading, so no
+> milestone produces wellbeing data for this rule to evaluate.
+
 - **Alliance** — flag for admin review when either: the total alliance score is 20 or
   below (out of 40); or any single domain scores 4 or below.
 
@@ -368,9 +409,11 @@ starting policy, not validated cutoffs, and are configurable (see Assumptions).
 - **FR-009**: The system MUST NOT provide any contractor-facing dashboard or grant
   contractors any access to feedback data in this version; dashboard access is limited
   to practice admins.
-- **FR-010**: The system MUST evaluate each wellbeing reading against the Clinical Safety
-  Flag Rules above and raise a flag for practice-admin review, identifying the patient
-  and the rule that fired, whenever a rule is met.
+- **FR-010**: *(Retired, fifth-pass revision — see note atop this document.)* Required
+  evaluating each wellbeing reading against a Clinical Safety Flag Wellbeing rule. No
+  milestone collects a wellbeing reading anymore, so this requirement no longer applies.
+  Number intentionally left unused rather than reassigned, so FR-011–FR-013 (already
+  built into M2) keep citing the same numbers.
 - **FR-011**: The system MUST evaluate each alliance reading against the Clinical Safety
   Flag Rules above and raise a flag for practice-admin review, identifying the patient
   and the rule that fired, whenever a rule is met.
@@ -408,9 +451,9 @@ starting policy, not validated cutoffs, and are configurable (see Assumptions).
   later becomes a patient is a separate record moving into the Patient lifecycle, not a
   conversion of the same record.
 - **Milestone Trigger**: A system-detected condition on a patient's or prospect's record,
-  matching one of the six defined milestones (0–5, see Milestones above), that causes a
-  feedback request to be generated. Each instance is triggered and tracked
-  independently.
+  matching one of the five active milestones (0, 2–5, see Milestones above — Milestone 1
+  is retired), that causes a feedback request to be generated. Each instance is
+  triggered and tracked independently.
 - **Feedback Token**: A single-use, opaque identifier issued per milestone instance,
   used to link a survey submission back to a patient or prospect without exposing
   identity to the collection tool. Has a validity/expiry window and is invalidated after
@@ -418,10 +461,10 @@ starting policy, not validated cutoffs, and are configurable (see Assumptions).
 - **Feedback Response**: The submitted answers/scores for a given milestone instance.
   Exists briefly in raw form in the collection tool, then is rejoined to the record and
   persisted in CRM; the raw copy is purged after a short retention window.
-- **Clinical Safety Flag**: A flag raised for admin review when a patient's wellbeing or
-  alliance score data meets one of the Clinical Safety Flag Rules above. Never
-  automatically shown to the treating contractor; an admin decides whether to request a
-  case consultation from that contractor.
+- **Clinical Safety Flag**: A flag raised for admin review when a patient's alliance
+  score data meets one of the Clinical Safety Flag Rules above. Never automatically
+  shown to the treating contractor; an admin decides whether to request a case
+  consultation from that contractor.
 - **Contractor (Clinician)**: The care provider associated with a patient's sessions.
   Has no dashboard or feedback-data access in this version, and is never automatically
   notified of a clinical safety flag about their own patient. A later version may
@@ -492,3 +535,14 @@ starting policy, not validated cutoffs, and are configurable (see Assumptions).
 - The exact wording/content of each milestone's survey questions (e.g. specific slider
   labels, intro/closing copy) is instrument-design content tracked in the source
   Confluence pages, not a functional requirement of this specification.
+- Milestone 1 (Baseline Intake) was eliminated per an operations-lead decision
+  (2026-09-11), following a review of clinical/EHR overlap: the practice's clinicians
+  are 1099 contractors who own their own clinical methods and document them in their
+  own EHR, so having the practice's ops layer administer and interpret a standardized
+  clinical outcome measure (the Wellbeing Check-In instrument) risked blurring the line
+  between running the business and directing clinical care. The alliance track
+  (relationship/satisfaction, not a clinical assessment) doesn't have that problem and
+  is unchanged. This was a product/scope decision, not a data or trigger-mechanism
+  correction — see the fifth-pass revision note atop this document for the full list of
+  consequences (milestone numbering gap, Milestone 3/4 section changes, retired
+  Clinical Safety Flag Wellbeing rule).

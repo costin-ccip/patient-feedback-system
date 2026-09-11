@@ -4,6 +4,14 @@ description: "Task list for M1 - Baseline Intake Survey (Session 1), generated p
 
 # Tasks: M1 - Baseline Intake Survey (Milestone 1)
 
+> **RETIRED (2026-09-11)**: Milestone 1 has been eliminated per an operations-lead
+> decision following a review of clinical/EHR overlap — see `spec.md`'s fifth-pass
+> revision note and Assumptions. This file is kept as the historical record of what
+> was actually done (checked items) and what was never finished (unchecked items,
+> including Phase 6 live-test validation), not deleted; it no longer reflects the
+> live system. The corresponding Zoho objects are being decommissioned — see
+> `m1-implementation-notes.md`'s own RETIRED note for their disposition.
+
 **Input**: `m1-plan.md`, `spec.md` (User Stories 1 & 2, plus the Clinical
 Safety Flag Rules note under Constitution Check), `m1-research.md`,
 `m1-data-model.md`

@@ -1,5 +1,14 @@
 # M1 (Session 1 / Baseline Intake) — Implementation Notes
 
+> **RETIRED (2026-09-11)**: Milestone 1 has been eliminated per an operations-lead
+> decision following a review of clinical/EHR overlap — see `spec.md`'s fifth-pass
+> revision note and Assumptions. The practice's clinicians are 1099 contractors who
+> own their own clinical methods; having the ops layer administer/interpret a
+> standardized outcome measure risked blurring the line between running the business
+> and directing clinical care. This file remains the as-built record of what was
+> live, kept for audit purposes and to guide decommissioning — see §14 for the
+> disposition of the actual Zoho objects listed in §2's component inventory.
+
 > Scope: this file documents ONLY the M1 milestone (the automatic Session 1 /
 > Baseline Intake feedback loop). It is a companion to
 > `specs/001-feedback-collection-pipeline/spec.md` (all six milestones) and to
@@ -7,15 +16,18 @@
 > tracks what has actually been built in Zoho, as it's built, per the CLAUDE.md
 > convention of updating implementation notes in the same session as the change.
 >
-> Last updated: 2026-09-09
-> Status: Phase 1 (Setup: T001 form, T002 schema confirm), Phase 2 Foundational
-> (T003–T007, including the write-back flow), and Phase 5 reporting (T015
-> Analytics formula columns, T016 "M1 Submitted Responses" report, T024
-> baseline dashboard) are all built and saved. Both flows ("M1 - Session 1
-> Trigger" and "M1 - Wellbeing Check-In Write-back") are now ON/live (see
-> §12) — a real connector bug blocked "M1 - Session 1 Trigger" from
-> switching on until it was found and fixed this session. M1's reporting now
-> meets the spec.md User Story 6 / FR-018 baseline bar (see §13).
+> Last updated: 2026-09-11
+> Status: RETIRED. Phase 1 (Setup: T001 form, T002 schema confirm), Phase 2
+> Foundational (T003–T007, including the write-back flow), and Phase 5
+> reporting (T015 Analytics formula columns, T016 "M1 Submitted Responses"
+> report, T024 baseline dashboard) were all built and saved — see the phase
+> history below for the as-built record. Both flows ("M1 - Session 1
+> Trigger" and "M1 - Wellbeing Check-In Write-back") were later found OFF
+> again (contradicting §12's "ON/live" note — see §14.1) and have now been
+> decommissioned (renamed `[RETIRED]`) along with the Form and the three
+> Analytics objects; see §14 for the full disposition. Phase 6 live-test
+> validation (T017–T020) and the full trigger test (T008–T010) were never
+> run and now never will be.
 
 ## 1. What M1 does
 
@@ -569,3 +581,114 @@ M0-specific concepts (a lead's reachability, a response rate against manually
 issued tokens) that don't have an obvious M1 analogue defined anywhere yet —
 would need its own spec/data-model discussion, not an ad hoc dashboard
 addition.
+
+## 14. Decommissioning (2026-09-11)
+
+Per the RETIRED note atop this file: M1 is eliminated (see `spec.md`'s
+fifth-pass revision note and Assumptions), and the live Zoho objects listed in
+§2's component inventory are being archived rather than deleted — renamed with
+a `[RETIRED]` prefix so they stop looking like active production objects to
+anyone browsing the relevant app, but stay in place for audit purposes. Nothing
+listed below was deleted. This section records what was actually found and
+done to each object.
+
+### 14.1 Zoho Flow objects
+
+Before touching anything, checked the actual current toggle state of both M1
+flows in Zoho Flow (Customer Feedback System folder) rather than trusting §12's
+"both ON/live" note. **Both were already OFF** — contradicting §12, which says
+they were switched ON on 2026-09-09. Someone (presumably Costin) must have
+turned them back off sometime between that session and this one; this file's
+own §12 note was stale by the time of this decommissioning pass. No toggle
+action was needed as a result — only the rename below.
+
+Renamed (Zoho Flow's "Flow name" field, an internal/admin-facing label, not
+shown to patients):
+
+- `M1 - Session 1 Trigger` → `[RETIRED] M1 - Session 1 Trigger` — confirmed OFF,
+  renamed, persistence verified by reload (Updated On: Sep 11, 2026 02:45 PM).
+- `M1 - Wellbeing Check-In Write-back` → `[RETIRED] M1 - Wellbeing Check-In
+  Write-back` — confirmed OFF, renamed, persistence verified by reload
+  (Updated On: Sep 11, 2026 02:50 PM).
+
+**Left untouched**: the underlying custom functions (`checkBaselineIntakeExists`,
+`submitWellbeingCheckInResponse`) — scoped to their respective flows and carry
+no independent visibility once the parent flow is renamed/OFF, so renaming them
+separately wouldn't add anything. Also left untouched: `Subflow - Issue
+Feedback Token` — shared cross-milestone infrastructure, confirmed still ON and
+in active use by M0/M2/M5, must not be touched by M1's retirement.
+
+### 14.2 Zoho Form
+
+The Wellbeing Check-In Form (`Cape Clarity Wellbeing Check-In` in Zoho Forms)
+has both a public-facing **Form title** (what a patient sees on the live form
+page, at the top of the Wellbeing Check-In instrument) and a separate, admin-only
+**Form Nickname** field (Form Properties panel; Zoho's own description: "Intended
+for form owner's reference and usage; will not be displayed to other users/
+respondents"). To archive this the same way as the flows — an internal-only
+label change, with no effect on what anyone filling out the form (or an old
+bookmarked link) actually sees — the **Form Nickname** was set to `[RETIRED]
+Cape Clarity Wellbeing Check-In`, and the public Form title was deliberately
+left as `Cape Clarity Wellbeing Check-In`, unchanged. This is what now shows
+`[RETIRED] Cape Clarity Wellbeing Check-In` as the card name on the forms.zoho.com
+list page, with "Form title: Cape Clarity Wellbeing Check-In" shown underneath
+it as a secondary line — confirmed via reload.
+
+**Left untouched**: Form Availability (Settings → General → Form Availability)
+— still set to Always/no restriction, i.e. the form itself is still technically
+reachable by anyone with the link. Disabling public availability was not part
+of the approved decommissioning scope (rename only, leave in place), and
+changing it would have been scope creep beyond what was proposed and approved;
+if Costin wants the form taken fully out of public reach, that's a separate,
+explicit follow-up.
+
+### 14.3 Zoho Analytics objects
+
+All three M1 Analytics objects (§13) live in the `Zoho CRM Analytics` workspace
+(DBID `3251423000000083002`) and were renamed via each view's own title-edit
+control (Explorer → open view → click the view title in the header). Same
+`[RETIRED]` prefix pattern, admin-facing name only — Zoho Analytics view titles
+aren't patient-facing (nothing here is ever shown outside the CRM Analytics
+workspace), so there's no separate "public title" concern like the Form had.
+
+- `M1 Status Breakdown` → `[RETIRED] M1 Status Breakdown` (report, view ID
+  `3251423000000120056`).
+- `M1 Wellbeing Check-In Total Distribution` → `[RETIRED] M1 Wellbeing
+  Check-In Total Distribution` (report, view ID `3251423000000120076`).
+- `M1 - Session 1 Baseline Intake Feedback` → `[RETIRED] M1 - Session 1
+  Baseline Intake Feedback` (dashboard, view ID `3251423000000120137`).
+
+All three confirmed via the platform's own rename-save response
+(`DISPNAME` echoing the new title) and independently by reloading each view
+and re-reading its title afterward.
+
+**Left untouched**: `M1 Submitted Responses` (§9.4/T016) is not in §2's
+component inventory or listed above because it's a shared-shape report
+pattern, not M1-specific infrastructure in the same sense as the three above —
+it was pulled into the M1 dashboard (§13.3) as one of three panels. Retiring
+it separately was not part of the approved scope; it's covered implicitly by
+its parent dashboard now reading `[RETIRED]`. The underlying `Milestone_Instances`
+table/view itself (shared by all six milestones) was of course not touched.
+
+### 14.4 Test data
+
+The one real `Milestone_Instances` row created during Costin's fictional-patient
+end-to-end test (§7, §8) — `id 6825601000004245001`, `Milestone = "1 - Baseline
+Intake"`, `Patient` name `PT000` — was checked via a non-PII CRM MCP read
+(`Milestone_Instances` isn't a restricted module; no Leads/Patients module was
+opened). `PT000` is consistent with the documented fictional test-patient
+pattern (§13's intro references this same row), not a real patient, so it was
+**left in place** as a harmless historical record rather than deleted — deleting
+it wasn't part of the approved scope, and there's no PHI-exposure reason to
+remove it now that M1 is retired.
+
+### 14.5 What decommissioning deliberately did not do
+
+Consistent with the approved proposal (archive, don't delete; rename, don't
+disable): no Zoho object was deleted, no CRM `Milestone` picklist value was
+removed or renumbered (`"1 - Baseline Intake"` stays as a retired-but-present
+option, same reasoning as the FR-010/FR-011 numbering gap in `spec.md`), and
+the Wellbeing Check-In Form's public availability was left on. If Costin later
+wants a harder shutdown (disabling the form outright, deleting the picklist
+value, purging the test row), that's a separate decision — this pass only
+executed what was explicitly proposed and approved on 2026-09-11.

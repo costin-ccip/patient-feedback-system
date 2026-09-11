@@ -4,6 +4,13 @@ description: "Basic manual test scenario for M1 (Baseline Intake / Wellbeing Che
 
 # M1 Test Scenario: Does the information flow?
 
+> **RETIRED (2026-09-11)**: Milestone 1 has been eliminated per an operations-lead
+> decision following a review of clinical/EHR overlap — see `spec.md`'s fifth-pass
+> revision note and Assumptions. This file is kept as the historical record of the
+> test scenario used, not deleted; it no longer reflects the live system. The
+> corresponding Zoho objects are being decommissioned — see `m1-implementation-notes.md`'s
+> own RETIRED note for their disposition.
+
 **Purpose**: a minimal, low-risk check that a Wellbeing Check-In response
 actually travels Form → write-back function → `Milestone_Instances` fields →
 Analytics formulas correctly — i.e., the "information flow" question — without
