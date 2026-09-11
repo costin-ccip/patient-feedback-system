@@ -8,34 +8,44 @@
 > `CLAUDE.md` convention of updating implementation notes in the same session
 > as the change.
 >
-> Last updated: 2026-09-10
-> Status: Phase 1 (T001, the Cape Clarity Alliance Check-In form) is built and
-> saved. Nothing else in M2 has been built yet — no Zoho Flow, no custom
-> functions, no CRM records, no Analytics formula columns/reports. This
-> session paused before starting T002 (the "M2 - Session 3 Trigger" flow) to
-> stay under a usage limit; resume there next session.
+> Last updated: 2026-09-11
+> Status: T001 (Cape Clarity Alliance Check-In form) and T002/T003/T004 (the
+> "M2 - Session 3 Trigger" Zoho Flow, its idempotency-check custom function,
+> and the parameterized "Call a subflow" step) are built and saved. The flow
+> is currently **OFF** (not yet enabled) pending the same live-test-data
+> confirmation M1 required. Not yet started: T005/T006 (the write-back flow
+> and its custom function), Analytics formula columns/reports/dashboard
+> (T017-T019), and all live-test tasks (T020-T023, blocked on a test Patient
+> ID from Costin). See §5 for the full remaining-work list.
 
-## 1. What's built so far (T001 only)
+## 1. What's built so far (T001)
 
 **Cape Clarity Alliance Check-In** — Zoho Form, Standard type, built from
 scratch via "New Form" → "Blank Form" (not via Zoho Forms' "Duplicate" action,
 which turned out to be non-functional via browser automation in this
-account — see §3). Permalink (owner/builder-session URL, confirmed live and
-rendering the full public respondent view):
-`https://forms.zoho.com/lianapreudhommecapec1/form/CapeClarityAllianceCheckIn`
-— this is the value to use for the `survey_url` parameter when T002/T004
-build the "Call a subflow" step, mirroring `m1-implementation-notes.md` §4's
-`survey_url` pattern. (Not yet cross-checked against the Share tab's formal
-"permalink"/`formperma` URL the way M1's notes record one — worth a quick
-Share-tab check before wiring the subflow call, in case Zoho Forms exposes a
-distinct public-facing permalink the way it did for the Wellbeing Check-In
-form.)
+account — see §4). Two URLs matter for this form, and they are **not the
+same thing** — a distinction this file got wrong in an earlier draft and is
+correcting here:
+
+- **Owner/builder-session URL** (what you land on navigating the form from
+  "My Forms" while signed in): `https://forms.zoho.com/lianapreudhommecapec1/form/CapeClarityAllianceCheckIn`.
+  This renders the full public respondent view when you're signed in, which
+  made it easy to mistake for the real public link — but it is **not** what
+  an unauthenticated patient's browser can load.
+- **Formal public permalink** (Share tab → Public → "Form Permalink (URL)",
+  confirmed via direct DOM read of the input's `.value`, not just eyeballing
+  the rendered panel — see §4 gotcha on why): `https://forms.zohopublic.com/lianapreudhommecapec1/form/CapeClarityAllianceCheckIn/formperma/bRYJ3IA6ocer84TfXo45HWPYMWgMZXIFkcAQ3rSZ3ZE`.
+  **This is the value used for the `survey_url` parameter** in the "M2 -
+  Session 3 Trigger" flow's "Call a subflow" step (§3 below) — same
+  `zohopublic.com/.../formperma/<token>` shape as M1's Wellbeing Check-In
+  permalink (`m1-implementation-notes.md` §4A). The Share tab also confirmed
+  the public link is already **Enabled**.
 
 ### 1.1 Fields, in canvas order
 
 | Order | Field type | Internal name (discovered, not yet DOM-confirmed the way M1's were) | Label | Notes |
 |---|---|---|---|---|
-| 0 | Description | n/a (not a data-bearing field) | "Intro" (admin-only label) | Free-tier workaround for the Welcome Page paywall — see §2. Renders as plain text above the first slider. |
+| 0 | Description | n/a (not a data-bearing field) | "Intro" (admin-only label) | Free-tier workaround for the Welcome Page paywall — see §1.2. Renders as plain text above the first slider. |
 | 1 | Slider | `Slider` (by M1's type+order naming convention — not yet DOM-verified for this form the way M1's were) | "Overall, how comfortable have you felt being open and honest with your therapist so far?" | Domain: Connection. Instructions: "Domain: Connection. 0 = Not comfortable, 10 = Very comfortable." Range 0-10, Mandatory. |
 | 2 | Slider | `Slider1` (expected, not yet DOM-verified) | "Overall, how well do you feel your therapist has understood what matters to you so far?" | Domain: Understanding. Instructions: "Domain: Understanding. 0 = Not understood, 10 = Fully understood." Range 0-10, Mandatory. |
 | 3 | Slider | `Slider2` (expected, not yet DOM-verified) | "Overall, how much do you feel you and your therapist agree on what you're working toward?" | Domain: Shared direction. Instructions: "Domain: Shared direction. 0 = Not aligned, 10 = Fully aligned." Range 0-10, Mandatory. |
@@ -110,7 +120,7 @@ this Zoho Forms account's current plan:
   Rich Text Thank You pages (would also unblock the Welcome Page feature and
   remove the need for the Description-field workaround above).
 
-## 2. Zoho Forms plan-tier findings (new this session, useful for M3-M5)
+## 2. Zoho Forms plan-tier findings (useful for M3-M5)
 
 The account is on Zoho Forms' **Free** subscription plan (confirmed via
 Settings → Subscription plan showing "Free" with an "Upgrade" link). Two
@@ -122,7 +132,200 @@ for M3-M5 form design: don't plan on Welcome Page or Rich Text Thank You
 pages without first confirming a plan upgrade, or budget for the same
 Description-field / shortened-plain-text workarounds used here.
 
-## 3. Zoho Forms automation gotchas (new this session)
+## 3. "M2 - Session 3 Trigger" flow, step by step (T002/T003/T004 — built)
+
+Built by **cloning** "M1 - Session 1 Trigger" at the flow level (right-click
+the flow in the flow list → Clone), rather than rebuilding the node graph
+from scratch. This preserved the entire node layout and all 3 connector
+wirings intact (confirmed via the DOM connector-element check below both
+before and after edits) — a real time/risk savings over M1's from-scratch
+build, given how much of `m1-implementation-notes.md` §5/§12 is devoted to
+jsPlumb connector-wiring pain. **Caveat that made this more involved than
+expected**: the cloned custom-function node is not an independent copy — see
+§3.2's gotcha before repeating this shortcut on a future milestone.
+
+1. **Trigger** — Zoho CRM "Updated module entry". Connection: CRM Connection.
+   Module: `Patients` (internal API name `Patients1`). Filter: `Session Count`
+   `equals` `3` (edited from the cloned flow's inherited `equals 1`; saved and
+   confirmed persisted via the trigger's own "Last saved" timestamp and a
+   re-open of its Filter criteria panel).
+2. **Custom Function** — `checkAllianceCheckExists(patientId)`, a genuinely
+   new, independently-created function (§3.2 explains why this matters),
+   output variable `checkAllianceCheckExists_1` (boolean). Input
+   `patientId = ${trigger.id}` (typed directly into the parameter field —
+   this flow's trigger already had cached execution history from M1's clone
+   lineage, so the Insert Variable panel did surface trigger fields, but
+   `id` itself wasn't one of the listed field rows, so the M1-established
+   `${trigger.id}` literal-expression pattern was used instead of clicking a
+   panel entry).
+3. **If else** — condition: `checkAllianceCheckExists_1` `is false`. Built via
+   the same Insert Variable → search → click pattern M1 documented: clicking
+   a variable in the right-hand panel only inserts it into the condition
+   field that currently has *focus* (clicking the panel entry first does
+   nothing but highlight it — the target field's dropdown/search box must be
+   open first).
+   - **True branch** (no existing Alliance Check-In record — proceed): "Call
+     a subflow" → `Subflow - Issue Feedback Token`, "Wait and continue" mode.
+     See §3.3 for parameter values.
+   - **False branch** (record already exists): left empty, unchanged from the
+     M1 clone — flow simply ends, no email, no new record. Same idempotency
+     short-circuit as M1 (FR-002-equivalent for M2).
+
+Verified via the DOM connector-element check
+(`document.querySelectorAll('[class*="connector" i]').length`) after every
+structural edit: **6** elements throughout the final build (3 wired
+connections: trigger→function, function→if-else, if-else(true)→call-a-
+subflow), matching M1's reference shape.
+
+### 3.1 `checkAllianceCheckExists` — verbatim Deluge source
+
+```
+bool checkAllianceCheckExists(string patientId)
+{
+	found = false;
+	qmap = Map();
+	allRecs = zoho.crm.getRecords("Milestone_Instances",1,200,qmap,"crm_connection");
+	for each  r in allRecs
+	{
+		patientLookup = r.get("Patient");
+		patientRecId = "";
+		if(patientLookup != null)
+		{
+			patientRecId = patientLookup.get("id");
+		}
+		if(patientRecId == patientId && r.get("Milestone") == "2 - Early Alliance Check")
+		{
+			found = true;
+		}
+	}
+	return found;
+}
+```
+
+Input: `patientId` (string). Return: `bool`. Connection name `crm_connection`
+reused verbatim from M0/M1's pattern. Field-for-field identical to
+`checkBaselineIntakeExists` (`m1-implementation-notes.md` §3.1) except the
+function/parameter name and the `Milestone` match string
+(`"2 - Early Alliance Check"` vs `"1 - Baseline Intake"`).
+
+### 3.2 Gotcha (critical, new this session): cloned custom-function nodes are shared references, not copies
+
+Zoho Flow custom functions are **shared objects across flows**, not
+independently duplicated by either flow-level "Clone" (cloning the whole
+"M1 - Session 1 Trigger" flow to create "M2 - Session 3 Trigger") or
+step-level "Clone" (right-click a function node on the canvas → Clone,
+creating a second node). Both cloning paths produce a function-call node that
+still points at the **same underlying Deluge function object** as the
+original — editing that function's code and clicking Save triggers a
+confirmation dialog: *"The function is used in the following flows. Are you
+sure you want to modify it?"*, listing every flow that references it (in this
+case, both "M1 - Session 1 Trigger" and "M2 - Session 3 Trigger"). Confirming
+would have silently rewritten M1's live production function — renaming it and
+changing its `Milestone` match string — breaking M1's idempotency check.
+
+This was caught before any shared-state corruption occurred, on two separate
+attempts (direct in-place edit of the cloned node, then a step-level "Clone"
+of that same node tested the same way) — both times the warning dialog was
+treated as a hard stop: cancelled, then exited via "Exit without saving?" →
+"Exit" (discards the unsaved edit). M1's function integrity was independently
+re-verified afterward via direct `document.querySelector('.CodeMirror').CodeMirror.getValue()`
+reads on the M1 flow, not just trusted from the UI.
+
+**Fix / correct pattern going forward**: when cloning a flow whose canvas
+includes a custom-function node that needs *different* logic in the new
+flow, do not edit or step-clone that node. Instead:
+
+1. Delete the cloned function node from the new flow's canvas (kebab menu →
+   Delete) — including any stray step-level clone left over from a prior
+   attempt.
+2. Create a genuinely independent function via the **Built-ins panel**:
+   left sidebar → Built-ins tab → Developer Tools → "Custom Functions"
+   (collapsed by default — click the category header to expand, confirming
+   `m1-implementation-notes.md` §5's note that this category needs a real
+   click to expand before its contents, including the quick-create button,
+   are usable) → the **"+ Custom Function"** button at the bottom of the
+   expanded list. Clicking it (not dragging it — it isn't itself draggable;
+   only the individual saved-function list items above it are, each marked
+   `ui-draggable` in the DOM) opens a **"Create Function"** wizard: Function
+   Name, Return Type, Input Parameters → Create → a fresh CodeMirror editor
+   pre-seeded with just the function signature and empty body → write the
+   body (the CodeMirror `setValue()` direct-API approach, not simulated
+   typing, per the corruption gotcha `m1-implementation-notes.md` §5
+   documents) → Save. This produces a function with no shared lineage to
+   any other flow's node.
+3. Drag the newly-saved function from the Built-ins → Custom Functions list
+   onto the canvas to create its call node, then wire it in.
+
+**Drag-and-drop mechanics gotcha (new this session)**: the individual
+function list items under Built-ins → Custom Functions are jQuery UI
+`ui-draggable` elements (confirmed via `[draggable="true"]` returning zero
+matches but `.ui-draggable`/`.ui-droppable` classes present in the DOM — this
+is **not** HTML5 native drag-and-drop). A single-jump `left_click_drag` (or
+one synthetic `mousedown`→`mouseup` pair with no intermediate moves) does not
+register as a drag with jQuery UI's threshold-based drag detection. **Fix**:
+dispatch a real `mousedown` on the draggable element, then a series (10-20)
+of incremental synthetic `mousemove` events walking from the start point to
+the drop target, then a final `mousemove` + `mouseup` on the drop target
+(`div#zf-builder-canvas.ui-droppable` / its child `div#flowServices`) — this
+reliably placed the function node onto the canvas and opened its parameter-
+mapping panel automatically. The same technique (real `mousedown` → stepped
+`mousemove`s → `mouseup`, at the actual SVG `<circle>` endpoint coordinates
+found via `document.elementFromPoint`) was reused to wire the function
+node's output to the If-else node's input, exactly matching
+`m1-implementation-notes.md` §5's already-documented connector-wiring
+pattern — confirming that pattern generalizes beyond the specific case M1
+first found it in.
+
+**DOM-text-search caveat (new this session)**: `document.body.innerText` /
+`.textContent` searches for on-canvas node label text (e.g. `"Updated module
+entry"`) reliably returned empty/not-found in this Flow builder, even though
+the same text is clearly visible in screenshots and the DOM does contain the
+connector SVG elements the existing verification pattern already relies on.
+Root cause not fully diagnosed (canvas node labels may be rendered in a way
+`innerText`'s layout-visibility algorithm treats as hidden). **Practical
+takeaway**: don't rely on text-content DOM queries to find or verify canvas
+node content in this app — use `document.elementFromPoint(x, y)` plus
+`getBoundingClientRect()` (which worked reliably throughout) or screenshots
+instead. The connector-element-count check
+(`[class*="connector" i]`) is unaffected by this and remains the reliable
+wiring-verification method.
+
+### 3.3 "Call a subflow" parameters (M2 → Subflow - Issue Feedback Token)
+
+| Parameter | Value | Notes |
+|---|---|---|
+| `clinician` | `Liana Preudhomme` | Unchanged from the M1 clone — only non-`-None-` option on the `Clinician` picklist. |
+| `survey_url` | `https://forms.zohopublic.com/lianapreudhommecapec1/form/CapeClarityAllianceCheckIn/formperma/bRYJ3IA6ocer84TfXo45HWPYMWgMZXIFkcAQ3rSZ3ZE` | Confirmed formal Share-tab permalink (§1 above) — replaces the cloned-in M1 Wellbeing Check-In URL. |
+| `email_intro_text` | "Thanks for continuing your sessions with us. We'd love to hear how things have been going with your therapist so far. Please take a moment to share your feedback using the link below:" | M2-specific; drafted, **not yet reviewed by Costin/Liana** (same caveat M1's notes carry for its own email copy). |
+| `milestone` | `2 - Early Alliance Check` | Must match the CRM `Milestone` picklist value exactly (confirmed a clean existing value per `m2-data-model.md`). Replaces the cloned-in `1 - Baseline Intake`. |
+| `patient_id` | `${trigger.id}` | Unchanged from the M1 clone — same pattern. |
+| `recipient_email` | `${trigger.Email}` | Unchanged from the M1 clone — same pattern. |
+| `ttl_days` | `7` | Unchanged from the M1 clone — reused per `m2-data-model.md`'s "reuse M0/M1's 7-day TTL unless Costin specifies otherwise" default. |
+| `email_subject` | "How's therapy going so far? Quick check-in from Cape Clarity" | M2-specific; drafted, **not yet reviewed by Costin/Liana**. |
+| `lead_id` | *(empty)* | Unchanged from the M1 clone — M2 is patient-based, not lead-based. |
+
+**Field-editing gotcha (new this session)**: editing a parameter field that
+already contains cloned-in text from M1 by clicking it and pressing
+`ctrl+a` then typing did **not** reliably select-and-replace the existing
+value in this panel — in practice the click landed mid-string, `ctrl+a`/
+`Delete`/`Backspace` had no visible effect on the field's rendered content,
+and the subsequently-typed text was silently inserted at the stale cursor
+position, producing corrupted concatenations of old+new text (caught by
+reading `document.activeElement.value` after the fact, not by trusting the
+screenshot). **Fix**: set the field via the native input value setter
+directly — `Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype,
+'value').set.call(el, newValue)` — then dispatch `input` and `change`
+events, targeting the element via `document.querySelector('input[name="..."]')`.
+This reliably replaced the full value in one shot for every parameter field
+in §3.3's table. Worth using as the default approach for editing any
+already-populated Zoho Flow parameter field, not just ones cloned from
+another milestone.
+
+The flow was left **OFF** after this build (same as M1's own build-first,
+verify-later approach) — not yet switched on, pending the same live-test-data
+step T020-T023 already require.
+
+## 4. Zoho Forms automation gotchas
 
 - **"Duplicate" form action is non-functional via browser automation in this
   account.** Tried both a real coordinate-targeted `MouseEvent` click on the
@@ -148,16 +351,25 @@ Description-field / shortened-plain-text workarounds used here.
   under "Instructions", well below "Rating Scales" — takes several scroll
   actions to reach from the top of the panel).
 - **Drag-and-drop field placement is reliable here**, unlike Zoho Flow's
-  jsPlumb canvas (`m1-implementation-notes.md` §5/§12 documents that flow
-  connections routinely fail to wire despite looking connected). Zoho Forms'
-  field canvas uses jQuery UI draggable, and the `computer` tool's
-  `left_click_drag` action placed every field correctly on the first attempt
-  in this session, including dropping the Description field into a specific
-  position (above the first Slider) rather than just at the canvas end. No
-  special DOM-event-dispatch workaround was needed for form-field placement
-  specifically — **this distinction does not carry over to the Flow build**;
-  budget for the M1-documented connector-verification discipline once T002
-  (Zoho Flow) starts.
+  jsPlumb canvas (`m1-implementation-notes.md` §5/§12, and §3.2 above,
+  document that flow connections/node placement routinely fail to wire
+  despite looking correct). Zoho Forms' field canvas uses jQuery UI
+  draggable, and the `computer` tool's `left_click_drag` action placed every
+  field correctly on the first attempt in this session, including dropping
+  the Description field into a specific position (above the first Slider)
+  rather than just at the canvas end. No special DOM-event-dispatch
+  workaround was needed for form-field placement specifically — **this
+  distinction does not carry over to the Flow build** (§3.2's stepped-
+  mousemove technique was needed there instead).
+- **Share tab's rendered panel can be effectively unreadable at the Browser
+  pane's default width** (long labels/headings wrap to one character per
+  line in a narrow right-hand column, making the actual Form Permalink field
+  invisible on screen even though it's present in the DOM). **Fix**: use
+  `Claude_Browser__resize_window` to emulate a wider viewport (1400x900
+  worked) before reading Share-tab content, then reset to the `desktop`
+  preset afterward. Reading the permalink input's `.value` directly via
+  `javascript_tool` also works without resizing and is more reliable than
+  screenshot-reading regardless.
 - **Verification pattern used throughout this build**: rather than trusting
   screenshots or assuming a click landed where intended, every field-label/
   instructions/range/mandatory-checkbox edit in this session was confirmed by
@@ -165,41 +377,23 @@ Description-field / shortened-plain-text workarounds used here.
   `input[elname="field-ismandatory"]` element's `.checked`/`.offsetParent`
   state) via `javascript_tool` immediately after each `triple_click`/`type`
   action, before moving to the next field. This caught the Description-field
-  iframe issue (§1.2) immediately rather than after a "Done"/"Save" click,
-  and is worth continuing for the Flow build's parameter-mapping steps.
+  iframe issue (§1.2) immediately rather than after a "Done"/"Save" click.
+  The same discipline caught the parameter-field corruption gotcha in §3.3.
 
-## 4. Remaining work (not yet built — full T002-T026 list)
+## 5. Remaining work (not yet built)
 
-Nothing beyond T001 has been started. In particular, no Zoho Flow, no custom
-functions (`checkAllianceCheckExists`, `submitAllianceCheckInResponse`), no
-new `Milestone_Instances` records, and no Analytics formula
-columns/reports/dashboard exist yet for M2. Per `m2-tasks.md` and
+T001-T004 are done (§1, §3). Not yet built: the write-back flow and its
+function, all Analytics work, and all live-test tasks. Per `m2-tasks.md` and
 `m2-data-model.md` (Revision 2 — flag computed entirely in Analytics, per
 constitution Principle VII), the next steps in order are:
 
-- **T002**: Build "M2 - Session 3 Trigger" Zoho Flow — mirror
-  "M1 - Session 1 Trigger" exactly (`m1-implementation-notes.md` §3):
-  trigger on `Patients1.Session_Count` transitioning to `3` → `checkAllianceCheckExists`
-  custom function → If-else on its boolean output → true branch calls
-  "Subflow - Issue Feedback Token". **Must** verify every link is genuinely
-  wired via the DOM connector-element check (`m1-implementation-notes.md`
-  §5/§12) before attempting to switch the flow on — M1 hit a real bug here
-  twice (write-back flow, then the trigger flow itself) from
-  visually-placed-but-unconnected nodes.
-- **T003**: `checkAllianceCheckExists` — mirror `checkBaselineIntakeExists`
-  (`m1-implementation-notes.md` §3.1) field-for-field, checking for an
-  existing `Milestone_Instances` record at `Milestone = "2 - Early Alliance
-  Check"` (exact picklist value confirmed in `m2-data-model.md`).
-- **T004**: Wire the false/no-existing-record branch to
-  "Subflow - Issue Feedback Token" with M2-specific parameters (mirror
-  `m1-implementation-notes.md` §4's table): `milestone = "2 - Early Alliance
-  Check"`, `survey_url` = this form's permalink (§1 above — confirm the
-  formal Share-tab permalink first), plus `email_subject`/`email_intro_text`
-  drafted but not yet reviewed by Costin/Liana (same caveat M1's notes
-  carry for its own email copy).
 - **T005**: Build "M2 - Alliance Check-In Write-back" Zoho Flow — realtime
-  Form-submission trigger on this form → `submitAllianceCheckInResponse`.
-  Same connector-verification discipline as T002.
+  Form-submission trigger on the Cape Clarity Alliance Check-In form →
+  `submitAllianceCheckInResponse`. Same connector-verification discipline as
+  T002 (§3's DOM connector-element check); given §3.2's finding, if this flow
+  is built by cloning M1's write-back flow, do **not** edit/step-clone its
+  cloned-in `submitWellbeingCheckInResponse` node — create a genuinely new
+  function via the Built-ins panel instead, same as T002/T003 did.
 - **T006**: `submitAllianceCheckInResponse` — mirror
   `submitWellbeingCheckInResponse` (`m1-implementation-notes.md` §4A.1)
   field-for-field, adapted to the 4 Alliance Check-In domains, writing the
@@ -207,7 +401,9 @@ constitution Principle VII), the next steps in order are:
   Understanding (0-10): {value}---Shared direction (0-10): {value}---Fit of
   approach (0-10): {value}"`. **No flag-related logic of any kind** — pure
   string concatenation only, per constitution Principle VII and this
-  milestone's Revision 2 correction.
+  milestone's Revision 2 correction. Field internal names (`Slider`,
+  `Slider1`, etc.) need the DOM-verification pass §1.1 flags before writing
+  the `${trigger.<InternalName>}` parameter mappings.
 - **T007-T016**: Verification/confirmation tasks (US1/US2/US4), including
   confirming with Costin whether the raw-Forms-entry retention-purge gap is
   still being deliberately deferred, and confirming no contractor-facing
@@ -222,15 +418,20 @@ constitution Principle VII), the next steps in order are:
 - **T018-T019**: "M2 Submitted Responses" report, "M2 Status Breakdown", "M2
   Alliance Check-In Total Distribution", and the "M2 - Early Alliance Check
   Feedback" dashboard bundling them (mirror M1's §13 pattern).
-- **T016 (data model doc's own numbering) / "M2 Flagged for Review"**:
-  Tabular View filtered to `Milestone = "2 - Early Alliance Check"` AND
-  `Clinical Safety Flag = "true"`.
+- **"M2 Flagged for Review"** report: Tabular View filtered to
+  `Milestone = "2 - Early Alliance Check"` AND `Clinical Safety Flag =
+  "true"`.
 - **T020**: **Blocked pending human input** — needs a test Patient record ID
   from Costin; the standing access restriction forbids looking one up via
   CRM query or browser (`CLAUDE.md` "Access constraints").
-- **T021-T023**: Live test-data exercise and cleanup, depend on T020.
+- **T021-T023**: Live test-data exercise and cleanup, depend on T020. Also
+  covers switching "M2 - Session 3 Trigger" and the write-back flow **on**
+  (both currently OFF) once live-tested.
 - **T025-T026**: Update `CLAUDE.md` if the build reveals new cross-milestone
   conventions worth capturing (e.g. the Zoho Forms iframe-editor gotcha in
-  §1.2, or the plan-tier findings in §2, may be worth promoting there once
-  M3-M5 confirm they recur); commit this file and any further M2 corrections
-  in the same session as the change, same git workflow as §5 below.
+  §1.2, the plan-tier findings in §2, or the cloned-custom-function-sharing
+  gotcha in §3.2 — the last of these seems especially likely to recur on
+  M3-M5 if flow-cloning keeps being used as a shortcut, so it may be worth
+  promoting to `CLAUDE.md` once a second milestone confirms it); commit this
+  file and any further M2 corrections in the same session as the change,
+  same git workflow as `CLAUDE.md`'s "Pushing to GitHub" section.
