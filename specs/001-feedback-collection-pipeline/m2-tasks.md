@@ -23,7 +23,7 @@ instead.
 
 ## Phase 1: Setup
 
-- [ ] T001 Build the public "Cape Clarity Alliance Check-In" Zoho Form: 4
+- [x] T001 Build the public "Cape Clarity Alliance Check-In" Zoho Form: 4
       sliders (Connection, Understanding, Shared direction, Fit of approach —
       each 0-10, exact prompt text per `m2-research.md`), plus a hidden/
       single-line `Token` field with a `token` field alias (same
@@ -34,7 +34,7 @@ instead.
 
 ## Phase 2: Foundational
 
-- [ ] T002 Build "M2 - Session 3 Trigger" flow: watch
+- [x] T002 Build "M2 - Session 3 Trigger" flow: watch
       `Patients1.Session_Count` for the transition to `3`, mirroring M1's
       "M1 - Session 1 Trigger" structure exactly (trigger → idempotency
       check → If-else → "Call a subflow"). Verify all links are genuinely
@@ -43,25 +43,25 @@ instead.
       was not actually wired; use the DOM connector-element check
       (`[class*="connector" i]`, expect 2 elements per connected pair) from
       that note rather than trusting the canvas layout alone.
-- [ ] T003 Implement the idempotency check inside that flow
+- [x] T003 Implement the idempotency check inside that flow
       (`checkAllianceCheckExists`, mirroring `checkBaselineIntakeExists`
       field-for-field per `m1-implementation-notes.md` §3.1 — query
       `Milestone_Instances` for an existing `Patient` + `Milestone = "2 -
       Early Alliance Check"` record before creating a new one) — satisfies
       spec.md FR-002.
-- [ ] T004 On no existing record found: create a new `Milestone_Instances`
+- [x] T004 On no existing record found: create a new `Milestone_Instances`
       record (`Patient` = triggering patient, `Milestone = "2 - Early
       Alliance Check"`, `Status = "Issued"`, fresh `Token`,
       `Expiry_Date_Time` — reuse M0/M1's 7-day TTL unless Costin specifies
       otherwise) and send the Alliance Check-In link via Zoho Mail, through
       the unchanged shared "Subflow - Issue Feedback Token" — no schema/field
       changes to that subflow are needed for M2.
-- [ ] T005 Build "M2 - Alliance Check-In Write-back" flow: realtime
+- [x] T005 Build "M2 - Alliance Check-In Write-back" flow: realtime
       Form-submission trigger on T001's form → write-back custom function.
       Mirror M1's connector-verification discipline (`m1-implementation-notes.md`
       §5) — confirm the trigger is genuinely wired to the function node, not
       just visually adjacent, before considering this done.
-- [ ] T006 Implement the write-back function `submitAllianceCheckInResponse`:
+- [x] T006 Implement the write-back function `submitAllianceCheckInResponse`:
       token lookup, `Status != "Issued"` rejection, expiry check +
       auto-expire, then concatenate the four domain answers into
       `Response_Data` — **same shape as M0/M1's `submitFeedbackResponse` /
