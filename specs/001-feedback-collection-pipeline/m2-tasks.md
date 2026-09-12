@@ -136,7 +136,7 @@ wellbeing half (FR-010) is out of scope until M3, per `m2-research.md`.
       for any contractor-facing action and verify there is none, per
       `m2-research.md`'s reconciliation of the source Confluence page's stale
       "routes to the treating clinician" language.
-- [ ] T016 [US4] Build the "M2 Flagged for Review" Analytics report (per
+- [x] T016 [US4] Build the "M2 Flagged for Review" Analytics report (per
       `m2-data-model.md`, filtered on the new `Clinical Safety Flag` formula
       column `= "true"`) and confirm a flagged record is visible there with
       the patient identified only by Token (no `Patient`/identity column) —
@@ -155,7 +155,7 @@ FR-018 baseline bar from the start, per the Rollout Workflow reminder — not
 just a raw submitted-responses table, per `m1-implementation-notes.md` §13's
 established pattern for what "clearing the bar" looks like in this project.*
 
-- [ ] T017 Build Analytics formula columns on "Milestone Instances" for the
+- [x] T017 Build Analytics formula columns on "Milestone Instances" for the
       4 Alliance Check-In domains — 3 bounded (`substring_between`: Connection,
       Understanding, Shared Direction) and 1 unbounded (Fit Of Approach, the
       true last field in the blob — guarded `SUBSTR`/`INSTR`/`LENGTH` with the
@@ -170,10 +170,10 @@ established pattern for what "clearing the bar" looks like in this project.*
       `m2-data-model.md`'s "Clinical Safety Flag evaluation" section). No
       substring parsing needed for either flag column — no flag data exists
       in the blob for them to parse.
-- [ ] T018 Build a minimal "M2 Submitted Responses" report (parsed domain
+- [x] T018 Build a minimal "M2 Submitted Responses" report (parsed domain
       columns + total + the 2 flag columns, raw blob hidden) — same pattern
       as M0/M1's, scoped to `Milestone = "2 - Early Alliance Check"`.
-- [ ] T019 [Spec.md User Story 6 / FR-018] Build, at minimum: a status/volume
+- [x] T019 [Spec.md User Story 6 / FR-018] Build, at minimum: a status/volume
       view ("M2 Status Breakdown" — Issued/Submitted/Expired counts, same
       "Save As" pattern off M0/M1's equivalent per `m1-implementation-notes.md`
       §13.1) and one distribution/summary view of the Alliance Check-In
