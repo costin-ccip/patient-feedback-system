@@ -8,16 +8,17 @@
 > `CLAUDE.md` convention of updating implementation notes in the same session
 > as the change.
 >
-> Last updated: 2026-09-11
+> Last updated: 2026-09-12
 > Status: T001 (Cape Clarity Alliance Check-In form), T002/T003/T004 (the
 > "M2 - Session 3 Trigger" Zoho Flow, its idempotency-check custom function,
-> and the parameterized "Call a subflow" step), and T005/T006 (the
+> and the parameterized "Call a subflow" step), T005/T006 (the
 > "M2 - Alliance Check-In Write-back" Zoho Flow and its
-> `submitAllianceCheckInResponse` custom function) are built and saved. Both
-> flows are currently **OFF** (not yet enabled) pending the same live-test-data
-> confirmation M1 required. Not yet started: Analytics formula columns/
-> reports/dashboard (T017-T019), and all live-test tasks (T020-T023, blocked
-> on a test Patient ID from Costin). See §5 for the full remaining-work list.
+> `submitAllianceCheckInResponse` custom function), and T016-T019 (all
+> Analytics formula columns, reports, and the dashboard — see §9) are built
+> and saved. Both Flow triggers are currently **OFF** (not yet enabled)
+> pending the same live-test-data confirmation M1 required. Not yet started:
+> all live-test tasks (T020-T023, blocked on a test Patient ID from Costin).
+> See §5 for the full remaining-work list, §9 for the Analytics build.
 
 ## 1. What's built so far (T001)
 
@@ -517,28 +518,19 @@ already require.
 
 ## 5. Remaining work (not yet built)
 
-T001-T006 are done (§1, §3, §3.4). Not yet built: all Analytics work and all
-live-test tasks. Per `m2-tasks.md` and `m2-data-model.md` (Revision 2 — flag
-computed entirely in Analytics, per constitution Principle VII), the next
-steps in order are:
+T001-T006 are done (§1, §3, §3.4); T016-T019 (all Analytics work) are now
+also done (§9). Per `m2-tasks.md` and `m2-data-model.md` (Revision 2 — flag
+computed entirely in Analytics, per constitution Principle VII), what's left:
 
-- **T007-T016**: Verification/confirmation tasks (US1/US2/US4), including
+- **T007-T015**: Verification/confirmation tasks (US1/US2/US4), including
   confirming with Costin whether the raw-Forms-entry retention-purge gap is
   still being deliberately deferred, and confirming no contractor-facing
-  notification exists anywhere in the build.
-- **T017**: Analytics formula columns on "Milestone Instances" — 3 bounded
-  `substring_between` domain columns (Connection, Understanding, Shared
-  Direction) + 1 guarded `SUBSTR`/`INSTR`/`LENGTH` column for Fit Of Approach
-  (the unbounded last field, needs the zero-guard from
-  `m1-implementation-notes.md` §9.3) + Alliance Check-In Total + Clinical
-  Safety Flag + Flag Rule Triggered, exact formulas in `m2-data-model.md`
-  ("Planned Analytics formula columns" / "Clinical Safety Flag evaluation").
-- **T018-T019**: "M2 Submitted Responses" report, "M2 Status Breakdown", "M2
-  Alliance Check-In Total Distribution", and the "M2 - Early Alliance Check
-  Feedback" dashboard bundling them (mirror M1's §13 pattern).
-- **"M2 Flagged for Review"** report: Tabular View filtered to
-  `Milestone = "2 - Early Alliance Check"` AND `Clinical Safety Flag =
-  "true"`.
+  notification exists anywhere in the build. T014/T015 specifically ask to
+  confirm the flag logic against real submitted data — §9.2's formulas were
+  reviewed structurally (every firing condition is recorded, not just the
+  first match; no contractor-facing action exists anywhere in either flow or
+  in the formula columns) but not yet exercised against a live submission,
+  since that depends on T020-T022 below.
 - **T020**: **Blocked pending human input** — needs a test Patient record ID
   from Costin; the standing access restriction forbids looking one up via
   CRM query or browser (`CLAUDE.md` "Access constraints").
@@ -553,3 +545,181 @@ steps in order are:
   promoting to `CLAUDE.md` once a second milestone confirms it); commit this
   file and any further M2 corrections in the same session as the change,
   same git workflow as `CLAUDE.md`'s "Pushing to GitHub" section.
+
+## 9. T016-T019: Analytics formula columns, reports, and dashboard (2026-09-12)
+
+Built in the live "Zoho CRM Analytics" workspace (`3251423000000083002`),
+same workspace as M0/M1, mirroring `m1-implementation-notes.md` §9 and §13's
+pattern. All work happened after a separate, concurrent session retired M1
+(commit `49ff2bc`, "Retire Milestone 1 (Baseline Intake) per practice review
+of clinical/EHR overlap") — confirmed via `git show 49ff2bc` that M2 is
+explicitly unaffected by that retirement, and the renamed
+`[RETIRED] M1 ...` Analytics objects remain fully usable as Save-As
+templates (Zoho renaming an object doesn't break it as a copy source).
+
+### 9.1 Data source integration re-verified (not changed)
+
+Same as M1 (§9.1 of that file): "Milestone Instances" is the shared base
+table across all milestones, keyed by the CRM's `Milestone_Instances`
+module, no per-milestone table needed. Not modified this session beyond
+adding the formula columns below.
+
+### 9.2 Formula columns on "Milestone Instances" (T017)
+
+Seven formula columns added, all verified via Zoho's "Edit Formula Column"
+dialog (exact text below, not paraphrased):
+
+- **Domain: Connection** —
+  `substring_between("Milestone Instances"."Response Data", 'Connection (0-10): ', '---', 1)`
+- **Domain: Understanding** —
+  `substring_between("Milestone Instances"."Response Data", 'Understanding (0-10): ', '---', 1)`
+- **Domain: Shared Direction** —
+  `substring_between("Milestone Instances"."Response Data", 'Shared direction (0-10): ', '---', 1)`
+- **Domain: Fit Of Approach** (the true last field in the blob, unbounded —
+  same guarded pattern as M1's §9.3 fix, returns `''` rather than garbage
+  when the marker isn't found):
+  ```
+  if(INSTR("Milestone Instances"."Response Data",'Fit of approach (0-10): ') = 0, '',
+  SUBSTR("Milestone Instances"."Response Data", INSTR("Milestone Instances"."Response Data",'Fit of approach (0-10): ')+LENGTH('Fit of approach (0-10): '),
+  LENGTH("Milestone Instances"."Response Data")))
+  ```
+- **Alliance Check-In Total** (`SUM`/`to_integer()` pattern, per M1's §9.2):
+  `to_integer("Milestone Instances"."Domain: Connection") + to_integer("Milestone Instances"."Domain: Understanding") + to_integer("Milestone Instances"."Domain: Shared Direction") + to_integer("Milestone Instances"."Domain: Fit Of Approach")`
+- **Clinical Safety Flag** — matches `m2-data-model.md`'s planned formula,
+  with one addition beyond the spec: a `Milestone` gate wraps the whole
+  thing, so the column evaluates to `''` (not `"false"`) for every non-M2
+  row (M0/M1/M3-M5 milestone instances), rather than silently treating their
+  unrelated domain data as if it were alliance-check data:
+  ```
+  IF("Milestone Instances"."Milestone" = '2 - Early Alliance Check', IF("Milestone Instances"."Alliance Check-In Total" <= 20 OR to_integer("Milestone Instances"."Domain: Connection") <= 4 OR to_integer("Milestone Instances"."Domain: Understanding") <= 4 OR to_integer("Milestone Instances"."Domain: Shared Direction") <= 4 OR to_integer("Milestone Instances"."Domain: Fit Of Approach") <= 4, 'true', 'false'), '')
+  ```
+- **Flag Rule Triggered** — nested `IF`/`concat`, records every condition
+  that fired (not just the first match), blank when the flag isn't `'true'`:
+  ```
+  IF("Milestone Instances"."Clinical Safety Flag" = 'true', concat(
+    IF("Milestone Instances"."Alliance Check-In Total" <= 20, concat('Total alliance score ', to_string("Milestone Instances"."Alliance Check-In Total"), '/40 (<=20); '), ''),
+    IF(to_integer("Milestone Instances"."Domain: Connection") <= 4, concat('Connection domain ', "Milestone Instances"."Domain: Connection", '/10 (<=4); '), ''),
+    IF(to_integer("Milestone Instances"."Domain: Understanding") <= 4, concat('Understanding domain ', "Milestone Instances"."Domain: Understanding", '/10 (<=4); '), ''),
+    IF(to_integer("Milestone Instances"."Domain: Shared Direction") <= 4, concat('Shared direction domain ', "Milestone Instances"."Domain: Shared Direction", '/10 (<=4); '), ''),
+    IF(to_integer("Milestone Instances"."Domain: Fit Of Approach") <= 4, concat('Fit of approach domain ', "Milestone Instances"."Domain: Fit Of Approach", '/10 (<=4); '), '')
+  ), '')
+  ```
+
+**Bug found and fixed while building these** (same family as M1's §9.3):
+`to_integer()` on an empty string (what the guarded Fit Of Approach column
+returns for a non-M2 row, or any row where the marker text isn't present)
+does not error, but every downstream formula that sums or compares those
+`to_integer()` results needed to be checked against non-M2 rows (M0's 7
+sample rows, M1's sample/test rows) to confirm they degrade to blank/false
+rather than throwing or silently producing a wrong numeric flag — the
+`Milestone` gate added to **Clinical Safety Flag** above is what actually
+closes this, not just the per-column zero-guards, since without it the
+formula would still evaluate (and could still numerically fire true/false)
+against M0/M1 rows' unrelated Domain columns.
+
+### 9.3 "M2 Submitted Responses" report (T018)
+
+Built as a new Tabular View on "Milestone Instances" (not a Save-As — no
+exact M0/M1 equivalent to copy since M1's version is now
+`[RETIRED]`). Columns: Submitted Date Time, Token, Domain: Connection,
+Domain: Understanding, Domain: Shared Direction, Domain: Fit Of Approach,
+Alliance Check-In Total, Clinical Safety Flag, Flag Rule Triggered (9
+columns — no `Patient`/identity column, same de-identification discipline
+as every other M0/M1/M2 report). Wildcard filter (needed because
+`"2 - Early Alliance Check"` doesn't exist yet as a real picklist value in
+any row, so it won't appear in the "Individual Values" checkbox list):
+`Milestone` Exactly Matches `"2 - Early Alliance Check"`. Saved to folder
+"Zoho CRM Modules (Data)". View ID `3251423000000141047`. 0 rows (expected,
+no real M2 data exists yet).
+
+### 9.4 "M2 Status Breakdown" (T019, status/volume view)
+
+Saved via "Save As" off "[RETIRED] M1 Status Breakdown"
+(`m1-implementation-notes.md` §13.1, view ID `3251423000000120056`), same
+bar chart config preserved: X-Axis `Status` (dimension/Actual), Y-Axis `Id`
+(Count). Only change: the Milestone filter was switched from M1's
+Individual-Values `"1 - Baseline Intake"` to a Wildcard filter, Exactly
+Matches `"2 - Early Alliance Check"` (Wildcard needed for the same
+doesn't-exist-yet-as-a-value reason as §9.3). Saved to "Zoho CRM Modules
+(Data)". View ID `3251423000000141053`. Regenerated graph shows "No Data
+Available" (expected).
+
+### 9.5 "M2 Alliance Check-In Total Distribution" (T019, distribution view)
+
+Saved via "Save As" off "[RETIRED] M1 Wellbeing Check-In Total Distribution"
+(`m1-implementation-notes.md` §13.2, view ID `3251423000000120076`), same
+bar chart shape. X-Axis column swapped from "Wellbeing Check-In Total" to
+"Alliance Check-In Total", explicitly re-set to `Dimension [Actual(D)] /
+Treat as Text` mode (a newly-dropped numeric column defaults to `Measure
+[Actual(M)]`, which would aggregate instead of showing one bar per distinct
+total) so each distinct total renders as its own bar, matching M1's
+original pattern. Y-Axis unchanged: `Id` (Count). Milestone filter switched
+to Wildcard, Exactly Matches `"2 - Early Alliance Check"`. Saved to "Zoho
+CRM Modules (Data)". View ID `3251423000000141097`. Regenerated graph shows
+"No Data Available" (expected).
+
+### 9.6 "M2 Flagged for Review" (T016)
+
+Built as a new Tabular View on "Milestone Instances" per
+`m2-data-model.md`'s "Milestone-scoped flag visibility" section (not a
+Save-As — this report has no M0/M1 equivalent). Columns: Submitted Date
+Time, Token, Domain: Connection, Domain: Understanding, Domain: Shared
+Direction, Domain: Fit Of Approach, Alliance Check-In Total, Flag Rule
+Triggered (8 columns — deliberately no `Clinical Safety Flag` column itself
+and no `Patient`/identity column, per the data-model spec). Two Wildcard
+filters: `Milestone` Exactly Matches `"2 - Early Alliance Check"`, AND
+`Clinical Safety Flag` Exactly Matches `"true"` (Wildcard needed for both —
+neither value exists yet in any real row). Saved to "Zoho CRM Modules
+(Data)". View ID `3251423000000141219`. 0 rows (expected). Satisfies FR-013
+for M2's own data, milestone-scoped per `m2-research.md`'s FR-013
+scope-boundary note — not the unified FR-007 Admin Dashboard, which stays
+out of scope for M2.
+
+### 9.7 "M2 - Early Alliance Check Feedback" dashboard (T019)
+
+New dashboard, view ID `3251423000000141282`, built via "Create New
+Dashboards" (not "Save As" off M1's now-`[RETIRED]` dashboard, same
+reasoning M1 gave for not reusing M0's: no exact panel-for-panel match).
+Bundles exactly the four reports above, dragged in from the Reports panel:
+
+- M2 Status Breakdown (§9.4)
+- M2 Alliance Check-In Total Distribution (§9.5)
+- M2 Submitted Responses (§9.3)
+- M2 Flagged for Review (§9.6)
+
+Left at "Auto Add User Filters" on and "Make User Filters Global" off,
+matching M0/M1's dashboard defaults — not changed since this session had no
+reason to touch dashboard-level filter behavior. All four panels show "No
+Data Available" (expected, no real M2 submissions exist yet).
+
+### 9.8 UI mechanics/gotchas worth carrying into M3-M5's Analytics build
+
+- **Wildcard filters, not Individual Values**: whenever a filter's target
+  value doesn't exist yet in any real row (a new Milestone picklist value, a
+  flag column with no `"true"` rows yet), the "Individual Values" checkbox
+  list won't offer it — switch to the filter's "Wildcard" tab, leave the
+  default "Exactly Matches" operator, and type the value.
+- **Committing a Wildcard value reliably**: clicking the value input and
+  using the `computer` tool's `type` action directly was unreliable (left
+  the filter uncommitted, "Filters (0)"). What worked every time: use a JS
+  tool to call `.focus()` on the `<input placeholder="Enter the value">`
+  element first, then send the `type` action (real keyboard events go to
+  whatever element has DOM focus, regardless of click coordinates), then
+  press `Return`. Verify by reading the tab bar's "Filters (N)" count.
+- **A recurring `.freezeLayer` overlay div** (z-index ~2004) intercepts
+  clicks at seemingly-correct coordinates across many different panels
+  (Create menu, axis-field remove icon, filter value inputs). Fix: hide it
+  first — `document.querySelectorAll('.freezeLayer').forEach(l => l.style.display = 'none')`
+  — then retry the click, or find the real element underneath via
+  `document.elementFromPoint(x, y)`.
+- **A brand-new, never-saved view rejects "Save As"** with "This is an
+  unsaved view. Use 'Save' option instead of 'Save As'" — for a new
+  Tabular View or a new Dashboard, click **Save** (not Save As); Zoho then
+  shows the same name/folder dialog Save As would have shown, since the
+  view has no name yet. Save As is only for saving an already-named view
+  under a new name/copy.
+- **Reading a formula column's exact definition**: right-click the column
+  header → "Edit Formula Column" opens a dialog with the verbatim formula
+  text — the fastest, least error-prone way to confirm exactly what a
+  formula column does (or to document it, as in §9.2 above), rather than
+  reverse-engineering it from output.
