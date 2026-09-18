@@ -61,13 +61,13 @@ actually done, not in advance.
       constraint since this module carries no PII). **Confirmed 2026-09-17:
       the value already exists** (full picklist recorded in
       `m3-data-model.md`) — no CRM change needed for this task.
-- [ ] T005 Build "M3 - Periodic Check-In Write-back" flow: realtime
+- [x] T005 Build "M3 - Periodic Check-In Write-back" flow: realtime
       Form-submission trigger on T001's form → write-back custom function.
       Build as a brand-new flow (not cloned), same reasoning M2's §3.4 gives
       for avoiding the shared-custom-function gotcha entirely on write-back
       flows. Confirm the trigger is genuinely wired to the function node
       before considering this done.
-- [ ] T006 Implement the write-back function `submitPeriodicCheckInResponse`:
+- [x] T006 Implement the write-back function `submitPeriodicCheckInResponse`:
       token lookup, `Status != "Issued"` rejection, expiry check +
       auto-expire, then concatenate the 7 answers into `Response_Data`
       **in the field order specified in `m3-data-model.md`** (practice

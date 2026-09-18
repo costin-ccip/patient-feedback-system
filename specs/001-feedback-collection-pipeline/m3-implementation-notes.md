@@ -9,24 +9,29 @@
 > as the change.
 >
 > Last updated: 2026-09-18
-> Status: **Partially built, in progress.** Done so far: T014 (Clinical
-> Safety Flag `Milestone` gate widened to cover M3), T017 (3 new M3-only
-> Analytics formula columns), the title-only half of T016 (report renamed
-> "M2 Flagged for Review" → "M2 & M3 Flagged for Review"; its Milestone
-> filter is **not yet widened** — see §2.3), **T001** (the "Cape Clarity
-> Periodic Check-In" Zoho Form — see §1.4; the Forms-plan blocker described
-> in §3 was resolved 2026-09-18 when Costin subscribed to a paid Zoho Forms
-> plan), and **T002-T004** (the "M3 - Periodic Check-In Trigger" flow —
-> trigger, `checkPeriodicCheckInDue` custom function, if-else, and "Call a
-> subflow" step — built fresh, wired end-to-end, and verified; left
-> switched **off** — see §1.5). T005/T006 (write-back flow) have not been
-> started. T018/T019 (the two remaining M3 reports + dashboard) have not
-> been started. T020-T023 (live test data) remain explicitly blocked
-> pending a test Patient ID from Costin, per standing instruction. **Per
-> Costin's instruction this session, work pauses at natural transition
-> points between major task groups (Form → Flow → Analytics) for his
-> check-in on usage/progress — next pause is once both M3 flows (trigger
-> and write-back) are built.** See §4 for the full remaining-work list.
+> Status: **Both M3 Zoho Flow flows now built. Pausing for Costin's
+> check-in before starting any Analytics/reporting work, per his standing
+> instruction.** Done so far: T014 (Clinical Safety Flag `Milestone` gate
+> widened to cover M3), T017 (3 new M3-only Analytics formula columns), the
+> title-only half of T016 (report renamed "M2 Flagged for Review" → "M2 &
+> M3 Flagged for Review"; its Milestone filter is **not yet widened** —
+> see §2.3), **T001** (the "Cape Clarity Periodic Check-In" Zoho Form —
+> see §1.4; the Forms-plan blocker described in §3 was resolved 2026-09-18
+> when Costin subscribed to a paid Zoho Forms plan), **T002-T004** (the
+> "M3 - Periodic Check-In Trigger" flow — trigger, `checkPeriodicCheckInDue`
+> custom function, if-else, and "Call a subflow" step — built fresh, wired
+> end-to-end, and verified; left switched **off** — see §1.5), and
+> **T005/T006** (the "M3 - Periodic Check-In Write-back" flow — trigger,
+> `submitPeriodicCheckInResponse` custom function, all 8 parameters mapped
+> to the form's field internal names — built fresh, wired end-to-end, and
+> verified; left switched **off** — see §1.6). T018/T019 (the two
+> remaining M3 reports + dashboard) have not been started. T020-T023 (live
+> test data) remain explicitly blocked pending a test Patient ID from
+> Costin, per standing instruction. **Both M3 flows (trigger and
+> write-back) are now built, so per Costin's standing instruction this
+> session stops here and checks in with him before touching any
+> Analytics/reporting work (T016's remaining filter widening, T018, T019,
+> the M3 dashboard).** See §4 for the full remaining-work list.
 
 ## 1. What's built so far
 
@@ -356,6 +361,188 @@ workspace version) — not documented in any prior milestone's notes:**
   node failed to place — try the pencil icon before concluding a node
   needs to be deleted and re-dropped.
 
+### 1.6 "M3 - Periodic Check-In Write-back" flow built (T005/T006)
+
+Built 2026-09-18, entirely from scratch — same rationale as §1.5: **not**
+cloned from M2's "M2 - Alliance Check-In Write-back" flow, to avoid the
+shared-custom-function gotcha (a cloned function node still points at the
+same underlying Deluge function object as the original). Flow URL:
+`https://flow.zoho.com/#/workspace/872426000000002011/flows/m3_periodic_check_in_write_back/edit`.
+Left switched **OFF** after building, matching every prior milestone's
+build-first-verify-later convention — turning it on is deferred to
+T020-T023 (blocked on a test Patient ID from Costin).
+
+**Structure, verified via DOM connector count (2 connector elements,
+matching `m2-implementation-notes.md` §3.4's confirmed wired-state count
+for the equivalent M2 flow) and screenshot (blue arrow drawn from the
+trigger's output to the function node's input):**
+
+1. **Trigger — "Form entry submitted" (Zoho Forms), REALTIME.** Form:
+   "Cape Clarity Periodic Check-In" (the form built in §1.4).
+2. **Custom Function — `submitPeriodicCheckInResponse`**. Built genuinely
+   fresh via Built-ins → Developer Tools → Custom Functions → "+ Custom
+   Function" (not cloned). Signature: `map
+   submitPeriodicCheckInResponse(string token, string connection, string
+   understanding, string sharedDirection, string fitOfApproach, string
+   scheduling, string billing, string professionalism)` — mirrors M2's
+   `submitAllianceCheckInResponse` exactly for the 5 parameters M3 shares
+   with M2 (`token`, `connection`, `understanding`, `sharedDirection`,
+   `fitOfApproach`), plus 3 new parameters for M3's Practice
+   Experience/Professionalism domains. Saved cleanly on the first attempt
+   (Zoho's "We have successfully created the function" banner, no syntax
+   errors) — written via the CodeMirror `setValue()` API, per the
+   documented typing-corruption-avoidance discipline. Verbatim Deluge
+   source (re-read from the live "Edit function" editor to confirm no
+   drift):
+
+   ```text
+   map submitPeriodicCheckInResponse(string token,string connection,string understanding,string sharedDirection,string fitOfApproach,string scheduling,string billing,string professionalism)
+   {
+   	resp = Map();
+   	if(token == null || token.trim() == "")
+   	{
+   		resp.put("status","error");
+   		resp.put("message","Missing token");
+   		return resp;
+   	}
+   	rec = Map();
+   	found = false;
+   	qmap = Map();
+   	allRecs = zoho.crm.getRecords("Milestone_Instances",1,200,qmap,"crm_connection");
+   	for each  r in allRecs
+   	{
+   		if(r.get("Token") == token)
+   		{
+   			rec = r;
+   			found = true;
+   		}
+   	}
+   	if(!found)
+   	{
+   		resp.put("status","error");
+   		resp.put("message","No Milestone Instance found for token");
+   		return resp;
+   	}
+   	recStatus = rec.get("Status");
+   	expiry = rec.get("Expiry_Date_Time");
+   	if(recStatus != "Issued")
+   	{
+   		resp.put("status","error");
+   		resp.put("message","Milestone Instance is not in Issued status (current: " + recStatus + ")");
+   		resp.put("recordId",rec.get("id"));
+   		return resp;
+   	}
+   	if(expiry != null && expiry != "" && expiry < zoho.currenttime)
+   	{
+   		expUpdateMap = Map();
+   		expUpdateMap.put("Status","Expired");
+   		zoho.crm.updateRecord("Milestone_Instances",rec.get("id"),expUpdateMap,Map(),"crm_connection");
+   		resp.put("status","error");
+   		resp.put("message","Token has expired");
+   		resp.put("recordId",rec.get("id"));
+   		return resp;
+   	}
+   	responseText = "Practice Experience: Scheduling/Communication (0-10): " + ifnull(scheduling,"") + "---";
+   	responseText = responseText + "Practice Experience: Billing (0-10): " + ifnull(billing,"") + "---";
+   	responseText = responseText + "Therapist Professionalism (0-10): " + ifnull(professionalism,"") + "---";
+   	responseText = responseText + "Connection (0-10): " + ifnull(connection,"") + "---";
+   	responseText = responseText + "Understanding (0-10): " + ifnull(understanding,"") + "---";
+   	responseText = responseText + "Shared direction (0-10): " + ifnull(sharedDirection,"") + "---";
+   	responseText = responseText + "Fit of approach (0-10): " + ifnull(fitOfApproach,"");
+   	updateMap = Map();
+   	updateMap.put("Response_Data",responseText);
+   	updateMap.put("Status","Submitted");
+   	updateMap.put("Submitted_Date_Time",zoho.currenttime.toString("yyyy-MM-dd'T'HH:mm:ssXXX"));
+   	updateResp = zoho.crm.updateRecord("Milestone_Instances",rec.get("id"),updateMap,Map(),"crm_connection");
+   	resp.put("status","success");
+   	resp.put("message","Milestone Instance updated");
+   	resp.put("recordId",rec.get("id"));
+   	return resp;
+   }
+   ```
+
+   Blob field order deliberately follows `m3-data-model.md`'s spec
+   (Scheduling/Communication, Billing, Professionalism, then the 4 reused
+   alliance domains) rather than the form's on-screen order (which puts the
+   4 alliance sliders first) — this matters because it's what keeps the
+   existing M2 Analytics formula columns (Domain: Connection/Understanding/
+   Shared Direction/Fit Of Approach, Alliance Check-In Total) parsing M3
+   rows with zero edits, per §1.2. Label text for the 4 reused segments
+   (`"Connection (0-10): "`, etc.) is copied verbatim from M2's
+   `submitAllianceCheckInResponse`, confirmed character-for-character
+   against `m2-implementation-notes.md`'s source before saving.
+
+3. **Wiring**: connected via a plain `left_click_drag` from the trigger's
+   output connector circle to the function node's input connector circle
+   (no synthetic stepped-drag needed this time — unlike §1.5's node
+   placement/wiring from the palette, this was a short drag between two
+   already-placed connector handles, and the simple gesture worked on the
+   first attempt). Confirmed wired via
+   `document.querySelectorAll('[class*="connector" i]').length` going from
+   `0` (placed but unwired) to `2` (wired) — same verification convention
+   `m2-implementation-notes.md` §3.4 and this file's §1.5 use.
+
+4. **Parameter mapping** — all 8 parameters mapped to the trigger's form
+   fields and confirmed via screenshot after typing each (values persisted
+   correctly on a follow-up re-open of the panel):
+
+   | Parameter | Mapped to | Form question (for reference) |
+   |---|---|---|
+   | `token` | `${trigger.SingleLine}` | (hidden Token field) |
+   | `connection` | `${trigger.Slider}` | "Overall, how comfortable have you felt being open and honest with your therapist so far?" |
+   | `understanding` | `${trigger.Slider2}` | "Overall, how well do you feel your therapist has understood what matters to you so far?" |
+   | `sharedDirection` | `${trigger.Slider3}` | "Overall, how much do you feel you and your therapist agree on what you're working toward?" |
+   | `fitOfApproach` | `${trigger.Slider4}` | "Overall, how well has your therapist's approach been working for you so far?" |
+   | `scheduling` | `${trigger.Slider1}` | "How satisfied have you been with scheduling and communication with our practice (not your therapist directly)?" |
+   | `billing` | `${trigger.Slider5}` | "How satisfied have you been with the billing/insurance process?" |
+   | `professionalism` | `${trigger.Slider6}` | "How would you rate your therapist's professionalism (punctuality, preparedness, respectful conduct)?" |
+
+**New UI gotchas discovered this session, in addition to §1.5's three:**
+
+- **Zoho Forms field internal names do not necessarily follow on-screen
+  field order, and the Properties panel doesn't expose them.** Scrolled
+  the full field-Properties panel (Field Label, Instructions, Field Size,
+  Hover Text, Initial Value, Range, Unit, Step Value, Validation,
+  Visibility) — no "Unique Name"/internal-name control anywhere in it.
+  Confirmed this session as a live instance of a previously-suspected
+  gotcha: this form's internal field names (`Slider`, `Slider1`...
+  `Slider6`, `SingleLine`) were assigned at field-creation time, before the
+  drag-and-drop reordering fixes documented in §1.4 moved fields to their
+  final on-screen positions — so, e.g., the on-screen-5th field
+  ("Scheduling/Communication") is internally `Slider1`, not `Slider5`.
+  **Reliable technique found this session**: the builder's canvas lives in
+  a cross-origin iframe (unreadable via `javascript_tool`), but the
+  parameter-mapping panel's "Insert variable" tree (in Zoho Flow, same-
+  origin) exposes each field's true internal token as the `data-value`
+  attribute on its `a.jstree-anchor` element (e.g. `data-value=
+  "trigger.Slider1"`), paired with the full (untruncated, even where the
+  visible UI truncates it) question text as the anchor's `textContent`.
+  Querying `document.querySelectorAll('a.jstree-anchor[data-value^=
+  "trigger."]')` in the write-back flow's parameter panel gave a complete,
+  authoritative label-to-internal-name mapping in one call — far more
+  reliable than the previously-considered approach of reading the live
+  public form's DOM (`div.fieldWrapper[id$="-li"]`), which this session
+  didn't end up needing.
+- **Clicking a field, then clicking (or JS-`.click()`-ing) the matching
+  `a.jstree-anchor` in the "Insert variable" panel, inserts the merge
+  token (`${trigger.SliderN}`) into that field** — confirmed as the
+  correct mechanism for populating custom-function parameter fields
+  from trigger data (as opposed to typing the token as literal text,
+  which was not tried but is very likely fragile given prior sessions'
+  documented text-field corruption bug). Dispatching `.click()` via
+  `javascript_tool` on the anchor element worked identically to a real
+  mouse click, letting each of the 8 parameters be mapped and
+  independently verified via screenshot without needing precise pixel
+  coordinates for the (long, scrollable) variable tree.
+- **The Built-ins sidebar's "+ Custom Function" button can end up below
+  the visible fold in a way mouse-wheel scroll doesn't reach.** A
+  `scroll` action at the sidebar's coordinates left `scrollTop` at `0`
+  across multiple attempts. Fixed by finding the actual scrollable
+  container via `document.querySelectorAll('div')` filtered for
+  `scrollHeight > clientHeight` (found `div.sidebarMenuList`, scrollHeight
+  834 vs clientHeight 597) and setting `el.scrollTop = el.scrollHeight`
+  directly via `javascript_tool` — revealed the button immediately.
+
 ## 2. CRM/picklist reference (unchanged from m3-data-model.md, confirmed live)
 
 Confirmed 2026-09-17 via Zoho CRM MCP `getFields` (not browser, per the
@@ -419,10 +606,13 @@ handled the subscription himself, per the standing constraint.
 - **T002-T004**: Done — see §1.5. Trigger flow built fresh, wired
   end-to-end (verified via DOM connector/endpoint counts and screenshots),
   left switched off pending live test data.
-- **T005/T006**: Not started, in progress next. No longer blocked — T001's
-  form now exists as the write-back flow's trigger.
+- **T005/T006**: Done — see §1.6. Write-back flow built fresh, wired
+  end-to-end (verified via DOM connector count going from 0 to 2), all 8
+  `submitPeriodicCheckInResponse` parameters mapped to the form's true
+  internal field names and verified via screenshot, left switched off
+  pending live test data.
 - **T007-T013**: Verification/confirmation tasks depending on T002-T006
-  being built and (T020-T023) live-tested — not started.
+  being built (now done) and (T020-T023) live-tested — not started.
 - **T014**: Done — see §1.1.
 - **T015**: Not yet reviewed — confirm-absence task (no contractor-facing
   notification anywhere in the M3 build); trivially true right now since
@@ -461,10 +651,13 @@ non-browser tasks: writing this file, updating `m2-implementation-notes.md`,
 and pushing both to GitHub.
 
 **Update**: browser access was restored in a later session, which used it
-to build T001 (the Periodic Check-In form) and T002-T004 (the trigger
-flow — see §1.4/§1.5) rather than returning to T016's filter fix first, per
-Costin's go-ahead to proceed into the Zoho Flow build. T016's filter
-widening (§1.3) and T018/T019 (the two remaining M3 reports + dashboard)
-remain open and are the natural next step once the write-back flow
-(T005/T006) is done and the Flow→Analytics transition-point check-in with
-Costin has happened.
+to build T001 (the Periodic Check-In form), T002-T004 (the trigger flow),
+and T005/T006 (the write-back flow — see §1.4/§1.5/§1.6) rather than
+returning to T016's filter fix first, per Costin's go-ahead to proceed
+into the Zoho Flow build. Both M3 flows are now built, wired, and
+structurally verified. Per Costin's standing instruction to pause at
+transition points between major task groups, this is where work stops:
+T016's filter widening (§1.3) and T018/T019 (the two remaining M3 reports
++ dashboard) remain open and are the natural next step once Costin has
+checked in on usage/progress and given the go-ahead to continue into
+Analytics/reporting work.
