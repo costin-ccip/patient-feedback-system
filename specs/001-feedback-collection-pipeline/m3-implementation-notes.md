@@ -13,17 +13,20 @@
 > Safety Flag `Milestone` gate widened to cover M3), T017 (3 new M3-only
 > Analytics formula columns), the title-only half of T016 (report renamed
 > "M2 Flagged for Review" → "M2 & M3 Flagged for Review"; its Milestone
-> filter is **not yet widened** — see §2.3), and **T001** (the "Cape Clarity
+> filter is **not yet widened** — see §2.3), **T001** (the "Cape Clarity
 > Periodic Check-In" Zoho Form — see §1.4; the Forms-plan blocker described
 > in §3 was resolved 2026-09-18 when Costin subscribed to a paid Zoho Forms
-> plan). T002-T013 (both flows and their custom functions) have not been
-> started; T005/T006 (write-back flow) can now proceed since T001's form
-> exists. T018/T019 (the two remaining M3 reports + dashboard) have not been
-> started. T020-T023 (live test data) remain explicitly blocked pending a
-> test Patient ID from Costin, per standing instruction. **Per Costin's
-> instruction this session, work paused after T001 for his check-in on
-> usage/progress before starting Zoho Flow (T002 onward).** See §4 for the
-> full remaining-work list.
+> plan), and **T002-T004** (the "M3 - Periodic Check-In Trigger" flow —
+> trigger, `checkPeriodicCheckInDue` custom function, if-else, and "Call a
+> subflow" step — built fresh, wired end-to-end, and verified; left
+> switched **off** — see §1.5). T005/T006 (write-back flow) have not been
+> started. T018/T019 (the two remaining M3 reports + dashboard) have not
+> been started. T020-T023 (live test data) remain explicitly blocked
+> pending a test Patient ID from Costin, per standing instruction. **Per
+> Costin's instruction this session, work pauses at natural transition
+> points between major task groups (Form → Flow → Analytics) for his
+> check-in on usage/progress — next pause is once both M3 flows (trigger
+> and write-back) are built.** See §4 for the full remaining-work list.
 
 ## 1. What's built so far
 
@@ -208,6 +211,151 @@ visual scroll of the canvas (or the live published form) to confirm field
 order after any drag-and-drop addition**, rather than trusting the order
 fields were dropped in.
 
+### 1.5 "M3 - Periodic Check-In Trigger" flow built (T002-T004)
+
+Built 2026-09-18, entirely from scratch — **not** cloned from M2's "M2 -
+Alliance Check-In Trigger" flow, per `m2-implementation-notes.md` §3.2's
+shared-custom-function gotcha (cloning a flow, or a single node within it,
+creates a new node that still points at the same underlying Deluge
+function object as the original; the only safe way to get an independent
+function is the "+ Custom Function" wizard under Built-ins → Developer
+Tools → Custom Functions). Flow URL:
+`https://flow.zoho.com/#/workspace/872426000000002011/flows/m3_periodic_check_in_trigger/edit`.
+Left switched **OFF** after building, matching M0/M1/M2's build-first-
+verify-later convention — turning it on is deferred to T020-T023 (blocked
+on a test Patient ID from Costin).
+
+**Structure, verified via screenshot + DOM connector/endpoint counts (4
+connectors, 25 jsPlumb endpoints; the "error" class hits found in a DOM
+scan are all `zf-action-error` / "On Error" branch anchors that exist on
+every action node, not actual configuration errors):**
+
+1. **Trigger — "Updated module entry" (Zoho CRM)**. Connection: "CRM
+   Connection" (reused, same as M0/M1/M2). Module: **Patients** (variable
+   name `trigger`, unchanged default). Filter criteria: `Session Count`
+   `greater than or equals` `8` — confirmed via the trigger's own
+   Configure screen, matching `m3-data-model.md` exactly (a cheap
+   pre-filter only; the real per-checkpoint eligibility test is
+   `checkPeriodicCheckInDue`, not this filter — see `m3-research.md`
+   Decision 1 for why a modulo/list condition can't live in the trigger
+   filter itself).
+2. **Custom Function — `checkPeriodicCheckInDue`**. Built genuinely fresh
+   (not cloned). Parameters as wired: `patientId` = `${trigger.id}`,
+   `sessionCount` = `${trigger.Session_Count}`; output variable
+   `checkPeriodicCheckInDue_1`. **Verbatim Deluge source, re-read from the
+   live "Edit function" editor to confirm no drift from the draft**:
+
+   ```text
+   bool checkPeriodicCheckInDue(string patientId, int sessionCount)
+   {
+   	checkpoints = list();
+   	checkpoints.add(8);
+   	checkpoints.add(16);
+   	checkpoints.add(24);
+   	checkpoints.add(32);
+   	checkpoints.add(40);
+   	existingCount = 0;
+   	qmap = Map();
+   	allRecs = zoho.crm.getRecords("Milestone_Instances",1,200,qmap,"crm_connection");
+   	for each  r in allRecs
+   	{
+   		patientLookup = r.get("Patient");
+   		patientRecId = "";
+   		if(patientLookup != null)
+   		{
+   			patientRecId = patientLookup.get("id");
+   		}
+   		if(patientRecId == patientId && r.get("Milestone") == "3 - Periodic Consolidated")
+   		{
+   			existingCount = existingCount + 1;
+   		}
+   	}
+   	if(existingCount >= checkpoints.size())
+   	{
+   		return false;
+   	}
+   	nextThreshold = checkpoints.get(existingCount);
+   	return sessionCount >= nextThreshold;
+   }
+   ```
+
+   **No deviation from `m3-data-model.md`'s draft** — pasted in and saved
+   with zero syntax corrections needed (unlike T014's Analytics formula,
+   which needed an `OR` syntax fix; this function's Deluge syntax was
+   already correct as drafted). Connection name `crm_connection`, reused
+   verbatim from M0/M1/M2's pattern, confirmed live.
+3. **If else** — condition: `checkPeriodicCheckInDue_1` is `true`.
+   - **True branch → "Call a subflow"**, calling the unchanged shared
+     "Subflow - Issue Feedback Token" (execution behavior: "Wait and
+     continue", the default). Input Fields as configured and verified via
+     screenshot:
+     - `clinician`: `Liana Preudhomme`
+     - `survey_url`:
+       `https://forms.zohopublic.com/lianapreudhommecapec1/form/CapeClarityPeriodicCheckIn/formperma/1a3D0cvimvTXnchCSaZUI66bwR8Oj1BJe8Cs0JBY8W4`
+       (confirmed byte-exact via `document.activeElement.value` read
+       immediately after typing, same discipline as M2's §4)
+     - `email_intro_text`: "Thanks for continuing your work with us. As
+       you keep making progress, we'd love to check in on how things have
+       been going overall. Please take a moment to share your feedback
+       using the link below:"
+     - `milestone`: `3 - Periodic Consolidated`
+     - `patient_id`: `${trigger.id}`
+     - `recipient_email`: `${trigger.Email}`
+     - `ttl_days`: `7` (reused M0/M1/M2's default — not changed for the
+       recurring case; flagged as an open question for Costin in
+       `m3-data-model.md`, no answer needed to proceed since the default
+       is a safe placeholder)
+     - `email_subject`: `Quick check-in: how's therapy going overall? -
+       Cape Clarity`
+     - `lead_id`: left empty, intentionally (M3 is patient-based only,
+       same as M2)
+   - **False branch**: left empty, no action — matches
+     `m3-data-model.md`'s spec exactly (idempotency short-circuit, same
+     shape as every prior milestone).
+
+**New UI gotchas discovered this session (Zoho Flow builder, this
+workspace version) — not documented in any prior milestone's notes:**
+
+- **Reliable node placement/wiring needs a synthetic stepped drag, not a
+  single drag gesture.** A plain `left_click_drag` from the palette to
+  the canvas visually places and wires a node inconsistently in this
+  builder version. What worked reliably: dispatch a real `mousedown` on
+  the palette item's `.ui-draggable` element (at its center), then 15-18
+  incremental synthetic `mousemove` events stepping toward the drop
+  target (each resolving its real event target via
+  `document.elementFromPoint(x,y)`, not just firing at fixed
+  coordinates), then a final `mousemove` + `mouseup` at the target
+  (target also resolved via `document.elementFromPoint`). Verified by
+  `document.querySelectorAll('[class*="connector" i]').length` increasing
+  by the expected amount after each drop.
+- **Whether dropping a node auto-opens its parameter panel is
+  inconsistent by node type.** Dropping the `checkPeriodicCheckInDue`
+  custom-function node onto the trigger's output connector auto-opened
+  its "Enter parameter values" panel immediately. Dropping "Call a
+  subflow" onto the if-else's True-branch connector did **not**
+  auto-open any panel, even using the identical stepped-drag technique
+  (confirmed by deleting and re-dropping several times, including trying
+  a trailing synthetic `click` after `mouseup`).
+- **The reliable way to open ANY already-placed node's configuration
+  panel is the small pencil icon, not the node body or the kebab menu.**
+  Every node has a small `<i class="zf-icon-edit">` pencil icon at its
+  top-right corner, visually close to but distinct from the kebab "..."
+  icon just below it. Clicking the node's body/icon/text opens an inline
+  rename `<input>` (covers most of the node row) or, on a second click,
+  selects it; clicking the kebab opens only Clone / View function (or
+  Clone / Add Note / Delete for non-function nodes) / Add Note / Delete —
+  none of these expose parameter mapping. **Clicking the pencil icon
+  specifically is what opens the true configuration panel** (confirmed
+  for both the custom-function node and the "Call a subflow" node this
+  session, and re-confirmed just now when re-opening both nodes purely
+  to verify this write-up). For a custom-function node's panel, there is
+  also an "Edit function" button (top-right of the parameter panel) that
+  opens the actual Deluge source editor — a further level in, not the
+  same click target as the parameter panel itself.
+- Together, these mean: don't assume a silently-unopened panel means the
+  node failed to place — try the pencil icon before concluding a node
+  needs to be deleted and re-dropped.
+
 ## 2. CRM/picklist reference (unchanged from m3-data-model.md, confirmed live)
 
 Confirmed 2026-09-17 via Zoho CRM MCP `getFields` (not browser, per the
@@ -268,10 +416,11 @@ handled the subscription himself, per the standing constraint.
 ## 4. Remaining work (not yet built)
 
 - **T001**: Done — see §1.4.
-- **T002-T004**: Not started. Can now proceed with T001's real `survey_url`
-  (see §1.4) rather than a placeholder.
-- **T005/T006**: Not started. No longer blocked — T001's form now exists as
-  the write-back flow's trigger.
+- **T002-T004**: Done — see §1.5. Trigger flow built fresh, wired
+  end-to-end (verified via DOM connector/endpoint counts and screenshots),
+  left switched off pending live test data.
+- **T005/T006**: Not started, in progress next. No longer blocked — T001's
+  form now exists as the write-back flow's trigger.
 - **T007-T013**: Verification/confirmation tasks depending on T002-T006
   being built and (T020-T023) live-tested — not started.
 - **T014**: Done — see §1.1.
@@ -309,6 +458,13 @@ extension) disconnected while investigating T016's filter-editing UI (see
 §1.3's "not yet tried" note). Per the "avoid rabbit holes" browser-tool
 guidance, this was not repeatedly retried — instead, work pivoted to
 non-browser tasks: writing this file, updating `m2-implementation-notes.md`,
-and pushing both to GitHub. Continuing T016's filter fix, and starting
-T018/T019, is the natural next step once browser access to the Zoho
-Analytics workspace is available again.
+and pushing both to GitHub.
+
+**Update**: browser access was restored in a later session, which used it
+to build T001 (the Periodic Check-In form) and T002-T004 (the trigger
+flow — see §1.4/§1.5) rather than returning to T016's filter fix first, per
+Costin's go-ahead to proceed into the Zoho Flow build. T016's filter
+widening (§1.3) and T018/T019 (the two remaining M3 reports + dashboard)
+remain open and are the natural next step once the write-back flow
+(T005/T006) is done and the Flow→Analytics transition-point check-in with
+Costin has happened.

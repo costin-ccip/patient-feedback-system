@@ -26,7 +26,7 @@ actually done, not in advance.
 
 ## Phase 2: Foundational
 
-- [ ] T002 Build "M3 - Periodic Check-In Trigger" flow: watch
+- [x] T002 Build "M3 - Periodic Check-In Trigger" flow: watch
       `Patients1.Session_Count` with a `>= 8` trigger-level filter (not an
       exact-value filter — see `m3-research.md` Decision 1), feeding a new
       idempotency/eligibility custom function rather than a plain existence
@@ -35,7 +35,7 @@ actually done, not in advance.
       gotcha). Verify all links are genuinely connected via the DOM
       connector-element check (`[class*="connector" i]`) before attempting
       to switch it on.
-- [ ] T003 Implement `checkPeriodicCheckInDue(patientId, sessionCount)` per
+- [x] T003 Implement `checkPeriodicCheckInDue(patientId, sessionCount)` per
       `m3-data-model.md`: fixed checkpoint list `[8, 16, 24, 32, 40]`
       (Costin, 2026-09-17 — extend this one list later rather than changing
       the logic), count existing `Milestone_Instances` rows for this
@@ -46,7 +46,7 @@ actually done, not in advance.
       pagination/list-indexing syntax against the live Deluge editor —
       satisfies spec.md FR-002 (no duplicate request per checkpoint) for a
       recurring milestone.
-- [ ] T004 On eligible (`checkPeriodicCheckInDue` true): create a new
+- [x] T004 On eligible (`checkPeriodicCheckInDue` true): create a new
       `Milestone_Instances` record (`Patient` = triggering patient,
       `Milestone = "3 - Periodic Consolidated"`, `Status = "Issued"`, fresh
       `Token`, `Expiry_Date_Time` — reuse M0/M1/M2's 7-day TTL unless Costin
