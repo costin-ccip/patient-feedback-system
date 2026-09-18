@@ -13,7 +13,7 @@ actually done, not in advance.
 
 ## Phase 1: Setup
 
-- [ ] T001 Build the public "Cape Clarity Periodic Check-In" Zoho Form: 4
+- [x] T001 Build the public "Cape Clarity Periodic Check-In" Zoho Form: 4
       sliders reusing M2's exact Alliance Check-In prompts/instructions/
       range verbatim (Connection, Understanding, Shared direction, Fit of
       approach), plus 2 new Practice Experience sliders

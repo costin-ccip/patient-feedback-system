@@ -8,20 +8,22 @@
 > `CLAUDE.md` convention of updating implementation notes in the same session
 > as the change.
 >
-> Last updated: 2026-09-17
+> Last updated: 2026-09-18
 > Status: **Partially built, in progress.** Done so far: T014 (Clinical
 > Safety Flag `Milestone` gate widened to cover M3), T017 (3 new M3-only
-> Analytics formula columns), and the title-only half of T016 (report
-> renamed "M2 Flagged for Review" → "M2 & M3 Flagged for Review"; its
-> Milestone filter is **not yet widened** — see §2.3). **Blocked**: T001 (the
-> Periodic Check-In Zoho Form) cannot be built — this account's Zoho Forms
-> plan no longer permits creating a new form (see §3, needs a decision from
-> Costin). T002-T013 (both flows and their custom functions) have not been
-> started; T005/T006 (write-back flow) are also blocked transitively on T001
-> since the write-back flow's trigger is that form. T018/T019 (the two
-> remaining M3 reports + dashboard) have not been started. T020-T023 (live
-> test data) remain explicitly blocked pending a test Patient ID from Costin,
-> per standing instruction. See §4 for the full remaining-work list.
+> Analytics formula columns), the title-only half of T016 (report renamed
+> "M2 Flagged for Review" → "M2 & M3 Flagged for Review"; its Milestone
+> filter is **not yet widened** — see §2.3), and **T001** (the "Cape Clarity
+> Periodic Check-In" Zoho Form — see §1.4; the Forms-plan blocker described
+> in §3 was resolved 2026-09-18 when Costin subscribed to a paid Zoho Forms
+> plan). T002-T013 (both flows and their custom functions) have not been
+> started; T005/T006 (write-back flow) can now proceed since T001's form
+> exists. T018/T019 (the two remaining M3 reports + dashboard) have not been
+> started. T020-T023 (live test data) remain explicitly blocked pending a
+> test Patient ID from Costin, per standing instruction. **Per Costin's
+> instruction this session, work paused after T001 for his check-in on
+> usage/progress before starting Zoho Flow (T002 onward).** See §4 for the
+> full remaining-work list.
 
 ## 1. What's built so far
 
@@ -124,6 +126,88 @@ is corrected. Flagging clearly rather than leaving it ambiguous from the
 title alone. `m2-implementation-notes.md` §9.6 has been updated to note
 both the rename and this open gap (see that file).
 
+### 1.4 "Cape Clarity Periodic Check-In" Zoho Form built (T001)
+
+Built 2026-09-18, after Costin subscribed to a paid Zoho Forms plan (see §3
+— this removed the blocker that had stopped T001 the prior session). Public
+form URL:
+
+```
+https://forms.zoho.com/lianapreudhommecapec1/form/CapeClarityPeriodicCheckIn
+```
+
+(builder URL: `.../form/CapeClarityPeriodicCheckIn/builder`.) 8 fields, in
+on-screen order, exactly matching `m3-data-model.md`'s section order
+(Alliance Check-In, then Practice Experience, then Therapist
+Professionalism):
+
+1. **Slider — Connection** (reused verbatim from M2): "Overall, how
+   comfortable have you felt being open and honest with your therapist so
+   far?" / "Domain: Connection. 0 = Not comfortable, 10 = Very comfortable."
+   / range 0-10 / Mandatory.
+2. **Slider — Understanding** (reused verbatim from M2): "Overall, how well
+   do you feel your therapist has understood what matters to you so far?" /
+   "Domain: Understanding. 0 = Not understood, 10 = Fully understood." /
+   range 0-10 / Mandatory.
+3. **Slider — Shared direction** (reused verbatim from M2): "Overall, how
+   much do you feel you and your therapist agree on what you're working
+   toward?" / "Domain: Shared direction. 0 = Not aligned, 10 = Fully
+   aligned." / range 0-10 / Mandatory.
+4. **Slider — Fit of approach** (reused verbatim from M2): "Overall, how
+   well has your therapist's approach been working for you so far?" /
+   "Domain: Fit of approach. 0 = Hasn't worked, 10 = Worked well." / range
+   0-10 / Mandatory.
+5. **Slider — Practice Experience: Scheduling/Communication** (new,
+   drafted in `m3-research.md` Decision 3, **not sourced from Confluence —
+   needs Costin/Liana review before this form goes live**, same as M1/M2's
+   precedent for drafted-not-sourced prompts): "How satisfied have you been
+   with scheduling and communication with our practice (not your therapist
+   directly)?" / instructions "Domain: Scheduling/Communication. 0 = Not
+   satisfied, 10 = Very satisfied." (this instructions line was not in
+   `m3-research.md` — written this session to match M2's "Domain: X. 0 =
+   ..., 10 = ..." caption style; flag for review alongside the prompt
+   itself) / range 0-10 / Mandatory.
+6. **Slider — Practice Experience: Billing** (new, per `m3-research.md`
+   Decision 3, same not-sourced-from-Confluence caveat): "How satisfied have
+   you been with the billing/insurance process?" / "Domain: Billing. 0 = Not
+   satisfied, 10 = Very satisfied." / range 0-10 / Mandatory.
+7. **Slider — Therapist Professionalism** (new, per `m3-research.md`
+   Decision 3, same not-sourced-from-Confluence caveat): "How would you rate
+   your therapist's professionalism (punctuality, preparedness, respectful
+   conduct)?" / "Domain: Professionalism. 0 = Very poor, 10 = Excellent."
+   (again, this exact instructions wording was written this session, not
+   drafted in `m3-research.md`) / range 0-10 / Mandatory.
+8. **Single Line — Token**: label "Token", Visibility = Hide. Same
+   hidden-prefill-token pattern as M0/M1/M2's forms.
+
+No name, email, or phone field, per Principle I. Confirmed via the live
+public form (not just the builder) that all 7 sliders render in the correct
+order and the Token field does not appear to a respondent.
+
+**Field-order gotcha worth flagging for future milestone builds**: Zoho
+Forms' drag-and-drop palette does not always drop a new field at the end of
+the canvas — dropping near the bottom of the last existing field sometimes
+inserted the new field mid-canvas instead (observed here: after configuring
+slider 1, dropping a second blank slider from the palette landed it
+*between* slider 1 and the field being configured next, not after it,
+producing an out-of-order canvas: Connection, [blank], Understanding, Shared
+direction, [blank] x3). Fixed by deleting the misplaced blank field (safe
+before it's configured — no data loss) and re-adding it via drag-and-drop
+into a position that put it, and 3 further re-additions, into a contiguous
+run of 4 blanks immediately after "Shared direction" and before "Single
+Line" (verified by scrolling the full canvas and reading field order
+visually, not by DOM queries — the builder's canvas lives inside a
+cross-origin iframe not readable via `javascript_tool`, and Zoho Forms
+fields also don't respond to CSS selectors keyed on generic list-item
+patterns like `[id$="-li"]`, per earlier sessions' notes on this builder).
+Existing fields can also be reordered by a plain drag on the field's own
+body (no separate drag handle) — used once here to move a misplaced blank
+slider from after "Single Line" back to before it, after a new-field drop
+landed in the wrong spot a second time. **Always do a full top-to-bottom
+visual scroll of the canvas (or the live published form) to confirm field
+order after any drag-and-drop addition**, rather than trusting the order
+fields were dropped in.
+
 ## 2. CRM/picklist reference (unchanged from m3-data-model.md, confirmed live)
 
 Confirmed 2026-09-17 via Zoho CRM MCP `getFields` (not browser, per the
@@ -138,10 +222,18 @@ picklist value" section — reproduced here only because it's load-bearing
 for every task that references the exact string `"3 - Periodic
 Consolidated"`.
 
-## 3. Blocker: Zoho Forms plan no longer permits creating a new form (T001)
+## 3. Blocker (RESOLVED 2026-09-18): Zoho Forms plan no longer permitted creating a new form (T001)
+
+**Resolved.** Costin subscribed to a paid Zoho Forms plan for this account
+on 2026-09-18, removing the blocker described below. Confirmed resolved by
+successfully opening the "New Form" wizard with no upgrade-plan modal
+appearing (previously both paths below triggered one). T001 was then built
+the same session — see §1.4. This section is kept as a historical record of
+the blocker and how it was diagnosed, per the "not just a failed click"
+verification discipline the rest of this file follows.
 
 This account's Zoho Forms plan (`lianapreudhommecapec1`) — the same account
-`m2-implementation-notes.md` §2 recorded as "Free" — no longer permits
+`m2-implementation-notes.md` §2 recorded as "Free" — no longer permitted
 creating a new form by either path tried:
 
 - **"New Form"** from the forms dashboard.
@@ -169,23 +261,17 @@ This blocks:
   swapped in once the form exists, but that's a judgment call worth
   confirming with Costin rather than assuming.
 
-**This needs a decision from Costin**, not something to route around
-unilaterally: upgrade the Zoho Forms plan, find another way to create the
-form on the current plan (e.g. a support ticket to Zoho, or building it
-under a different, non-paywalled account/workspace if one exists), or some
-other approach. Not yet raised with Costin as of this file's last update —
-raising it is the immediate next step.
+**Resolution**: Costin subscribed to a paid Zoho Forms plan (2026-09-18),
+removing this blocker. No purchase was made by this session — Costin
+handled the subscription himself, per the standing constraint.
 
 ## 4. Remaining work (not yet built)
 
-- **T001**: Blocked — see §3. Needs Costin's decision before proceeding.
-- **T002-T004**: Not started. Could partially proceed (trigger flow +
-  `checkPeriodicCheckInDue` function) independent of T001, but the
-  "Call a subflow" step's `survey_url` parameter depends on T001 for a real
-  value — worth confirming with Costin whether to build with a placeholder
-  now or wait.
-- **T005/T006**: Blocked transitively on T001 (write-back flow's trigger is
-  the form).
+- **T001**: Done — see §1.4.
+- **T002-T004**: Not started. Can now proceed with T001's real `survey_url`
+  (see §1.4) rather than a placeholder.
+- **T005/T006**: Not started. No longer blocked — T001's form now exists as
+  the write-back flow's trigger.
 - **T007-T013**: Verification/confirmation tasks depending on T002-T006
   being built and (T020-T023) live-tested — not started.
 - **T014**: Done — see §1.1.
