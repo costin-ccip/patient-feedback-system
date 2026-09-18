@@ -145,7 +145,7 @@ domains — by widening M2's existing formula columns, not forking a new pair
       satisfies FR-012 / Acceptance Scenario 3. Confirm-absence task, not a
       build task — review T006's function, the flow, and the widened
       Analytics formula columns for any contractor-facing action.
-- [ ] T016 [US4] Rename/widen the existing "M2 Flagged for Review" report to
+- [x] T016 [US4] Rename/widen the existing "M2 Flagged for Review" report to
       "M2 & M3 Flagged for Review" per `m3-data-model.md` (Milestone filter
       widened to Wildcard `"2 - Early Alliance Check"` OR `"3 - Periodic
       Consolidated"`), confirm a flagged M3 record is visible there with the
@@ -178,11 +178,11 @@ established pattern.*
       require new work, but verify against a real test submission (Phase
       7) before assuming it, the same "verify, don't assume" discipline
       every prior milestone's Analytics build followed.
-- [ ] T018 Build a minimal "M3 Submitted Responses" report (all 7 parsed
+- [x] T018 Build a minimal "M3 Submitted Responses" report (all 7 parsed
       columns + Alliance Check-In Total + the 2 shared flag columns, raw
       blob hidden, no `Patient`/identity column) — same pattern as
       M0/M1/M2's, scoped to `Milestone = "3 - Periodic Consolidated"`.
-- [ ] T019 [Spec.md User Story 6 / FR-018] Build, at minimum: a status/
+- [x] T019 [Spec.md User Story 6 / FR-018] Build, at minimum: a status/
       volume view ("M3 Status Breakdown" — Issued/Submitted/Expired counts,
       "Save As" pattern off M2's equivalent) and at least one distribution/
       summary view of M3's *own new* scored data ("M3 Practice Experience &

@@ -8,10 +8,10 @@
 > `CLAUDE.md` convention of updating implementation notes in the same session
 > as the change.
 >
-> Last updated: 2026-09-17 (see §9.2/§9.6 changelog notes — the Clinical
+> Last updated: 2026-09-18 (see §9.2/§9.6 changelog notes — the Clinical
 > Safety Flag gate and the Flagged for Review report were both touched by
-> the M3 build, per `m3-tasks.md` T014/T016; nothing else in this file
-> changed)
+> the M3 build, per `m3-tasks.md` T014/T016 (T016's filter widening
+> completed 2026-09-18); nothing else in this file changed)
 > Status: T001 (Cape Clarity Alliance Check-In form), T002/T003/T004 (the
 > "M2 - Session 3 Trigger" Zoho Flow, its idempotency-check custom function,
 > and the parameterized "Call a subflow" step), T005/T006 (the
@@ -692,18 +692,20 @@ out of scope for M2.
 
 **Updated 2026-09-17 (M3 build, `m3-tasks.md` T016):** renamed to "M2 & M3
 Flagged for Review", per `m3-data-model.md`'s "one rule, one report"
-decision (rather than a second, parallel M3-only flagged view). **The
-Milestone filter has NOT been widened yet as of this update** — it still
-reads `Milestone` Exactly Matches `"2 - Early Alliance Check"` only, so the
-report currently shows only M2 rows despite the new title. The intended
-final filter is `Milestone` Wildcard Exactly Matches `"2 - Early Alliance
-Check"` OR `"3 - Periodic Consolidated"`. The correct UI path to this
-report's saved filter-criteria editor (distinct from the toolbar's ad-hoc
-per-column quick-filter and its "More" dropdown, neither of which is it)
-had not been found yet when browser access was interrupted mid-session —
-see `m3-implementation-notes.md` §1.3 and §5 for the full state and the
-likely next UI to try ("Edit Design"). Treat this report's filter as
-**still M2-only** until a further update to this section says otherwise.
+decision (rather than a second, parallel M3-only flagged view).
+
+**Updated 2026-09-18 (M3 build, `m3-tasks.md` T016, completed):** the
+Milestone filter has now been widened. The correct UI path turned out to
+be the **"Edit Design"** button on the report's View Mode page (switches
+`/view/<id>` to `/edit/<id>` and opens the full query editor with
+"Tabular", "Filters (N)", and "User Filters (N)" tabs) — distinct from the
+toolbar's ad-hoc per-column quick-filter and its "More" dropdown, neither
+of which exposes it. Final filter: `Milestone` Wildcard Exactly Matches
+`"2 - Early Alliance Check"` **OR** Exactly Matches `"3 - Periodic
+Consolidated"` (Criteria Expression `(1 OR 2)`). Saved successfully; view
+ID unchanged (`3251423000000141219`). The report now correctly scopes to
+both M2 and M3 flagged rows, matching its title. See
+`m3-implementation-notes.md` §1.3 for the full session detail.
 
 ### 9.7 "M2 - Early Alliance Check Feedback" dashboard (T019)
 

@@ -9,29 +9,31 @@
 > as the change.
 >
 > Last updated: 2026-09-18
-> Status: **Both M3 Zoho Flow flows now built. Pausing for Costin's
-> check-in before starting any Analytics/reporting work, per his standing
-> instruction.** Done so far: T014 (Clinical Safety Flag `Milestone` gate
-> widened to cover M3), T017 (3 new M3-only Analytics formula columns), the
-> title-only half of T016 (report renamed "M2 Flagged for Review" → "M2 &
-> M3 Flagged for Review"; its Milestone filter is **not yet widened** —
-> see §2.3), **T001** (the "Cape Clarity Periodic Check-In" Zoho Form —
-> see §1.4; the Forms-plan blocker described in §3 was resolved 2026-09-18
-> when Costin subscribed to a paid Zoho Forms plan), **T002-T004** (the
-> "M3 - Periodic Check-In Trigger" flow — trigger, `checkPeriodicCheckInDue`
-> custom function, if-else, and "Call a subflow" step — built fresh, wired
-> end-to-end, and verified; left switched **off** — see §1.5), and
-> **T005/T006** (the "M3 - Periodic Check-In Write-back" flow — trigger,
-> `submitPeriodicCheckInResponse` custom function, all 8 parameters mapped
-> to the form's field internal names — built fresh, wired end-to-end, and
-> verified; left switched **off** — see §1.6). T018/T019 (the two
-> remaining M3 reports + dashboard) have not been started. T020-T023 (live
-> test data) remain explicitly blocked pending a test Patient ID from
-> Costin, per standing instruction. **Both M3 flows (trigger and
-> write-back) are now built, so per Costin's standing instruction this
-> session stops here and checks in with him before touching any
-> Analytics/reporting work (T016's remaining filter widening, T018, T019,
-> the M3 dashboard).** See §4 for the full remaining-work list.
+> Status: **All of Phase 6 (Reporting) is now built: T016 (filter widening
+> completed), T018, and T019 are all done**, alongside everything from the
+> prior update (T014, T017, the M3 Zoho Form, and both M3 Zoho Flow flows).
+> Done so far: T014 (Clinical Safety Flag `Milestone` gate widened to cover
+> M3), T017 (3 new M3-only Analytics formula columns), **T016** (report
+> renamed "M2 Flagged for Review" → "M2 & M3 Flagged for Review" **and its
+> Milestone filter now fully widened** to Wildcard `"2 - Early Alliance
+> Check"` OR `"3 - Periodic Consolidated"` — see §1.3), **T001** (the "Cape
+> Clarity Periodic Check-In" Zoho Form — see §1.4; the Forms-plan blocker
+> described in §3 was resolved 2026-09-18 when Costin subscribed to a paid
+> Zoho Forms plan), **T002-T004** (the "M3 - Periodic Check-In Trigger"
+> flow — trigger, `checkPeriodicCheckInDue` custom function, if-else, and
+> "Call a subflow" step — built fresh, wired end-to-end, and verified; left
+> switched **off** — see §1.5), **T005/T006** (the "M3 - Periodic Check-In
+> Write-back" flow — trigger, `submitPeriodicCheckInResponse` custom
+> function, all 8 parameters mapped to the form's field internal names —
+> built fresh, wired end-to-end, and verified; left switched **off** — see
+> §1.6), **T018** (the "M3 Submitted Responses" report — see §1.7), and
+> **T019** (the "M3 Status Breakdown" report plus three new-column
+> distribution reports, bundled with T018's report and T016's shared
+> Flagged for Review report into the new "M3 - Periodic Check-In Feedback"
+> dashboard — see §1.8). T020-T023 (live test data) remain explicitly
+> blocked pending a test Patient ID from Costin, per standing instruction —
+> that is the only remaining substantive work before M3 is fully built and
+> tested. See §4 for the full remaining-work list.
 
 ## 1. What's built so far
 
@@ -93,7 +95,7 @@ puts the 4 alliance segments last, in the same order and with the same
 label text M2 uses, so these columns should parse M3 rows with zero edits.
 This is unverified against real data for the same reason as above.
 
-### 1.3 "M2 & M3 Flagged for Review" report — renamed, filter NOT yet widened (T016, partial)
+### 1.3 "M2 & M3 Flagged for Review" report — renamed and filter widened (T016, done)
 
 The existing "M2 Flagged for Review" report (view ID
 `3251423000000141219`) was renamed to "M2 & M3 Flagged for Review" this
@@ -108,31 +110,26 @@ Fixed the same way §3.3 does: set the value via the native input setter
 'value').set.call(el, 'M2 & M3 Flagged for Review')`, dispatch an `input`
 event, then press Return) — confirmed correct via a follow-up screenshot.
 
-**The Milestone filter itself has NOT been widened yet.** Per
-`m3-data-model.md`, the filter needs to become `Milestone` Wildcard Exactly
-Matches `"2 - Early Alliance Check"` **OR** `"3 - Periodic Consolidated"`
-(currently still M2-only, per `m2-implementation-notes.md` §9.6's original
-build). At the point this file was written, the correct UI path to reach
-this report's saved filter-criteria editor had not yet been found:
+**The Milestone filter has now been widened.** The correct UI path,
+previously unresolved, turned out to be the **"Edit Design"** button
+(top-right of a Tabular View report in View Mode) — clicking it switches
+the URL from `/view/<id>` to `/edit/<id>` and opens the full query editor
+with "Tabular", "Filters (N)", and "User Filters (N)" tabs. This is
+distinct from the toolbar's ad-hoc per-column quick-filter and its "More"
+dropdown (neither of which exposes the report-level saved filter), both
+already ruled out in the prior update to this section. Within the
+"Filters" tab, clicking the existing "Milestone" filter opened its
+criteria editor (Individual Values / Wildcard tabs); clicking "+" next to
+the existing condition added a second, OR'd condition row. Final filter:
+`Milestone` Wildcard Exactly Matches `"2 - Early Alliance Check"` **OR**
+Exactly Matches `"3 - Periodic Consolidated"` (Criteria Expression `(1 OR
+2)`, confirmed in the UI). Saved successfully ("Saved 'M2 & M3 Flagged for
+Review' successfully" toast confirmed). View ID unchanged:
+`3251423000000141219`.
 
-- The toolbar's **"Filter"** button opens only an ad-hoc per-column
-  quick-filter row (Is/Contains dropdowns per visible column) — not the
-  report-level saved filter panel `m2-implementation-notes.md` §9.6/§9.8
-  describes (a "Filters (N)" count with Wildcard/Individual Values tabs).
-- The toolbar's **"More"** dropdown only offers "Show/Hide Column", "Freeze
-  Column", and "Wrap header" — also not it.
-- Not yet tried at the point this was written: the "Edit Design" control
-  (top-right of the report view). This is the most likely remaining
-  candidate and is the natural next step once browser access to this
-  Analytics workspace is available again (the browser session this work was
-  using disconnected mid-task — see §4).
-
-**Practical effect of the gap**: the report currently still shows only M2
-rows (title says M2 & M3, filter still says M2-only). No M3 data would
-appear in it even once M3 starts producing flagged rows, until this filter
-is corrected. Flagging clearly rather than leaving it ambiguous from the
-title alone. `m2-implementation-notes.md` §9.6 has been updated to note
-both the rename and this open gap (see that file).
+**Practical effect**: the report now correctly scopes to both M2 and M3
+flagged rows, matching its title. `m2-implementation-notes.md` §9.6 has
+been updated to remove its "still M2-only" caveat (see that file).
 
 ### 1.4 "Cape Clarity Periodic Check-In" Zoho Form built (T001)
 
@@ -543,6 +540,102 @@ trigger's output to the function node's input):**
   834 vs clientHeight 597) and setting `el.scrollTop = el.scrollHeight`
   directly via `javascript_tool` — revealed the button immediately.
 
+### 1.7 "M3 Submitted Responses" report built (T018)
+
+Built as a new Tabular View on "Milestone Instances" (not a Save-As — M3's
+column set differs from M2's/M1's by the 3 new Practice Experience/
+Professionalism columns, same reasoning M2 gave for not reusing M1's
+now-`[RETIRED]` version). 12 columns, in this order: Submitted Date Time,
+Token, Practice Experience: Scheduling/Communication, Practice Experience:
+Billing, Therapist Professionalism, Domain: Connection, Domain:
+Understanding, Domain: Shared Direction, Domain: Fit Of Approach, Alliance
+Check-In Total, Clinical Safety Flag, Flag Rule Triggered — no
+`Patient`/identity column, same de-identification discipline as every
+other M0/M1/M2 report. Wildcard filter (needed because `"3 - Periodic
+Consolidated"` doesn't exist yet as a real picklist value in any row so far
+in this table): `Milestone` Exactly Matches `"3 - Periodic Consolidated"`.
+Saved to folder "Zoho CRM Modules (Data)". View ID `3251423000000186070`.
+0 rows (expected — correctly filters out the 9 pre-existing non-M3 sample/
+test rows already in the table; confirmed via "Click Here to Generate
+Tabular" before saving, and again in View Mode after saving).
+
+### 1.8 "M3 Status Breakdown" and distribution reports, plus the M3 dashboard (T019)
+
+**"M3 Status Breakdown"** (status/volume view): saved via "Save As" off
+"M2 Status Breakdown" (`m2-implementation-notes.md` §9.4, view ID
+`3251423000000141053`), same bar chart config preserved (X-Axis `Status`
+Actual, Y-Axis `Id` Count). Only change: the Milestone filter's Wildcard
+value swapped from `"2 - Early Alliance Check"` to `"3 - Periodic
+Consolidated"`. Saved to "Zoho CRM Modules (Data)". View ID
+`3251423000000186076`. Regenerated graph shows "No Data Available"
+(expected).
+
+**Distribution views of M3's own new scored data** — `m3-data-model.md`
+calls for "bar chart(s) over the 3 new formula columns" (plural allowed;
+FR-018/User Story 6 requires only "at least one"). Because each of the 3
+new columns (Practice Experience: Scheduling/Communication, Practice
+Experience: Billing, Therapist Professionalism) is an independent 0-10
+scored dimension, a single bar chart's X-axis can't meaningfully combine
+all 3 without reshaping the underlying data (out of scope here) — so this
+was built as **three separate distribution reports**, one per column,
+collectively satisfying the "M3 Practice Experience & Professionalism
+Distribution" task item:
+
+- **"M3 Practice Experience: Scheduling/Communication Distribution"** —
+  view ID `3251423000000186098`.
+- **"M3 Practice Experience: Billing Distribution"** — view ID
+  `3251423000000186132`.
+- **"M3 Therapist Professionalism Distribution"** — view ID
+  `3251423000000186154`.
+
+All three were saved via "Save As" off "M2 Alliance Check-In Total
+Distribution" (`m2-implementation-notes.md` §9.5, view ID
+`3251423000000141097`), then had their X-axis column swapped to the
+relevant new column and their Milestone filter's Wildcard value swapped to
+`"3 - Periodic Consolidated"`. **Note on the `Dimension [Actual(D)] /
+Treat as Text` gotcha**: `m2-implementation-notes.md` §9.5 warns that a
+newly-dropped *numeric* column defaults to `Measure [Actual(M)]` (which
+aggregates instead of showing one bar per distinct value) and must be
+explicitly re-set to `Dimension [Actual(D)] / Treat as Text`. That gotcha
+did not apply here — all 3 new Practice Experience/Professionalism formula
+columns are **Text-typed** (same as the reused Domain: * columns), so they
+default correctly to `Actual` dimension mode with no explicit re-set
+needed; confirmed via the X-Axis dropdown showing plain `Actual` (not
+`Actual(M)`) immediately after each column swap. All three regenerated
+graphs show "No Data Available" (expected). Y-Axis unchanged on all three:
+`Id` (Count).
+
+**"M3 - Periodic Check-In Feedback" dashboard**: new dashboard, view ID
+`3251423000000186289`, built via "Create New Dashboards" (not "Save As" —
+same reasoning M1/M2 gave: no exact panel-for-panel match to copy from).
+Bundles exactly six reports, dragged in from the Reports panel:
+
+- M3 Status Breakdown (this section)
+- M3 Practice Experience: Scheduling/Communication Distribution (this
+  section)
+- M3 Practice Experience: Billing Distribution (this section)
+- M3 Therapist Professionalism Distribution (this section)
+- M3 Submitted Responses (§1.7)
+- M2 & M3 Flagged for Review (§1.3, shared with M2)
+
+Left at "Auto Add User Filters" on and "Make User Filters Global" off,
+matching M0/M1/M2's dashboard defaults. All six panels verified rendering
+correctly in View Mode: the four chart panels show "No Data Available"
+and the two tabular panels (Submitted Responses, Flagged for Review) show
+their correct column headers with 0 rows — all expected, since no real M3
+submissions exist yet.
+
+**One drag-and-drop mishap worth noting for future dashboard builds**: the
+reports panel's list is alphabetically sorted and re-flows as items are
+added, so a coordinate that pointed at "M3 Practice Experience: ..." one
+moment pointed at "M2 Submitted Responses" the next (after an earlier drag
+consumed a list slot). Caught immediately because the wrong panel rendered
+real M2 sample data instead of "No Data Available"/the expected column
+set — removed via the panel's "..." → "Remove" and re-added correctly.
+Future sessions building multi-report dashboards should verify each
+panel's rendered title/content immediately after each drag rather than
+assuming the coordinate-to-report mapping stays stable across drags.
+
 ## 2. CRM/picklist reference (unchanged from m3-data-model.md, confirmed live)
 
 Confirmed 2026-09-17 via Zoho CRM MCP `getFields` (not browser, per the
@@ -618,21 +711,26 @@ handled the subscription himself, per the standing constraint.
   notification anywhere in the M3 build); trivially true right now since
   nothing M3-specific has been built yet beyond the shared Analytics
   columns, but should be re-checked once T002-T006 exist.
-- **T016**: Partially done — see §1.3. Filter widening still outstanding.
+- **T016**: Done — see §1.3. Report renamed and Milestone filter fully
+  widened (Wildcard, both M2 and M3 values).
 - **T017**: Done — see §1.2.
-- **T018**: Not started — "M3 Submitted Responses" report.
-- **T019**: Not started — "M3 Status Breakdown", "M3 Practice Experience &
-  Professionalism Distribution", and the "M3 - Periodic Check-In Feedback"
-  dashboard.
+- **T018**: Done — see §1.7. "M3 Submitted Responses" report built,
+  verified 0 rows in View Mode.
+- **T019**: Done — see §1.8. "M3 Status Breakdown" plus three per-column
+  distribution reports (covering the 3 new Practice Experience/
+  Professionalism columns), bundled with T018's and T016's reports into
+  the new "M3 - Periodic Check-In Feedback" dashboard. All panels verified
+  rendering correctly in View Mode.
 - **T020-T023**: Explicitly blocked pending a test Patient ID from Costin,
-  per standing instruction (no live/end-to-end testing without him).
+  per standing instruction (no live/end-to-end testing without him). This
+  is now the only remaining substantive work before M3 is fully built and
+  tested.
 - **T024** (this file): In progress — being written/updated as work
   proceeds, per CLAUDE.md's same-session convention, rather than held until
   the whole milestone is done.
-- **T025**: Done for the changes made so far (§1.1's flag-column widening,
-  §1.3's report rename) — `m2-implementation-notes.md` §9.2 and §9.6 updated
-  in this session. Will need a further update once T016's filter widening
-  is actually completed.
+- **T025**: Done — `m2-implementation-notes.md` §9.2 and §9.6 updated in
+  this session for T014's flag-column widening, T016's report rename, and
+  (this update) T016's filter-widening completion.
 - **T026**: Not yet assessed — worth revisiting once T002-T006 are built,
   per `m3-tasks.md`'s note that the recurring-checkpoint pattern and the
   shared-vs-per-milestone Analytics decision framework are the most likely
@@ -656,8 +754,14 @@ and T005/T006 (the write-back flow — see §1.4/§1.5/§1.6) rather than
 returning to T016's filter fix first, per Costin's go-ahead to proceed
 into the Zoho Flow build. Both M3 flows are now built, wired, and
 structurally verified. Per Costin's standing instruction to pause at
-transition points between major task groups, this is where work stops:
-T016's filter widening (§1.3) and T018/T019 (the two remaining M3 reports
-+ dashboard) remain open and are the natural next step once Costin has
-checked in on usage/progress and given the go-ahead to continue into
-Analytics/reporting work.
+transition points between major task groups, work stopped there and a
+check-in message was sent.
+
+**Further update**: Costin replied "continue", authorizing the remaining
+Analytics/reporting work. That work is now done: T016's filter widening
+was completed (the "Edit Design" UI path, previously unresolved, was
+found — see §1.3), followed by T018 (§1.7) and T019 (§1.8, including the
+"M3 - Periodic Check-In Feedback" dashboard). All of Phase 6 (Reporting)
+is now complete. The only remaining work is T020-T023 (live test data),
+explicitly blocked pending a test Patient ID from Costin per standing
+instruction, and the lower-priority polish items T026/T027.
