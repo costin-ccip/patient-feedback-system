@@ -129,7 +129,7 @@ M2 already built (total ≤20, or any domain ≤4) to M3's reused alliance
 domains — by widening M2's existing formula columns, not forking a new pair
 (`m3-research.md` Decision 5).
 
-- [ ] T014 [US4] Widen the existing "Clinical Safety Flag" formula column's
+- [x] T014 [US4] Widen the existing "Clinical Safety Flag" formula column's
       `Milestone` gate to `'2 - Early Alliance Check' OR '3 - Periodic
       Consolidated'` per `m3-data-model.md`. Confirm it still fires
       correctly on every documented M2 case (re-verify M2's own test cases
@@ -167,7 +167,7 @@ the Rollout Workflow reminder — not just a raw submitted-responses table,
 per `m1-implementation-notes.md` §13 / `m2-implementation-notes.md` §9's
 established pattern.*
 
-- [ ] T017 Build the 3 new M3-only Analytics formula columns on "Milestone
+- [x] T017 Build the 3 new M3-only Analytics formula columns on "Milestone
       Instances" per `m3-data-model.md`: Practice Experience:
       Scheduling/Communication, Practice Experience: Billing, Therapist
       Professionalism (all bounded `substring_between`). Confirm the 4

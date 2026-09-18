@@ -8,7 +8,10 @@
 > `CLAUDE.md` convention of updating implementation notes in the same session
 > as the change.
 >
-> Last updated: 2026-09-12
+> Last updated: 2026-09-17 (see §9.2/§9.6 changelog notes — the Clinical
+> Safety Flag gate and the Flagged for Review report were both touched by
+> the M3 build, per `m3-tasks.md` T014/T016; nothing else in this file
+> changed)
 > Status: T001 (Cape Clarity Alliance Check-In form), T002/T003/T004 (the
 > "M2 - Session 3 Trigger" Zoho Flow, its idempotency-check custom function,
 > and the parameterized "Call a subflow" step), T005/T006 (the
@@ -587,11 +590,23 @@ dialog (exact text below, not paraphrased):
   `to_integer("Milestone Instances"."Domain: Connection") + to_integer("Milestone Instances"."Domain: Understanding") + to_integer("Milestone Instances"."Domain: Shared Direction") + to_integer("Milestone Instances"."Domain: Fit Of Approach")`
 - **Clinical Safety Flag** — matches `m2-data-model.md`'s planned formula,
   with one addition beyond the spec: a `Milestone` gate wraps the whole
-  thing, so the column evaluates to `''` (not `"false"`) for every non-M2
-  row (M0/M1/M3-M5 milestone instances), rather than silently treating their
-  unrelated domain data as if it were alliance-check data:
+  thing, so the column evaluates to `''` (not `"false"`) for every
+  non-gated row (M0/M1/M4-M5 milestone instances), rather than silently
+  treating their unrelated domain data as if it were alliance-check data.
+
+  **Updated 2026-09-17 (M3 build, `m3-tasks.md` T014):** the `Milestone`
+  gate was widened from M2-only to `'2 - Early Alliance Check' OR '3 -
+  Periodic Consolidated'`, per `m3-data-model.md`'s Decision 5 (M3 reuses
+  this same alliance rule against its own reused alliance-domain columns,
+  rather than forking a parallel M3-only flag column). See
+  `m3-implementation-notes.md` §1.1 for the full change record, including a
+  new Analytics-formula-language finding: `OR` is an **infix** operator
+  here, not a function (`OR(a,b)` fails to parse) — `m3-data-model.md`'s
+  drafted formula used the function form and had to be rewritten. Verified
+  M2's own existing test case (row 1) still evaluates to `false` unchanged
+  after this edit. Live formula as of 2026-09-17:
   ```
-  IF("Milestone Instances"."Milestone" = '2 - Early Alliance Check', IF("Milestone Instances"."Alliance Check-In Total" <= 20 OR to_integer("Milestone Instances"."Domain: Connection") <= 4 OR to_integer("Milestone Instances"."Domain: Understanding") <= 4 OR to_integer("Milestone Instances"."Domain: Shared Direction") <= 4 OR to_integer("Milestone Instances"."Domain: Fit Of Approach") <= 4, 'true', 'false'), '')
+  IF("Milestone Instances"."Milestone" = '2 - Early Alliance Check' OR "Milestone Instances"."Milestone" = '3 - Periodic Consolidated', IF("Milestone Instances"."Alliance Check-In Total" <= 20 OR to_integer("Milestone Instances"."Domain: Connection") <= 4 OR to_integer("Milestone Instances"."Domain: Understanding") <= 4 OR to_integer("Milestone Instances"."Domain: Shared Direction") <= 4 OR to_integer("Milestone Instances"."Domain: Fit Of Approach") <= 4, 'true', 'false'), '')
   ```
 - **Flag Rule Triggered** — nested `IF`/`concat`, records every condition
   that fired (not just the first match), blank when the flag isn't `'true'`:
@@ -674,6 +689,21 @@ neither value exists yet in any real row). Saved to "Zoho CRM Modules
 for M2's own data, milestone-scoped per `m2-research.md`'s FR-013
 scope-boundary note — not the unified FR-007 Admin Dashboard, which stays
 out of scope for M2.
+
+**Updated 2026-09-17 (M3 build, `m3-tasks.md` T016):** renamed to "M2 & M3
+Flagged for Review", per `m3-data-model.md`'s "one rule, one report"
+decision (rather than a second, parallel M3-only flagged view). **The
+Milestone filter has NOT been widened yet as of this update** — it still
+reads `Milestone` Exactly Matches `"2 - Early Alliance Check"` only, so the
+report currently shows only M2 rows despite the new title. The intended
+final filter is `Milestone` Wildcard Exactly Matches `"2 - Early Alliance
+Check"` OR `"3 - Periodic Consolidated"`. The correct UI path to this
+report's saved filter-criteria editor (distinct from the toolbar's ad-hoc
+per-column quick-filter and its "More" dropdown, neither of which is it)
+had not been found yet when browser access was interrupted mid-session —
+see `m3-implementation-notes.md` §1.3 and §5 for the full state and the
+likely next UI to try ("Edit Design"). Treat this report's filter as
+**still M2-only** until a further update to this section says otherwise.
 
 ### 9.7 "M2 - Early Alliance Check Feedback" dashboard (T019)
 
