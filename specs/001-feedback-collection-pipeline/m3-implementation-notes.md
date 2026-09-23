@@ -813,3 +813,40 @@ recipient email (`Milestone <m> - <token prefix>`), and this flow now has On Err
 branches: issuance failure → alert to costin@capeclarity.com; patient-email failure →
 record Status `Send Failed` → alert. Resend runbook:
 `specs/003-issuance-privacy-and-failure-handling/quickstart.md` §C.
+
+## 7. Change (2026-09-23): cutoff-exclusion for legacy patients
+
+Same change as `m2-implementation-notes.md` §11, reusing the same shared custom
+function rather than building a separate copy (Zoho Flow custom functions are
+workspace-level and already showed up in this flow's Custom Functions sidebar
+list once created from M2's builder):
+
+```
+bool isCreatedAfterCutoff(string createdTime)
+{
+	cutoff = "2026-09-23T00:00:00-04:00".toDateTime();
+	created = createdTime.toDateTime();
+	return created >= cutoff;
+}
+```
+
+"M3 - Periodic Check-In Trigger" is now
+`trigger -> checkPeriodicCheckInDue -> isCreatedAfterCutoff -> If else (both true) -> issueFeedbackToken -> Send email`.
+Same build steps as M2: existing wire from `checkPeriodicCheckInDue` to `If
+else` detached, the shared function dropped onto the canvas between them,
+wired explicitly in both directions (16 `jsplumb-connected` endpoints total
+afterward, up from 14 - same verification method as 002's implementation
+notes §5.1), output variable renamed to `isCreatedAfterCutoff_1` (a separate
+instance from M2's, since Output Variable Name is scoped per flow even though
+the function body is shared), and its `createdTime` parameter mapped to
+`${trigger.Created_Time}`. The If-else condition now reads
+`checkPeriodicCheckInDue_1 is true` **AND** `isCreatedAfterCutoff_1 is true`
+(previously just the first clause). Flow stays **OFF**.
+
+**Why**: see m2's §11 - no date-range/`>=` operator exists anywhere in Zoho
+Flow's no-code condition UI, confirmed again in this flow's own If-else editor.
+
+**Open items**: same as m2 §11 - not run through a formal spec-kit feature
+folder, whether to backfill `specs/004-legacy-patient-exclusion` is undecided,
+and whether M0 needs the same gate hasn't been assessed. Raised with Costin as
+part of this session's check-in.

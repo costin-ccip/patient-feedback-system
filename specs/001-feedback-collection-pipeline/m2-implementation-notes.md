@@ -794,3 +794,56 @@ recipient email (`Milestone <m> - <token prefix>`), and this flow now has On Err
 branches: issuance failure → alert to costin@capeclarity.com; patient-email failure →
 record Status `Send Failed` → alert. Resend runbook:
 `specs/003-issuance-privacy-and-failure-handling/quickstart.md` §C.
+
+## 11. Change (2026-09-23): cutoff-exclusion for legacy patients
+
+Patients created before this feature existed never consented to (or were scoped
+for) the automated feedback pipeline, and some already carry high session counts
+that would otherwise fire the trigger immediately once switched on. A shared
+custom function, `isCreatedAfterCutoff(string createdTime) -> bool`, now gates
+every milestone trigger so only patients created on or after 2026-09-23 are
+eligible:
+
+```
+bool isCreatedAfterCutoff(string createdTime)
+{
+	cutoff = "2026-09-23T00:00:00-04:00".toDateTime();
+	created = createdTime.toDateTime();
+	return created >= cutoff;
+}
+```
+
+Verified via Execute (safe: the function was new and unshared at test time): input
+`2026-09-12T14:10:21-04:00` -> `false`; input `2026-09-25T09:00:00-04:00` -> `true`.
+`.toDateTime()` correctly parses Zoho CRM's own datetime format
+(`YYYY-MM-DDTHH:mm:ss+/-HH:mm`) for relational comparison.
+
+"M2 - Session 3 Trigger" is now
+`trigger -> checkAllianceCheckExists -> isCreatedAfterCutoff -> If else (both true) -> issueFeedbackToken -> Send email`.
+The function was dropped onto the canvas between `checkAllianceCheckExists` and
+`If else`, wired explicitly in both directions (checked via the
+`jsplumb-connected` class per 002's implementation notes §5.1, not by visual
+position), output variable renamed to `isCreatedAfterCutoff_1`, and its
+`createdTime` parameter mapped to `${trigger.Created_Time}` ("Time created" on
+the Updated module entry trigger). The If-else condition now reads
+`checkAllianceCheckExists_1 is false` **AND** `isCreatedAfterCutoff_1 is true`
+(previously just the first clause). Flow stays **OFF**.
+
+**Why a custom function and not a trigger filter or If-else condition alone**:
+Zoho Flow's no-code condition builder (both the trigger's filter step and the
+If-else condition editor) offers only text-style operators for datetime fields
+(starts with, contains, equals, is blank, etc.) - no `>=`/date-range operator
+exists anywhere in the UI. A custom function is the only way to do a relational
+datetime comparison.
+
+**Why now**: custom function creation was blocked earlier in the build ("Your
+current plan does not support custom functions. Upgrade."). That blocker is
+gone (confirmed by creating `isCreatedAfterCutoff` with no upgrade prompt), so
+Costin asked to pick this up now that it's unblocked.
+
+**Open items**: this was built directly against the live flows, not through a
+specify -> plan -> tasks spec-kit feature folder as the constitution's Rollout
+Workflow otherwise calls for. Whether to backfill a
+`specs/004-legacy-patient-exclusion` folder retroactively, and whether M0 needs
+the same cutoff gate, are both open - raised with Costin, not yet decided. The
+identical treatment on M3 is documented in `m3-implementation-notes.md` §7.
