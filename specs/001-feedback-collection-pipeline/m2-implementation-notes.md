@@ -800,7 +800,7 @@ record Status `Send Failed` → alert. Resend runbook:
 Patients created before this feature existed never consented to (or were scoped
 for) the automated feedback pipeline, and some already carry high session counts
 that would otherwise fire the trigger immediately once switched on. A shared
-custom function, `isCreatedAfterCutoff(string createdTime) -> bool`, now gates
+custom function, `isCreatedAfterCutoff(string createdTime) → bool`, now gates
 every milestone trigger so only patients created on or after 2026-09-23 are
 eligible:
 
@@ -814,12 +814,12 @@ bool isCreatedAfterCutoff(string createdTime)
 ```
 
 Verified via Execute (safe: the function was new and unshared at test time): input
-`2026-09-12T14:10:21-04:00` -> `false`; input `2026-09-25T09:00:00-04:00` -> `true`.
+`2026-09-12T14:10:21-04:00` → `false`; input `2026-09-25T09:00:00-04:00` → `true`.
 `.toDateTime()` correctly parses Zoho CRM's own datetime format
 (`YYYY-MM-DDTHH:mm:ss+/-HH:mm`) for relational comparison.
 
 "M2 - Session 3 Trigger" is now
-`trigger -> checkAllianceCheckExists -> isCreatedAfterCutoff -> If else (both true) -> issueFeedbackToken -> Send email`.
+`trigger → checkAllianceCheckExists → isCreatedAfterCutoff → If else (both true) → issueFeedbackToken → Send email`.
 The function was dropped onto the canvas between `checkAllianceCheckExists` and
 `If else`, wired explicitly in both directions (checked via the
 `jsplumb-connected` class per 002's implementation notes §5.1, not by visual
@@ -841,9 +841,11 @@ current plan does not support custom functions. Upgrade."). That blocker is
 gone (confirmed by creating `isCreatedAfterCutoff` with no upgrade prompt), so
 Costin asked to pick this up now that it's unblocked.
 
-**Open items**: this was built directly against the live flows, not through a
-specify -> plan -> tasks spec-kit feature folder as the constitution's Rollout
-Workflow otherwise calls for. Whether to backfill a
-`specs/004-legacy-patient-exclusion` folder retroactively, and whether M0 needs
-the same cutoff gate, are both open - raised with Costin, not yet decided. The
-identical treatment on M3 is documented in `m3-implementation-notes.md` §7.
+**Follow-up (2026-09-23, same session)**: this was built directly against the
+live flows, not through a specify → plan → tasks spec-kit feature folder as the
+constitution's Rollout Workflow otherwise calls for. Raised with Costin, who said
+to document it properly and confirmed M0 does NOT need the same gate. Backfilled
+as `specs/004-legacy-patient-exclusion` (spec, plan, research, data-model,
+quickstart, tasks, checklist, implementation-notes); see that folder's
+`implementation-notes.md` for full chronology and builder gotchas. The identical
+treatment on M3 is documented in `m3-implementation-notes.md` §7.

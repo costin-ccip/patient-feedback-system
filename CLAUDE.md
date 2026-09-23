@@ -61,6 +61,36 @@ the red "ON ERROR / DROP HERE" box during the drag, see 003's implementation not
 `specs/002-remove-subflow-dependency/implementation-notes.md`. `[RETIRED] Subflow -
 Issue Feedback Token` stays OFF and is kept for audit only.
 
+## Legacy patient cutoff-exclusion convention — added 2026-09-23
+
+M2 and M3 gate their existing trigger condition on a second ANDed clause,
+`isCreatedAfterCutoff_1 is true`, calling the shared custom function
+**`isCreatedAfterCutoff(string createdTime) -> bool`**
+(`cutoff = "2026-09-23T00:00:00-04:00"`, compares `createdTime.toDateTime() >=
+cutoff`). This keeps patients who were already in CRM before this pipeline
+existed from getting a feedback request purely because their already-high
+session count crosses a milestone's threshold the moment it's switched on.
+
+Wire it in between the milestone's own idempotency-check function and its
+`If else` (same pattern as `issueFeedbackToken`'s placement): map the function's
+`createdTime` input to `${trigger.Created_Time}` ("Time created" on the trigger's
+Updated module entry), rename its output variable per flow (both M2 and M3 use
+`isCreatedAfterCutoff_1` — same name, different flow, not a collision, since
+Output Variable Name is scoped per flow even though the function body is
+shared), then add `isCreatedAfterCutoff_1 is true` as a second ANDed clause on
+the existing `If else`.
+
+**M0 does NOT use this gate** (Costin's explicit decision: M0 fires on a Lead
+status change, which has no equivalent "already past a threshold at switch-on
+time" backlog problem). Whether a future M4/M5 needs it is undecided; reuse this
+same function object if their own planning concludes they do, rather than
+creating a new one (same reuse pattern `issueFeedbackToken` established).
+
+Full function source, per-flow wiring, and builder gotchas (the Insert Variable
+panel's search box stealing an insertion if it still has focus, and the usual
+"dropped near an endpoint isn't wired until dragged" gotcha):
+`specs/004-legacy-patient-exclusion/implementation-notes.md`.
+
 ## Pushing to GitHub (multiple builders, not all sessions push the same way)
 
 This project is built by more than one Claude session/account over time.

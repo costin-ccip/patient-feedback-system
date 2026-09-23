@@ -831,7 +831,7 @@ bool isCreatedAfterCutoff(string createdTime)
 ```
 
 "M3 - Periodic Check-In Trigger" is now
-`trigger -> checkPeriodicCheckInDue -> isCreatedAfterCutoff -> If else (both true) -> issueFeedbackToken -> Send email`.
+`trigger → checkPeriodicCheckInDue → isCreatedAfterCutoff → If else (both true) → issueFeedbackToken → Send email`.
 Same build steps as M2: existing wire from `checkPeriodicCheckInDue` to `If
 else` detached, the shared function dropped onto the canvas between them,
 wired explicitly in both directions (16 `jsplumb-connected` endpoints total
@@ -846,7 +846,8 @@ the function body is shared), and its `createdTime` parameter mapped to
 **Why**: see m2's §11 - no date-range/`>=` operator exists anywhere in Zoho
 Flow's no-code condition UI, confirmed again in this flow's own If-else editor.
 
-**Open items**: same as m2 §11 - not run through a formal spec-kit feature
-folder, whether to backfill `specs/004-legacy-patient-exclusion` is undecided,
-and whether M0 needs the same gate hasn't been assessed. Raised with Costin as
-part of this session's check-in.
+**Follow-up (2026-09-23, same session)**: same as m2 §11 - not run through a
+formal spec-kit feature folder at build time. Raised with Costin, who said to
+document it properly and confirmed M0 does NOT need the same gate. Backfilled as
+`specs/004-legacy-patient-exclusion`; see that folder's `implementation-notes.md`
+for full chronology and builder gotchas.
