@@ -8,6 +8,8 @@
 > `CLAUDE.md` convention of updating implementation notes in the same session
 > as the change.
 >
+> **2026-09-23: token issuance no longer uses a subflow. See §10; §3.3 is history.**
+>
 > Last updated: 2026-09-18 (see §9.2/§9.6 changelog notes — the Clinical
 > Safety Flag gate and the Flagged for Review report were both touched by
 > the M3 build, per `m3-tasks.md` T014/T016 (T016's filter widening
@@ -755,3 +757,34 @@ Data Available" (expected, no real M2 submissions exist yet).
   text — the fastest, least error-prone way to confirm exactly what a
   formula column does (or to document it, as in §9.2 above), rather than
   reverse-engineering it from output.
+
+## 10. Change (2026-09-23): token issuance no longer uses a subflow
+
+"M2 - Session 3 Trigger" is now
+`trigger → checkAllianceCheckExists → If else (True) → issueFeedbackToken → Send email`.
+This supersedes §3's step 3 True branch and all of §3.3. `issueFeedbackToken`
+parameters: milestone `2 - Early Alliance Check`, patientId `${trigger.id}`, leadId
+empty, recipientEmail `${trigger.Email}`, clinician `Liana Preudhomme`, ttlDays `7`.
+Email subject, intro text and survey link are the §3.3 values unchanged (re-read from
+the live node before it was deleted; they matched §3.3). The node was placed right of
+and below the diamond and explicitly wired from the If-else's True endpoint (hovering
+the line shows "True").
+
+This is the as-built change for `specs/002-remove-subflow-dependency` (subflows
+aren't available on the Zoho Flow Standard plan). The flow's "Call a subflow →
+Subflow - Issue Feedback Token" step was deleted and replaced with two steps: the
+shared custom function `issueFeedbackToken` (output variable `issueFeedbackToken_1`;
+does supersede + token/expiry + Milestone_Instances create, the same logic the
+subflow ran) and a native **Zoho Mail "Send email"** step (connection "Connection to
+info@capeclarity.com", From `info@capeclarity.com`, To `${trigger.Email}`, same
+subject/intro/survey link as before, link ends `?token=${issueFeedbackToken_1.token}`).
+Record shape, email content and sender are unchanged. The flow stays **OFF**. Full
+function source, per-flow values and new builder gotchas:
+`specs/002-remove-subflow-dependency/implementation-notes.md`. The retired subflow's
+internals (never documented here before) are in that feature's `research.md` §0.
+Earlier text in this file that describes "Call a subflow" is kept as history and no
+longer describes the live build.
+
+**Quirk**: Zoho's "function is used in the following flows" dialog lists this flow as
+"M2 - Alliance Check-In Write-back" (a stale name, probably from this flow's clone
+lineage in §3). The real write-back flow was checked and is untouched.

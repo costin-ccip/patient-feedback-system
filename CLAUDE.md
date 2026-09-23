@@ -31,6 +31,29 @@ convention file existed — see the "Process note" section at the end of
 `m0-implementation-notes.md`. Future milestones should follow the full spec-kit
 workflow where practical.
 
+## Token issuance convention (no subflows) — added 2026-09-23
+
+Zoho Flow is on the Standard plan, which has no subflows (Built-ins → Logic offers
+only Set Variable / Decision / Delay / If else). Every milestone trigger flow issues
+its feedback request with two steps:
+
+1. the shared custom function **`issueFeedbackToken`** (supersede old Issued
+   instances + token/expiry + Milestone_Instances create), output variable renamed to
+   `issueFeedbackToken_1`; then
+2. its own **Zoho Mail "Send email"** step (Apps → Zoho Mail, connection "Connection
+   to info@capeclarity.com"; not Built-ins → Notification → Send Email, which is Zoho
+   Flow's own mailer), with the link `<survey_url>?token=${issueFeedbackToken_1.token}`.
+
+M4/M5 must follow this. Don't add a subflow, and don't copy issuance logic into a new
+function. Editing `issueFeedbackToken` changes every milestone at once, so treat it
+like shared infrastructure and update
+`specs/002-remove-subflow-dependency/contracts/issue-feedback-token.md` and that
+feature's implementation notes in the same session. Details and builder gotchas
+(especially: a node dropped on an If-else branch is NOT wired until you draw the
+connection; check `jsplumb-connected` on endpoints) are in
+`specs/002-remove-subflow-dependency/implementation-notes.md`. `[RETIRED] Subflow -
+Issue Feedback Token` stays OFF and is kept for audit only.
+
 ## Pushing to GitHub (multiple builders, not all sessions push the same way)
 
 This project is built by more than one Claude session/account over time.

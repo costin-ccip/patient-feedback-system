@@ -8,6 +8,8 @@
 > `CLAUDE.md` convention of updating implementation notes in the same session
 > as the change.
 >
+> **2026-09-23: token issuance no longer uses a subflow. See §6.**
+>
 > Last updated: 2026-09-18
 > Status: **All of Phase 6 (Reporting) is now built: T016 (filter widening
 > completed), T018, and T019 are all done**, alongside everything from the
@@ -765,3 +767,43 @@ found — see §1.3), followed by T018 (§1.7) and T019 (§1.8, including the
 is now complete. The only remaining work is T020-T023 (live test data),
 explicitly blocked pending a test Patient ID from Costin per standing
 instruction, and the lower-priority polish items T026/T027.
+
+## 6. Change (2026-09-23): token issuance no longer uses a subflow
+
+"M3 - Periodic Check-In Trigger" is now
+`trigger → checkPeriodicCheckInDue → If else (True) → issueFeedbackToken → Send email`.
+This supersedes §1.5 step 3's True branch. `issueFeedbackToken` parameters:
+milestone `3 - Periodic Consolidated`, patientId `${trigger.id}`, leadId empty,
+recipientEmail `${trigger.Email}`, clinician `Liana Preudhomme`, ttlDays `7`. Email
+subject, intro text and survey link are §1.5's values unchanged (re-read from the live
+node before it was deleted; they matched). `issueFeedbackToken` itself was created
+from this flow's builder, so it first appeared in this flow.
+
+**Correction to §1.5's wiring claim**: after the new function node was dropped onto
+the If-else True endpoint (the same way the subflow node was placed on 2026-09-18),
+it sat in the attached-looking position but was **not wired**: the If-else `b.out`
+had no `jsplumb-connected` class and there was no connector line, while the
+`[class*="connector" i]` count still read the same. It was fixed by moving the node
+and dragging a connection from the True endpoint. The 2026-09-18 subflow node may
+have had the same problem; §1.5's "verified via DOM connector counts" didn't detect
+it either way. Use the `jsplumb-connected` check from 002's implementation notes §5.1
+instead.
+
+This is the as-built change for `specs/002-remove-subflow-dependency` (subflows
+aren't available on the Zoho Flow Standard plan). The flow's "Call a subflow →
+Subflow - Issue Feedback Token" step was deleted and replaced with two steps: the
+shared custom function `issueFeedbackToken` (output variable `issueFeedbackToken_1`;
+does supersede + token/expiry + Milestone_Instances create, the same logic the
+subflow ran) and a native **Zoho Mail "Send email"** step (connection "Connection to
+info@capeclarity.com", From `info@capeclarity.com`, To `${trigger.Email}`, same
+subject/intro/survey link as before, link ends `?token=${issueFeedbackToken_1.token}`).
+Record shape, email content and sender are unchanged. The flow stays **OFF**. Full
+function source, per-flow values and new builder gotchas:
+`specs/002-remove-subflow-dependency/implementation-notes.md`. The retired subflow's
+internals (never documented here before) are in that feature's `research.md` §0.
+Earlier text in this file that describes "Call a subflow" is kept as history and no
+longer describes the live build.
+
+**Effect on remaining work (§4)**: T020-T023's live test now exercises the new path.
+In the test, confirm the execution shows `issueFeedbackToken` + Send email steps,
+not "Call a subflow" (see 002 implementation notes §5.6 on the "Draft" badge).

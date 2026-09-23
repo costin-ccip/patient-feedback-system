@@ -15,6 +15,7 @@
 > defect. See "Process note" at the end — this milestone was built ad hoc,
 > outside the spec-kit plan/tasks workflow the project constitution calls for.
 > See §11 for a 2026-09-08 correction to the token-issuance trigger mechanism.
+> **2026-09-23: token issuance no longer uses a subflow. See §12.**
 
 ## 1. What M0 does
 
@@ -358,3 +359,38 @@ filtered, 4 failed); this session did not open individual executions' input/outp
 data (which would show a real Lead's name/email), per the standing restriction on
 viewing Lead/Patient PII in the browser, so whether those runs processed real or
 test leads was not verified here.
+
+## 12. Change (2026-09-23): token issuance no longer uses a subflow
+
+"M0 - Lost Lead Feedback Token" is now
+`Updated module entry (Leads, Lead_Status → Lost Lead) → issueFeedbackToken → Send email`.
+`issueFeedbackToken` parameters: milestone `0 - No Conversion`, patientId empty,
+leadId `${trigger.id}`, recipientEmail `${trigger.Email}`, clinician
+`Liana Preudhomme`, ttlDays `7`. Email subject "A quick check-in from Cape Clarity";
+intro "We'd love to hear how things are going. Please take a moment to share your
+feedback using the link below:"; survey link
+`https://forms.zohopublic.com/lianapreudhommecapec1/form/M0FreeConsultNonConversionSurvey/formperma/GFdd7kA1Yp8jIxhsMuTJTN1QDEiSl5K6FoQjceHsnAg`.
+(These M0 subflow parameter values were never written down in this file before;
+they were captured live on 2026-09-23 before the old node was deleted.) M0 still has
+no idempotency check of its own; the supersede step inside `issueFeedbackToken` is
+its duplicate protection, exactly as it was inside the subflow.
+
+This is the as-built change for `specs/002-remove-subflow-dependency` (subflows
+aren't available on the Zoho Flow Standard plan). The flow's "Call a subflow →
+Subflow - Issue Feedback Token" step was deleted and replaced with two steps: the
+shared custom function `issueFeedbackToken` (output variable `issueFeedbackToken_1`;
+does supersede + token/expiry + Milestone_Instances create, the same logic the
+subflow ran) and a native **Zoho Mail "Send email"** step (connection "Connection to
+info@capeclarity.com", From `info@capeclarity.com`, To `${trigger.Email}`, same
+subject/intro/survey link as before, link ends `?token=${issueFeedbackToken_1.token}`).
+Record shape, email content and sender are unchanged. The flow stays **OFF**. Full
+function source, per-flow values and new builder gotchas:
+`specs/002-remove-subflow-dependency/implementation-notes.md`. The retired subflow's
+internals (never documented here before) are in that feature's `research.md` §0.
+Earlier text in this file that describes "Call a subflow" is kept as history and no
+longer describes the live build.
+
+The component table in §2 is superseded on two rows: "Token issuance (shared)" is now
+the custom function `issueFeedbackToken` (used by M0, M2, M3), and
+"Subflow - Issue Feedback Token" is renamed `[RETIRED] Subflow - Issue Feedback
+Token`, OFF, kept for audit.

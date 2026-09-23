@@ -195,6 +195,11 @@ established pattern.*
 
 ## Phase 7: Test data & validation
 
+> **2026-09-23**: T004's "Call a subflow" step was replaced by the shared
+> `issueFeedbackToken` function + a Zoho Mail "Send email" step
+> (`specs/002-remove-subflow-dependency`). T020-T023 below now test that path; in the
+> run, confirm the execution shows those two steps, not "Call a subflow".
+
 - [ ] T020 Get a test Patient record ID from Costin (per the standing
       Patients-module access restriction — do not look one up via CRM
       query or browser).
