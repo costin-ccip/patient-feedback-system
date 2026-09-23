@@ -788,3 +788,9 @@ longer describes the live build.
 **Quirk**: Zoho's "function is used in the following flows" dialog lists this flow as
 "M2 - Alliance Check-In Write-back" (a stale name, probably from this flow's clone
 lineage in §3). The real write-back flow was checked and is untouched.
+
+**Follow-up (2026-09-23, feature 003)**: record names no longer contain the
+recipient email (`Milestone <m> - <token prefix>`), and this flow now has On Error
+branches: issuance failure → alert to costin@capeclarity.com; patient-email failure →
+record Status `Send Failed` → alert. Resend runbook:
+`specs/003-issuance-privacy-and-failure-handling/quickstart.md` §C.

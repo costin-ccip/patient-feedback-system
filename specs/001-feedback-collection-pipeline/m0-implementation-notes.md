@@ -394,3 +394,9 @@ The component table in §2 is superseded on two rows: "Token issuance (shared)" 
 the custom function `issueFeedbackToken` (used by M0, M2, M3), and
 "Subflow - Issue Feedback Token" is renamed `[RETIRED] Subflow - Issue Feedback
 Token`, OFF, kept for audit.
+
+**Follow-up (2026-09-23, feature 003)**: record names no longer contain the
+recipient email (`Milestone <m> - <token prefix>`), and this flow now has On Error
+branches: issuance failure → alert to costin@capeclarity.com; patient-email failure →
+record Status `Send Failed` → alert. Resend runbook:
+`specs/003-issuance-privacy-and-failure-handling/quickstart.md` §C.

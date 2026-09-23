@@ -31,6 +31,10 @@ If the CRM create returns no record ID, the function throws, the step fails, and
 flow stops before the email step. (Fallback if `throw` can't be used: the caller adds
 an If-else on `status == "success"` before the email step; see research.md §3.)
 
+## Change log
+
+- 2026-09-23 (feature 003): record Name is now `Milestone <m> - <first 8 chars of token>` (was `... - <recipientEmail>`). Callers also gained On Error branches; see `specs/003-issuance-privacy-and-failure-handling/`.
+
 ## Side effects
 
 1. Updates matching `Issued` Milestone_Instances (same person + milestone) to

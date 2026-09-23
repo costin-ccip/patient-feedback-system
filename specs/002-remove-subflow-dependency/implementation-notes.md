@@ -5,6 +5,12 @@
 > `research.md` (which holds the retired subflow's verbatim internals),
 > `data-model.md`, `contracts/issue-feedback-token.md`, `tasks.md`.
 >
+> **Changed by 003 (2026-09-23)**: `issueFeedbackToken`'s Name line now uses
+> `token.subString(0,8)` instead of the recipient email, and each trigger flow has
+> two On Error branches (alerts to costin@capeclarity.com; "Send Failed" marking).
+> See `specs/003-issuance-privacy-and-failure-handling/implementation-notes.md`.
+> The source in §3 below is otherwise current.
+>
 > Built: 2026-09-23. Status: **built and structurally verified; all flows OFF;
 > live test pending (Costin)**. Nothing was switched on and no live/end-to-end test
 > was run.

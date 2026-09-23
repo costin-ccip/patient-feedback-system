@@ -807,3 +807,9 @@ longer describes the live build.
 **Effect on remaining work (§4)**: T020-T023's live test now exercises the new path.
 In the test, confirm the execution shows `issueFeedbackToken` + Send email steps,
 not "Call a subflow" (see 002 implementation notes §5.6 on the "Draft" badge).
+
+**Follow-up (2026-09-23, feature 003)**: record names no longer contain the
+recipient email (`Milestone <m> - <token prefix>`), and this flow now has On Error
+branches: issuance failure → alert to costin@capeclarity.com; patient-email failure →
+record Status `Send Failed` → alert. Resend runbook:
+`specs/003-issuance-privacy-and-failure-handling/quickstart.md` §C.
