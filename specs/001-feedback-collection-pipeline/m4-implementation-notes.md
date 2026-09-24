@@ -19,10 +19,11 @@
 > Review" report to cover M4, plus confirming T018's no-contractor-
 > notification requirement) are also built and verified — see §4, which
 > also updated `m2-implementation-notes.md` and `m3-implementation-notes.md`
-> in the same session per `m4-data-model.md`'s Decision 6. M4's own new
-> Analytics (formula columns, reports, dashboard) is not yet started — see
-> §5 for the full remaining-work list, which otherwise mirrors
-> `m4-tasks.md`.
+> in the same session per `m4-data-model.md`'s Decision 6. T020-T022 (M4's
+> own new Analytics: 2 formula columns, 3 reports, and the "M4 - Discharge
+> Feedback" dashboard) are also built and verified structurally — see §5.
+> Remaining work (T023-T027 live test data, the discharge-trigger filter
+> value confirmation) is listed in §6.
 
 ## 1. "Cape Clarity Discharge Feedback" Zoho Form (T009-T013)
 
@@ -374,20 +375,126 @@ forking parallel M4-only objects.
 §1.1/§1.3 have been updated in the same session to record this change, per
 CLAUDE.md's cross-milestone convention.
 
-## 5. Not yet built
+## 5. M4's own Analytics: formula columns, reports, and dashboard (T020-T022)
+
+Per `m4-tasks.md` Phase 6 (Reporting) and `m4-data-model.md`'s Analytics
+formula columns/Reporting sections, built M4's own (not shared) Analytics
+objects on the "Milestone Instances" table (workspace
+`3251423000000083002`).
+
+- **"Looking Ahead: Likelihood To Recommend" formula column**:
+  ```
+  substring_between("Milestone Instances"."Response Data", 'Looking Ahead: Likelihood To Recommend (0-10): ', '---', 1)
+  ```
+- **"Looking Ahead: Anything Else" formula column**:
+  ```
+  substring_between("Milestone Instances"."Response Data", 'Looking Ahead: Anything Else: ', '---', 1)
+  ```
+  Both added via Add → "Add Formula: Formula Column" (a different dialog
+  from the "Edit Formula Column" one §4 used, but same CodeMirror 6
+  `.cm-content` editor underneath). Both verified Text-typed (`T` icon in
+  the raw table view header) and present via "Edit Formulas and Buckets" →
+  search. **Gotcha**: the second "Add Formula Column" dialog (for "Anything
+  Else") silently failed to register typed input on the first attempt —
+  both the Name field and the formula editor read back empty via
+  `document.querySelector('.cm-content').textContent` even though the
+  `type` actions reported success. Fix: retried the identical
+  click-then-type sequence; the retry worked and was verified via the same
+  JS read before saving. Because both new columns are Text-typed, the
+  distribution report below needed no `Dimension [Actual(D)] / Treat as
+  Text` re-set (same precedent as `m3-implementation-notes.md` §1.8).
+
+- **"M4 Submitted Responses" report**: new Tabular View (not a Save-As —
+  its 11-column shape and column order don't match any existing report).
+  Columns, in order: Submitted Date Time, Token, Looking Ahead: Likelihood
+  To Recommend, Looking Ahead: Anything Else, Domain: Connection, Domain:
+  Understanding, Domain: Shared Direction, Domain: Fit Of Approach,
+  Alliance Check-In Total, Clinical Safety Flag, Flag Rule Triggered (no
+  Patient/identity column, matching M2/M3's privacy pattern). Filtered to
+  `Milestone` Wildcard Exactly Matches `"4 - Discharge"`. Saved to "Zoho
+  CRM Modules (Data)". View ID `3251423000000232092`. Verified in View
+  Mode: correct headers, 0 rows (expected).
+
+  **New gotcha, not previously documented in any milestone's notes**: in
+  the Tabular View builder, checking a column's checkbox in the left
+  "Select/Drag and Drop the Columns" panel always adds it as a *tabular
+  column*, even while the "Filters" tab is active — the UI silently
+  auto-switches back to the "Tabular" tab to show the newly-added column.
+  To add a column as a *filter* instead, you must switch to the "Filters"
+  tab first and then **drag** the column (by its checkbox/label) onto the
+  "Drop your columns here" filter drop zone; the checkbox click does not
+  work there. Caught this by accidentally adding "Milestone" as a 12th
+  tabular column, removing it via its "X", and discovering the drag
+  requirement. A second, related slip: after clearing the column search
+  box (which resets the left panel's scroll/row order), a stale
+  drag-source coordinate landed on "Response Data" instead of "Milestone" —
+  caught immediately (wrong filter appeared), removed, and fixed by
+  re-searching "Milestone" and re-confirming its row position via
+  screenshot immediately before each drag.
+
+- **"M4 Status Breakdown" report**: Save As off "M3 Status Breakdown"
+  (`m3-implementation-notes.md` §1.8, view ID `3251423000000186076`), same
+  bar chart config preserved (X-Axis `Status` Actual, Y-Axis `Id` Count).
+  Only change: Milestone Wildcard filter value swapped from `"3 - Periodic
+  Consolidated"` to `"4 - Discharge"`. Saved to "Zoho CRM Modules (Data)".
+  View ID `3251423000000232098`. Regenerated graph shows "No Data
+  Available" (expected).
+
+- **"M4 Looking Ahead: Likelihood To Recommend Distribution" report**: Save
+  As off "M2 Alliance Check-In Total Distribution"
+  (`m2-implementation-notes.md` §9.5, view ID `3251423000000141097`), then
+  X-Axis column swapped from "Alliance Check-In Total" to "Looking Ahead:
+  Likelihood To Recommend" and the Milestone Wildcard filter value swapped
+  from `"2 - Early Alliance Check"` to `"4 - Discharge"`. Y-Axis unchanged:
+  `Id` (Count). Confirmed the X-Axis dropdown shows plain `Actual` (not
+  `Actual(M)`) immediately after the column swap, so — consistent with
+  §M3's precedent — no explicit `Treat as Text` re-set was needed. Saved to
+  "Zoho CRM Modules (Data)". View ID `3251423000000232114`. Regenerated
+  graph shows "No Data Available" (expected). Note: the Save-As source,
+  "M2 Alliance Check-In Total Distribution", currently renders one bar
+  labeled "Unknown" with count 1 rather than the "No Data Available" state
+  `m2-implementation-notes.md` §9.5 documents when it was built — not
+  investigated (Save As produces an independent copy regardless of the
+  source's current data state, so this didn't block anything), flagged here
+  only in case it's relevant to a future session.
+
+- **"M4 - Discharge Feedback" dashboard**: new dashboard, view ID
+  `3251423000000232202`, built via "Create New Dashboards" (not Save As —
+  same reasoning M1/M2/M3 gave: no exact panel-for-panel match to copy
+  from). Bundles exactly four reports, dragged in from the Reports panel
+  (searched by exact name, one at a time, to sidestep the alphabetical
+  re-flow mishap `m3-implementation-notes.md` §1.8 documents for
+  multi-report dashboard builds):
+  - M4 Status Breakdown (this section)
+  - M4 Looking Ahead: Likelihood To Recommend Distribution (this section)
+  - M4 Submitted Responses (this section)
+  - M2, M3 & M4 Flagged for Review (§4, shared across M2/M3/M4)
+
+  Left at "Auto Add User Filters" on and "Make User Filters Global" off,
+  matching M0/M1/M2/M3's dashboard defaults. All four panels verified
+  rendering correctly in View Mode: the two chart panels (Status Breakdown,
+  Likelihood To Recommend Distribution) show "No Data Available" and the
+  two tabular panels (Submitted Responses, Flagged for Review) show their
+  correct column headers with 0 rows — all expected, since no real M4
+  submissions exist yet.
+
+- **T020 (verify reused alliance-domain columns/Alliance Check-In Total
+  parse M4 rows correctly)**: this is a live-data confirmation per the task
+  text, not something to force structurally without real M4 submissions —
+  deferred to the live test pass (§6, T023).
+
+## 6. Not yet built
 
 Per `m4-tasks.md`'s task list:
-- **Analytics**: 2 new formula columns (Looking Ahead: Likelihood To
-  Recommend, Looking Ahead: Anything Else) — M4's own, not shared.
-- **Reporting**: M4 Submitted Responses, M4 Status Breakdown, M4 Looking
-  Ahead: Likelihood To Recommend Distribution, M4 dashboard.
-- **T023 / test data**: blocked pending a test Patient ID from Costin, per
-  standing instruction — not pursued proactively.
+- **T023-T027 / live test data**: blocked pending a test Patient ID from
+  Costin, per standing instruction — not pursued proactively. Includes
+  confirming T020 (reused columns parse M4 rows correctly) against real
+  data.
 - Confirmation from Costin/Liana on whether `Patient_Status = "Completed
   Treatment"` is the correct discharge-trigger filter value (flagged
   non-blocking in `m4-research.md` Decision 1).
 
-## 6. Access constraint compliance
+## 7. Access constraint compliance
 
 All form-building, flow-building, and Analytics work this session used the
 Zoho Forms, Zoho Flow, and Zoho Analytics builders directly (not the CRM's
