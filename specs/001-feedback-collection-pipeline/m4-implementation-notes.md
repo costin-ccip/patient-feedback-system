@@ -8,13 +8,16 @@
 > it's built, per the `CLAUDE.md` convention of updating implementation notes
 > in the same session as the change.
 >
-> Last updated: 2026-09-23
+> Last updated: 2026-09-24
 > Status: **T009-T013 (the "Cape Clarity Discharge Feedback" Zoho Form, all 7
 > fields) are built and verified by top-to-bottom scroll. T003-T008 ("M4 -
 > Discharge Trigger" flow, including both On Error branches) are also built
-> and verified structurally — see §2.** Write-back flow and Analytics/
-> reporting build are not yet started — see §3 for the full remaining-work
-> list, which otherwise mirrors `m4-tasks.md`.
+> and verified structurally — see §2. T008-T009/T014-T015 ("M4 - Discharge
+> Write-back" flow: trigger, `submitDischargeFeedbackResponse` function,
+> parameter mapping) are also built and verified structurally — see §3.**
+> Analytics/reporting build (widening the shared Clinical Safety Flag gate
+> and report to M4, plus M4's own new Analytics) is not yet started — see §4
+> for the full remaining-work list, which otherwise mirrors `m4-tasks.md`.
 
 ## 1. "Cape Clarity Discharge Feedback" Zoho Form (T009-T013)
 
@@ -206,12 +209,120 @@ refinement worth recording:
   `CLAUDE.md` is typed directly with no chip involved — the two syntaxes
   look similar but are not interchangeable between field types.
 
-## 3. Not yet built
+## 3. "M4 - Discharge Write-back" flow, step by step (T008-T009/T014-T015 — built)
+
+Built as a **brand-new flow** (Create flow → App trigger → configure), not
+cloned from any other milestone's write-back flow — same reasoning as every
+prior milestone: avoids the shared-custom-function-across-clones gotcha
+`m2-implementation-notes.md` §3.2 documents. New flow name
+"M4 - Discharge Write-back", placed in the "Customer Feedback System" folder
+alongside the other flows (this brings the folder to 9 flows total, M0-M4
+each with a trigger + write-back pair except M0/M1 which only issue tokens
+via subflow/one-off, matching this project's file listing).
+
+1. **DOM verification (done first, before wiring anything)**: navigated to
+   the "Cape Clarity Discharge Feedback" form's live public permalink
+   (§1's DOM-verified link) in a scratch tab and queried the DOM directly
+   (`document.querySelectorAll('input, textarea')` plus a slider-specific
+   query keyed on `div.ui-slider`) rather than assuming field names from the
+   builder's on-screen order. This confirmed the internal Zoho Forms field
+   names — resolving the outstanding flag from §1 — by cross-referencing
+   each `sld-<name>` slider's DOM id against its nearest `label`/instructions
+   text:
+
+   | Internal field name | On-screen question (abbreviated) | Write-back parameter |
+   |---|---|---|
+   | `Slider` | "...open and honest with your therapist..." (Connection) | `connection` |
+   | `Slider1` | "...therapist has understood..." (Understanding) | `understanding` |
+   | `Slider2` | "...agree on what you're working toward..." (Shared direction) | `sharedDirection` |
+   | `Slider3` | "...therapist's approach been working..." (Fit of approach) | `fitOfApproach` |
+   | `Slider4` | "How likely are you to recommend..." (Likelihood to recommend) | `likelihoodToRecommend` |
+   | `MultiLine` | "Is there anything else..." (Anything else looking ahead) | `anythingElse` |
+   | `SingleLine` | Token (hidden) | `token` |
+
+   Confirms `m4-data-model.md`'s form field inventory maps to sliders
+   `Slider`-`Slider4` in on-screen order (Alliance Check-In domains first,
+   then the two new Looking Ahead fields last) — i.e. the internal names are
+   assigned in on-screen order, not in `Response_Data` blob order, which is
+   why this mapping table (by internal name) is a separate, necessary check
+   from the blob's segment order.
+
+2. **Trigger** — Zoho Forms "Form entry submitted" (Realtime). Connection:
+   "Connection to Cape Clarity Zoho Forms" (pre-selected by default). Form:
+   "Cape Clarity Discharge Feedback". Output variable left as the default
+   `trigger`. No filter criteria (mirrors M2/M3's write-back triggers).
+3. **Custom Function** — `submitDischargeFeedbackResponse`, created from
+   scratch via Built-ins → Developer Tools → Custom Functions →
+   "+Custom Function" (not cloned). Return type `map`; seven string input
+   parameters, in this order: `token`, `likelihoodToRecommend`,
+   `anythingElse`, `connection`, `understanding`, `sharedDirection`,
+   `fitOfApproach`. Full source matches `m4-data-model.md`'s illustrative
+   draft verbatim (confirmed against the live Deluge editor by setting the
+   CodeMirror instance's value directly via the browser's JS console and
+   visually verifying the rendered, syntax-highlighted result before
+   saving — an alternative to typing character-by-character that avoided any
+   risk of the editor's auto-indent/auto-bracket behavior corrupting a
+   multi-line paste). The function's own multi-segment string concatenation
+   (Looking Ahead segments first, then the 4 reused alliance domains) is
+   exactly as specified in `m4-data-model.md`'s Response_Data blob format
+   section — verified line-by-line via screenshot after saving.
+4. **Placing and wiring the function node**: dragged the saved function from
+   the Built-ins sidebar list onto empty canvas space below the trigger; this
+   single drag-and-drop did **not** auto-wire the connection (confirmed via
+   the DOM connector-element count being `0` immediately after the drop —
+   unlike M2's build, where the equivalent drag-and-drop both placed and
+   auto-wired the node in one action). Wired manually by dragging from the
+   trigger's own output circle to the function node's body, which produced a
+   real connection (connector count `2` = 1 wired connection, confirmed via
+   `document.querySelectorAll('[class*="connector" i]').length`).
+5. **Parameter mapping**: unlike M2's brand-new, never-run trigger (whose
+   Insert Variable panel showed no field-level entries), this trigger's
+   Insert Variable panel **did** surface per-field variables immediately,
+   listed by friendly on-screen question text rather than internal field
+   name. Mapped each parameter by clicking into its input field, then
+   clicking the matching friendly-label entry in the Insert Variable panel
+   (inserting a `Form entry submitted → <label>` chip) — cross-checked
+   against the DOM-verified internal-name table in step 1 above rather than
+   relying on label text alone, since two of the "Overall, how..." labels
+   are easy to transpose at a glance:
+
+   | Function parameter | Insert Variable label clicked |
+   |---|---|
+   | `token` | Token |
+   | `likelihoodToRecommend` | How likely are you to recommend Cape Clarity to someone in a similar situation? |
+   | `anythingElse` | Is there anything else you'd like to share as you finish up your care with us? |
+   | `connection` | Overall, how comfortable have you felt being open and honest with your therapist so far? |
+   | `understanding` | Overall, how well do you feel your therapist has understood what matters to you so far? |
+   | `sharedDirection` | Overall, how much do you feel you and your therapist agree on what you're working toward? |
+   | `fitOfApproach` | Overall, how well has your therapist's approach been working for you so far? |
+
+   Each mapping was visually confirmed via screenshot immediately after
+   clicking (the chip renders inline in the parameter field showing the full
+   `Form entry submitted → <label>` text) before moving to the next field.
+
+Flow ends at the function node (no further steps) — matches M2/M3's
+write-back flow shape exactly (`m2-implementation-notes.md` §3.4: trigger →
+function, no email or CRM update node beyond what the function itself does).
+Left switched **OFF** after building, matching every prior milestone's
+build-first-verify-later convention. No live/end-to-end test was run.
+
+### 3.1 Builder gotcha (new this session): auto-wire is not guaranteed on function-node drop
+
+M2's build (`m2-implementation-notes.md` §3.4) found that dragging a saved
+custom function from the Built-ins sidebar onto the canvas near a trigger
+both placed *and* auto-wired the connection in one action. This session's
+equivalent drag did **not** auto-wire — the function landed as a fully
+disconnected node (DOM connector count `0`). The fix was the same
+manual-wiring technique documented in §2.1 for On-Error branches: drag from
+the upstream node's own output circle to the new node's body. Lesson: always
+verify connector count (or reopen the downstream node's Insert Variable
+panel and check the upstream node appears) after a sidebar-to-canvas
+function drop — don't assume auto-wire happened just because it did on a
+previous milestone.
+
+## 4. Not yet built
 
 Per `m4-tasks.md`'s task list:
-- **T014-T017 / "M4 - Discharge Write-back" flow**: `submitDischargeFeedbackResponse`
-  custom function, trigger, parameter mapping to the 7 form fields above.
-  Left OFF once built.
 - **Analytics**: 2 new formula columns (Looking Ahead: Likelihood To
   Recommend, Looking Ahead: Anything Else), Clinical Safety Flag /
   Flag Rule Triggered `Milestone` gate widened a second time (M2, M3, M4),
@@ -227,10 +338,11 @@ Per `m4-tasks.md`'s task list:
   Treatment"` is the correct discharge-trigger filter value (flagged
   non-blocking in `m4-research.md` Decision 1).
 
-## 4. Access constraint compliance
+## 5. Access constraint compliance
 
 All form-building and flow-building work this session used the Zoho Forms
 and Zoho Flow builders directly (not the CRM's Leads/Patients modules), so
 the standing "don't open CRM Leads/Patients modules without permission"
 constraint did not apply to this phase. No CRM Leads or Patients records
-were viewed or edited in the browser during the form or trigger-flow build.
+were viewed or edited in the browser during the form, trigger-flow, or
+write-back-flow build.
