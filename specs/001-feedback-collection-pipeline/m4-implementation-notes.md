@@ -22,8 +22,9 @@
 > in the same session per `m4-data-model.md`'s Decision 6. T020-T022 (M4's
 > own new Analytics: 2 formula columns, 3 reports, and the "M4 - Discharge
 > Feedback" dashboard) are also built and verified structurally — see §5.
-> Remaining work (T023-T027 live test data, the discharge-trigger filter
-> value confirmation) is listed in §6.
+> The discharge-trigger filter value (`Patient_Status = "Completed
+> Treatment"`) is confirmed correct by Costin (2026-09-24) — see §2.
+> Remaining work (T023-T027 live test data) is listed in §6.
 
 ## 1. "Cape Clarity Discharge Feedback" Zoho Form (T009-T013)
 
@@ -100,8 +101,8 @@ them, and matching `m4-data-model.md`'s trigger-flow spec field-for-field:
 
 1. **Trigger** — Zoho CRM "Updated module entry". Connection: CRM Connection.
    Module: `Patients`. Filter: `Patient Status` `equals` `Completed
-   Treatment` (confirmation from Costin/Liana that this is the right
-   discharge-trigger value is still outstanding — see §3).
+   Treatment` — **confirmed correct by Costin 2026-09-24** (`m4-research.md`
+   Decision 1); no change needed.
 2. **Custom Function** — `checkDischargeExists(patientId)`, created fresh via
    Built-ins → Developer Tools → Custom Functions → "+Custom Function" (not
    cloned from any other flow, avoiding the shared-function-object gotcha
@@ -490,9 +491,6 @@ Per `m4-tasks.md`'s task list:
   Costin, per standing instruction — not pursued proactively. Includes
   confirming T020 (reused columns parse M4 rows correctly) against real
   data.
-- Confirmation from Costin/Liana on whether `Patient_Status = "Completed
-  Treatment"` is the correct discharge-trigger filter value (flagged
-  non-blocking in `m4-research.md` Decision 1).
 
 ## 7. Access constraint compliance
 

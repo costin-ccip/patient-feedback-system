@@ -228,7 +228,7 @@ Zoho Analytics
 
 | Decision | Chosen | Rejected Alternative |
 |---|---|---|
-| Trigger-condition-to-field mapping | `Patients1.Patient_Status = "Completed Treatment"`, confirmed via live `getFields`, flagged for Costin/Liana review | Waiting for Costin to name the exact field before writing plan.md — rejected as an unnecessary block; the mapping is a one-line change if wrong |
+| Trigger-condition-to-field mapping | `Patients1.Patient_Status = "Completed Treatment"`, confirmed via live `getFields`; confirmed correct by Costin 2026-09-24 | Waiting for Costin to name the exact field before writing plan.md — rejected as an unnecessary block; the mapping is a one-line change if wrong |
 | Idempotency shape | Plain existence check (`checkDischargeExists`), per `m3-plan.md`'s own prospective precedent for M4/M5 | M3's recurring-checkpoint-list machinery generalized to a 1-item list — needless complexity for a non-recurring condition |
 | Legacy-patient cutoff gate | Yes — reuse `isCreatedAfterCutoff`, per `m4-research.md` Decision 3 (same any-update-re-evaluates-the-filter risk M2/M3 have, since M4's trigger is also an "Updated module entry" on `Patients1`) | Skipping the gate on the theory that discharge is rarer than session-count increments — rejected: the risk is categorical (trigger mechanism), not a matter of how often the field changes |
 | On Error branches | Built from the start (feature 003's convention already exists) | Building a bare happy-path flow and retrofitting error handling later, the way M0/M2/M3 had to — unnecessary now that the convention predates this milestone |

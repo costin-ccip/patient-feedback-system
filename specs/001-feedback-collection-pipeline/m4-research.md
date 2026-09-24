@@ -72,6 +72,11 @@ way M0/M1/M2/M3's drafted-not-sourced survey copy has been flagged for review
 before going live — this is a load-bearing trigger-condition mapping, not
 wording, so it's worth an explicit yes/no rather than silent adoption.
 
+**Confirmed 2026-09-24 by Costin**: `Patient_Status = "Completed Treatment"`
+is the correct discharge-trigger filter value. No change needed to the
+already-built "M4 - Discharge Trigger" flow (`m4-implementation-notes.md`
+§2) — it was built against this same value as its best inference.
+
 **Rejected alternative**: waiting for Costin to specify the field before
 writing plan.md/data-model.md. Every other milestone's planning has proceeded
 on a documented, live-schema-confirmed best inference and flagged it for
@@ -335,10 +340,11 @@ list is in `m4-data-model.md`.
 - Raw Zoho Forms submission purge (FR-006) — the same open, tracked,
   cross-milestone gap `data-retention-purge.md` documents; M4 adds a fifth
   flow with the identical gap, not resolved here.
-- Resolving whether `Completed Treatment` is in fact the correct
-  discharge-marking value (Decision 1) — flagged for Costin/Liana, not
-  blocking the build (the filter value is a one-line change if it turns out
-  wrong).
+- ~~Resolving whether `Completed Treatment` is in fact the correct
+  discharge-marking value (Decision 1)~~ — **confirmed 2026-09-24 by Costin**,
+  no longer open.
 - Whether M5 also needs the legacy cutoff-exclusion gate — M5's own future
   planning should make that call the same way this file makes it for M4,
-  rather than assuming either answer.
+  rather than assuming either answer. (As of 2026-09-24, M2/M3/M4 all use the
+  gate; M0 is the only active flow that doesn't, by Costin's own earlier,
+  explicit decision — see `CLAUDE.md`.)

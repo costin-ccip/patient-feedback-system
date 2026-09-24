@@ -30,12 +30,12 @@ off as they're actually done, not in advance.
       module carries no PII). **Confirmed 2026-09-23: the value already
       exists** (full picklist recorded in `m4-data-model.md`) — no CRM
       change needed for this task.
-- [ ] T002a Confirm the `Patients1.Patient_Status` picklist and flag
+- [x] T002a Confirm the `Patients1.Patient_Status` picklist and flag
       `"Completed Treatment"` for Costin/Liana review as the field/value this
       milestone watches (`m4-research.md` Decision 1) — **confirmed live
-      2026-09-23** via Zoho CRM MCP `getFields`; review of whether this is
-      the correct discharge marker is still open and does not block the
-      remaining build (a one-line filter-value change if the answer differs).
+      2026-09-23** via Zoho CRM MCP `getFields`; **confirmed correct by
+      Costin 2026-09-24** — this is in fact the right discharge marker, no
+      filter-value change needed.
 - [ ] T003 Build "M4 - Discharge Trigger" flow: watch
       `Patients1.Patient_Status` with an `equals "Completed Treatment"`
       trigger-level filter. Build fresh (do not clone M2's/M3's flow and
