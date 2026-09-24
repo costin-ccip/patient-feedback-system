@@ -10,7 +10,10 @@
 >
 > **2026-09-23: token issuance no longer uses a subflow. See §6.**
 >
-> Last updated: 2026-09-18
+> Last updated: 2026-09-24 (see §1.1/§1.3 changelog notes — the Clinical
+> Safety Flag gate and the Flagged for Review report were both further
+> widened by the M4 build, per `m4-tasks.md` T017/T019; nothing else in
+> this file changed)
 > Status: **All of Phase 6 (Reporting) is now built: T016 (filter widening
 > completed), T018, and T019 are all done**, alongside everything from the
 > prior update (T014, T017, the M3 Zoho Form, and both M3 Zoho Flow flows).
@@ -68,6 +71,26 @@ not the condition structure. Verified M2's existing test case (row 1) still
 evaluates to `false` as before the edit, so this did not regress M2's
 already-shipped behavior. `m2-implementation-notes.md` §9.2 has been updated
 to match (see that file's changelog note under §9.2).
+
+**Updated 2026-09-24 (M4 build, `m4-tasks.md` T017):** the `Milestone` gate
+was widened a second time, to M2-or-M3-or-M4, per `m4-research.md` Decision
+6 and `m4-data-model.md` (M4 reuses this same shared alliance-flag column
+against its own Discharge-milestone domain readings, the same "one rule,
+don't fork" reasoning this section's own M3 change used against M2). Edited
+via the "Edit Formula Column" dialog's CodeMirror 6 editor (no global
+`setValue` API — done via click positioning + arrow-key navigation,
+verified with zoomed before/after screenshots, then confirmed via
+`.cm-content.textContent` after reopening the dialog). Infix `OR` used
+again throughout, consistent with the finding above. Live formula as of
+2026-09-24:
+
+```
+IF("Milestone Instances"."Milestone" = '2 - Early Alliance Check' OR "Milestone Instances"."Milestone" = '3 - Periodic Consolidated' OR "Milestone Instances"."Milestone" = '4 - Discharge', IF("Milestone Instances"."Alliance Check-In Total" <= 20 OR to_integer("Milestone Instances"."Domain: Connection") <= 4 OR to_integer("Milestone Instances"."Domain: Understanding") <= 4 OR to_integer("Milestone Instances"."Domain: Shared Direction") <= 4 OR to_integer("Milestone Instances"."Domain: Fit Of Approach") <= 4, 'true', 'false'), '')
+```
+
+`m2-implementation-notes.md` §9.2 has been updated to match (see that
+file's changelog note under §9.2); `m4-implementation-notes.md` also
+records this change.
 
 ### 1.2 Three new M3-only Analytics formula columns (T017)
 
@@ -132,6 +155,25 @@ Review' successfully" toast confirmed). View ID unchanged:
 **Practical effect**: the report now correctly scopes to both M2 and M3
 flagged rows, matching its title. `m2-implementation-notes.md` §9.6 has
 been updated to remove its "still M2-only" caveat (see that file).
+
+**Updated 2026-09-24 (M4 build, `m4-tasks.md` T019):** renamed a second
+time, to "M2, M3 & M4 Flagged for Review", and the Milestone Wildcard
+filter widened with a third OR'd condition, Exactly Matches `"4 -
+Discharge"` (added via the same "Edit Design" → Filters tab → "+" path;
+Criteria Expression auto-updated to `(1 OR 2 OR 3)`). The native-input-
+setter rename technique from this section was reused and again avoided the
+text-corruption bug — confirmed via screenshot immediately after and again
+after a full page reload. The report's second filter, `Clinical Safety
+Flag` Exactly Matches `"true"`, was inspected and needs no change (no
+Milestone-specific logic in it). Both the rename and the filter widening
+were verified to persist across a full page reload before moving on. View
+ID unchanged: `3251423000000141219`. `m2-implementation-notes.md` §9.6 has
+been updated to match; `m4-implementation-notes.md` also records this
+change. Separately confirmed for T018: no automated notification or CRM
+action reaches a contractor when an M4 reading fires the Clinical Safety
+Flag (M4's trigger flow's On-Error branches alert only
+`costin@capeclarity.com`; its write-back flow only updates
+`Response_Data`/`Status`/`Submitted_Date_Time`, with no notification step).
 
 ### 1.4 "Cape Clarity Periodic Check-In" Zoho Form built (T001)
 

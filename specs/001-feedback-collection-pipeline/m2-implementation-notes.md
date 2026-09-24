@@ -10,10 +10,11 @@
 >
 > **2026-09-23: token issuance no longer uses a subflow. See §10; §3.3 is history.**
 >
-> Last updated: 2026-09-18 (see §9.2/§9.6 changelog notes — the Clinical
+> Last updated: 2026-09-24 (see §9.2/§9.6 changelog notes — the Clinical
 > Safety Flag gate and the Flagged for Review report were both touched by
 > the M3 build, per `m3-tasks.md` T014/T016 (T016's filter widening
-> completed 2026-09-18); nothing else in this file changed)
+> completed 2026-09-18), and again by the M4 build, per `m4-tasks.md`
+> T017/T019 (both completed 2026-09-24); nothing else in this file changed)
 > Status: T001 (Cape Clarity Alliance Check-In form), T002/T003/T004 (the
 > "M2 - Session 3 Trigger" Zoho Flow, its idempotency-check custom function,
 > and the parameterized "Call a subflow" step), T005/T006 (the
@@ -610,6 +611,29 @@ dialog (exact text below, not paraphrased):
   ```
   IF("Milestone Instances"."Milestone" = '2 - Early Alliance Check' OR "Milestone Instances"."Milestone" = '3 - Periodic Consolidated', IF("Milestone Instances"."Alliance Check-In Total" <= 20 OR to_integer("Milestone Instances"."Domain: Connection") <= 4 OR to_integer("Milestone Instances"."Domain: Understanding") <= 4 OR to_integer("Milestone Instances"."Domain: Shared Direction") <= 4 OR to_integer("Milestone Instances"."Domain: Fit Of Approach") <= 4, 'true', 'false'), '')
   ```
+
+  **Updated 2026-09-24 (M4 build, `m4-tasks.md` T017):** the `Milestone`
+  gate was widened a second time, from M2/M3 to also include `'4 -
+  Discharge'`, per `m4-research.md` Decision 6 and `m4-data-model.md` (M4
+  reuses this same shared alliance-flag column against its own
+  Discharge-milestone domain readings, same "one rule, several milestones"
+  reasoning M3 used). Edited via Zoho Analytics' "Edit Formula Column"
+  dialog, which uses CodeMirror 6 (`.cm-content`, contenteditable — no
+  simple global `setValue` API like the Deluge function editor's CodeMirror
+  5). Edit done via precise click positioning + arrow-key navigation
+  (verified with zoomed before/after screenshots) rather than a full-text
+  replacement, to avoid disturbing the rest of the formula; verified
+  persisted by reopening the dialog and reading
+  `document.querySelector('.cm-content').textContent`. Also inspected
+  **Flag Rule Triggered** (below) for the same widening and confirmed no
+  change is needed there: it keys off `Clinical Safety Flag = 'true'` only,
+  with no Milestone-specific logic of its own, so it inherits the M4 gate
+  automatically. Live formula as of 2026-09-24:
+  ```
+  IF("Milestone Instances"."Milestone" = '2 - Early Alliance Check' OR "Milestone Instances"."Milestone" = '3 - Periodic Consolidated' OR "Milestone Instances"."Milestone" = '4 - Discharge', IF("Milestone Instances"."Alliance Check-In Total" <= 20 OR to_integer("Milestone Instances"."Domain: Connection") <= 4 OR to_integer("Milestone Instances"."Domain: Understanding") <= 4 OR to_integer("Milestone Instances"."Domain: Shared Direction") <= 4 OR to_integer("Milestone Instances"."Domain: Fit Of Approach") <= 4, 'true', 'false'), '')
+  ```
+  See `m3-implementation-notes.md` §1.1 and `m4-implementation-notes.md` for
+  the parallel change record.
 - **Flag Rule Triggered** — nested `IF`/`concat`, records every condition
   that fired (not just the first match), blank when the flag isn't `'true'`:
   ```
@@ -708,6 +732,29 @@ Consolidated"` (Criteria Expression `(1 OR 2)`). Saved successfully; view
 ID unchanged (`3251423000000141219`). The report now correctly scopes to
 both M2 and M3 flagged rows, matching its title. See
 `m3-implementation-notes.md` §1.3 for the full session detail.
+
+**Updated 2026-09-24 (M4 build, `m4-tasks.md` T019):** renamed a second
+time, to "M2, M3 & M4 Flagged for Review", and the `Milestone` Wildcard
+filter widened with a third OR'd condition, Exactly Matches `"4 -
+Discharge"` (added via the same "Edit Design" → Filters tab path, using the
+"+" button next to the last condition; Criteria Expression auto-updated to
+`(1 OR 2 OR 3)`). Rename done via the native-input-setter technique
+(`Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,
+'value').set.call(el, '<new title>')`, dispatch `input`, then Return) to
+avoid the known text-field-corruption bug documented in §1.3's M3 record —
+no corruption observed this time either. The second existing filter,
+`Clinical Safety Flag` Exactly Matches `"true"`, was inspected and left
+unchanged (no Milestone-specific logic in it to widen). Both changes
+verified persisted after a full page reload. View ID unchanged
+(`3251423000000141219`). The report now scopes to M2, M3, and M4 flagged
+rows, matching its new title. Confirmed separately (T018): no automated
+notification or CRM action reaches a contractor when an M4 reading fires
+the Clinical Safety Flag — M4's trigger flow's On-Error branches alert only
+`costin@capeclarity.com`, and its write-back flow only updates
+`Response_Data`/`Status`/`Submitted_Date_Time` on the Milestone Instance
+record, with no notification step of any kind. See
+`m3-implementation-notes.md` §1.1/§1.3 and `m4-implementation-notes.md` for
+the parallel change record.
 
 ### 9.7 "M2 - Early Alliance Check Feedback" dashboard (T019)
 

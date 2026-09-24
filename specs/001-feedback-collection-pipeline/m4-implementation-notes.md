@@ -15,9 +15,14 @@
 > and verified structurally — see §2. T008-T009/T014-T015 ("M4 - Discharge
 > Write-back" flow: trigger, `submitDischargeFeedbackResponse` function,
 > parameter mapping) are also built and verified structurally — see §3.**
-> Analytics/reporting build (widening the shared Clinical Safety Flag gate
-> and report to M4, plus M4's own new Analytics) is not yet started — see §4
-> for the full remaining-work list, which otherwise mirrors `m4-tasks.md`.
+> T017-T019 (widening the shared Clinical Safety Flag gate and "Flagged for
+> Review" report to cover M4, plus confirming T018's no-contractor-
+> notification requirement) are also built and verified — see §4, which
+> also updated `m2-implementation-notes.md` and `m3-implementation-notes.md`
+> in the same session per `m4-data-model.md`'s Decision 6. M4's own new
+> Analytics (formula columns, reports, dashboard) is not yet started — see
+> §5 for the full remaining-work list, which otherwise mirrors
+> `m4-tasks.md`.
 
 ## 1. "Cape Clarity Discharge Feedback" Zoho Form (T009-T013)
 
@@ -320,16 +325,60 @@ panel and check the upstream node appears) after a sidebar-to-canvas
 function drop — don't assume auto-wire happened just because it did on a
 previous milestone.
 
-## 4. Not yet built
+## 4. Shared Clinical Safety Flag gate and "Flagged for Review" report widened to M4 (T017-T019)
+
+Per `m4-research.md` Decision 6 and `m4-data-model.md`, both shared,
+M2/M3-owned Analytics objects on the "Milestone Instances" table
+(workspace `3251423000000083002`) were widened to also cover M4, following
+the same "one rule, one report, several milestones" pattern M3 established
+against M2. Both changes made in Zoho Analytics' Edit Design UI, not by
+forking parallel M4-only objects.
+
+- **"Clinical Safety Flag" formula column (T017)**: the `Milestone` gate
+  widened from M2-or-M3 to M2-or-M3-or-M4 (infix `OR`, per the
+  Analytics-formula-language finding already documented in
+  `m3-implementation-notes.md` §1.1). Edited via the "Edit Formula Column"
+  dialog's CodeMirror 6 editor (no global `setValue` API — done via click
+  positioning + arrow-key navigation, verified with zoomed before/after
+  screenshots and by re-reading `.cm-content.textContent` after reopening
+  the dialog). Live formula as of 2026-09-24:
+  ```
+  IF("Milestone Instances"."Milestone" = '2 - Early Alliance Check' OR "Milestone Instances"."Milestone" = '3 - Periodic Consolidated' OR "Milestone Instances"."Milestone" = '4 - Discharge', IF("Milestone Instances"."Alliance Check-In Total" <= 20 OR to_integer("Milestone Instances"."Domain: Connection") <= 4 OR to_integer("Milestone Instances"."Domain: Understanding") <= 4 OR to_integer("Milestone Instances"."Domain: Shared Direction") <= 4 OR to_integer("Milestone Instances"."Domain: Fit Of Approach") <= 4, 'true', 'false'), '')
+  ```
+  **"Flag Rule Triggered" inspected, no change needed**: it keys off
+  `Clinical Safety Flag = 'true'` only, with no Milestone-specific logic of
+  its own, so it inherits the M4 gate automatically. Dialog opened to
+  confirm this, then cancelled without saving.
+- **"M2 & M3 Flagged for Review" report (T019)**: renamed to "M2, M3 & M4
+  Flagged for Review" via the native-input-setter technique
+  (`Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,
+  'value').set.call(el, '<new title>')`, dispatch `input`, then Return —
+  the workaround `m3-implementation-notes.md` §1.3 documents for Zoho
+  Analytics' report-title text-corruption bug); no corruption observed.
+  The `Milestone` Wildcard filter gained a third OR'd condition, Exactly
+  Matches `"4 - Discharge"`, added via "Edit Design" → Filters tab → the
+  "+" button next to the last condition (Criteria Expression auto-updated
+  to `(1 OR 2 OR 3)`). The report's second filter, `Clinical Safety Flag`
+  Exactly Matches `"true"`, was inspected and needs no change. Both the
+  rename and the filter widening were verified to persist across a full
+  page reload. View ID unchanged: `3251423000000141219`.
+- **T018 (confirm-absence)**: no automated notification or CRM action
+  reaches a contractor when an M4 reading fires the Clinical Safety Flag.
+  Reviewed both of M4's own flows (§2, §3): the trigger flow's On-Error
+  branches alert only `costin@capeclarity.com`, and the write-back flow
+  only updates `Response_Data`/`Status`/`Submitted_Date_Time` on the
+  Milestone Instance record — no notification step of any kind exists in
+  either flow.
+
+`m2-implementation-notes.md` §9.2/§9.6 and `m3-implementation-notes.md`
+§1.1/§1.3 have been updated in the same session to record this change, per
+CLAUDE.md's cross-milestone convention.
+
+## 5. Not yet built
 
 Per `m4-tasks.md`'s task list:
 - **Analytics**: 2 new formula columns (Looking Ahead: Likelihood To
-  Recommend, Looking Ahead: Anything Else), Clinical Safety Flag /
-  Flag Rule Triggered `Milestone` gate widened a second time (M2, M3, M4),
-  "M2 & M3 Flagged for Review" renamed and widened to "M2, M3 & M4 Flagged
-  for Review" — requires `m2-implementation-notes.md` and
-  `m3-implementation-notes.md` updates in the same session per
-  `m4-data-model.md`'s Decision 6 note.
+  Recommend, Looking Ahead: Anything Else) — M4's own, not shared.
 - **Reporting**: M4 Submitted Responses, M4 Status Breakdown, M4 Looking
   Ahead: Likelihood To Recommend Distribution, M4 dashboard.
 - **T023 / test data**: blocked pending a test Patient ID from Costin, per
@@ -338,11 +387,11 @@ Per `m4-tasks.md`'s task list:
   Treatment"` is the correct discharge-trigger filter value (flagged
   non-blocking in `m4-research.md` Decision 1).
 
-## 5. Access constraint compliance
+## 6. Access constraint compliance
 
-All form-building and flow-building work this session used the Zoho Forms
-and Zoho Flow builders directly (not the CRM's Leads/Patients modules), so
-the standing "don't open CRM Leads/Patients modules without permission"
-constraint did not apply to this phase. No CRM Leads or Patients records
-were viewed or edited in the browser during the form, trigger-flow, or
-write-back-flow build.
+All form-building, flow-building, and Analytics work this session used the
+Zoho Forms, Zoho Flow, and Zoho Analytics builders directly (not the CRM's
+Leads/Patients modules), so the standing "don't open CRM Leads/Patients
+modules without permission" constraint did not apply to this phase. No CRM
+Leads or Patients records were viewed or edited in the browser during the
+form, trigger-flow, write-back-flow, or Analytics build.
