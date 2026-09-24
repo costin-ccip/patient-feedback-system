@@ -4,6 +4,13 @@
 
 **Date**: 2026-09-24
 
+**Revision (same day)**: single-leg trigger only
+(`Patient_Status = "Discontinued (Patient Choice)"`), per Costin's explicit
+decision — the `No Show` leg is out of scope for this build. This removes
+the trigger-level-OR builder question this file originally flagged; M5's
+trigger flow is now structurally identical in shape to M4's (a single
+`equals` condition).
+
 ## Milestone_Instances usage for M5
 
 M5 reuses the existing `Milestone_Instances` module (from M0/M2/M3/M4),
@@ -11,7 +18,7 @@ patient-based, not lead-based:
 
 | Field | M4 usage | M5 usage |
 |---|---|---|
-| `Milestone` | `"4 - Discharge"` | `"5B - Discontinuation, Email Fallback"` (existing picklist **value**, reused as-is — see `m5-research.md` Decision 6; not a schema change) |
+| `Milestone` | `"4 - Discharge"` | `"5B - Discontinuation, Email Fallback"` (existing picklist **value**, reused as-is — see `m5-research.md` Decision 5; not a schema change) |
 | `Lead_Reference` | Not used | Not used |
 | `Patient` (lookup to `Patients1`) | Populated | Populated — same rejoin pattern, Principle II |
 | `Status`, `Token`, `Expiry_Date_Time`, `Submitted_Date_Time`, `Response_Data` | Same lifecycle | Same lifecycle, different `Response_Data` content (2 segments — the shortest of any milestone) |
@@ -23,7 +30,7 @@ cap (26 fields total, unchanged since `m2-data-model.md`/`m3-data-model.md`/
 
 **One `Milestone_Instances` row per patient at `Milestone = "5B -
 Discontinuation, Email Fallback"`.** M5 is one-time-per-patient
-(`m5-research.md` Decision 3), so the "at most one row per patient per
+(`m5-research.md` Decision 2), so the "at most one row per patient per
 Milestone value" assumption every non-M3 report/dashboard/function relies on
 holds for M5 exactly as it does for M0/M2/M4.
 
@@ -33,7 +40,7 @@ holds for M5 exactly as it does for M0/M2/M4.
 
 | Field (API name) | Type | Values used by M5 |
 |---|---|---|
-| `Patient_Status` | picklist | `-None-`, `Active`, `Completed Treatment`, `Discontinued (Patient Choice)`, `Referred Out`, `No Show` — M5 watches for `Discontinued (Patient Choice)` **OR** `No Show` (see `m5-research.md` Decision 1) |
+| `Patient_Status` | picklist | `-None-`, `Active`, `Completed Treatment`, `Discontinued (Patient Choice)`, `Referred Out`, `No Show` — M5 watches for `Discontinued (Patient Choice)` **only**, by Costin's explicit scope decision (see `m5-research.md` Decision 1); `No Show` is not wired into this build |
 | `Session_Count` | integer | Not used by M5 |
 | `Assigned_Therapist` | picklist | `-None-`, `Liana Preudhomme`, `Deborah Webster`, `Shana Lacastro` — not read by M5's trigger/functions, same as every prior milestone (Principle II: attribution happens only inside CRM, after the fact, and is not needed for issuance) |
 | `Email` | email | `${trigger.Email}`, same as every prior milestone |
@@ -50,7 +57,7 @@ confirmed to already include `"5B - Discontinuation, Email Fallback"`;
 CRM MCP — allowed under the standing access constraint, `Milestone_Instances`
 is not a Leads/Patients module): `"5B - Discontinuation, Email Fallback"`
 **already exists** as a picklist value on `Milestone`; reused as-is, no
-schema change (`m5-research.md` Decision 6). Full picklist as of this check:
+schema change (`m5-research.md` Decision 5). Full picklist as of this check:
 `-None-`, `0 - No Conversion`, `1 - Baseline Intake`, `2 - Early Alliance
 Check`, `3 - Periodic Consolidated`, `4 - Discharge`, `5B - Discontinuation,
 Email Fallback`, `5A - Discontinuation, Live Capture`. `5A` remains dead,
@@ -60,8 +67,8 @@ disregarded configuration, untouched by this build.
 
 New custom function, field-for-field identical in shape to
 `checkDischargeExists` (`m4-implementation-notes.md` §2) except the function
-name and the `Milestone` match string — per `m5-research.md` Decision 3, M5
-is one-time-per-patient regardless of which of the two trigger legs fired it:
+name and the `Milestone` match string — per `m5-research.md` Decision 2, M5
+is one-time-per-patient:
 
 ```text
 bool checkDiscontinuationExists(string patientId)
@@ -94,7 +101,7 @@ across-clones gotcha.
 
 ## Legacy-patient cutoff-exclusion: reusing `isCreatedAfterCutoff`
 
-Per `m5-research.md` Decision 4, M5 reuses the existing shared function
+Per `m5-research.md` Decision 3, M5 reuses the existing shared function
 (`specs/004-legacy-patient-exclusion/implementation-notes.md`, unmodified):
 
 ```text
@@ -113,35 +120,20 @@ bool isCreatedAfterCutoff(string createdTime)
 
 1. **Trigger** — Zoho CRM "Updated module entry". Connection: "CRM
    Connection" (reused). Module: `Patients` (internal API name `Patients1`).
-   Filter criteria (per `m5-research.md` Decision 2, **confirm the OR
-   grouping against the live trigger-criteria builder before assuming it
-   saves as written**):
-   - **Preferred**: `Patient Status` `equals` `Discontinued (Patient Choice)`
-     **OR** `Patient Status` `equals` `No Show`, as a single trigger-level
-     filter.
-   - **Fallback**, if the builder does not support an OR group on one field
-     at the trigger level: drop this filter to `Patient Status` `is not
-     empty` (or remove the trigger-level filter altogether) and move the
-     OR-check into the flow's own `If else` (step 4).
+   Filter criteria: `Patient Status` `equals` `Discontinued (Patient
+   Choice)` — a single condition, same shape as M4's trigger filter, per
+   Costin's decision to scope this build to that one leg (`m5-research.md`
+   Decision 1). **Flagged for Costin/Liana confirmation**, same treatment as
+   M4's own inferred value.
 2. **Custom Function** — `checkDiscontinuationExists(patientId)`. Parameter:
    `patientId` = `${trigger.id}`. Output variable
    `checkDiscontinuationExists_1`.
 3. **Custom Function** — `isCreatedAfterCutoff(createdTime)` (shared,
    unmodified). Parameter: `createdTime` = `${trigger.Created_Time}`. Output
    variable `isCreatedAfterCutoff_1`.
-4. **If else** — condition:
-   - Under the **preferred** trigger-filter design: `checkDiscontinuationExists_1
-     is false` **AND** `isCreatedAfterCutoff_1 is true` (the Patient_Status OR
-     is already fully handled by the trigger filter, same 2-clause shape as
-     M2/M3/M4's `If else` nodes).
-   - Under the **fallback** design: `checkDiscontinuationExists_1 is false`
-     **AND** `isCreatedAfterCutoff_1 is true` **AND**
-     (`${trigger.Patient_Status} == "Discontinued (Patient Choice)"` **OR**
-     `${trigger.Patient_Status} == "No Show"`) — a 3-clause condition, the
-     first 3-clause `If else` this pipeline has needed; confirm the condition
-     builder supports nesting an OR sub-group inside an outer AND the same
-     way it's expected to (mirrors the trigger-level OR question in shape,
-     just relocated).
+4. **If else** — condition: `checkDiscontinuationExists_1 is false` **AND**
+   `isCreatedAfterCutoff_1 is true` (same 2-clause shape as M2/M3/M4's `If
+   else` nodes).
    - **True branch → `issueFeedbackToken`** (shared, unmodified):
      - `milestone`: `5B - Discontinuation, Email Fallback`
      - `patientId`: `${trigger.id}`
@@ -158,7 +150,7 @@ bool isCreatedAfterCutoff(string createdTime)
      Notification): connection "Connection to info@capeclarity.com"; From
      `info@capeclarity.com`; To `${trigger.Email}`; Subject `Just checking
      in` (see the `[First Name]` note below); Body per `m5-research.md`
-     Decision 5's sourced copy, link
+     Decision 4's sourced copy, link
      `<survey_url>?token=${issueFeedbackToken_1.token}` where `survey_url` is
      the "Cape Clarity Discontinuation Feedback" form's Share-tab permalink
      (confirmed at build time via DOM verification, same as every prior
@@ -188,7 +180,7 @@ the token link. `Patients1` has no first-name-only field (`Name` is full
 time whether the Send Email step's Insert Variable panel exposes a
 first-name-only token derived from `Name` (some Zoho Mail send-email nodes
 offer basic string functions on merge fields). If not, per `m5-research.md`
-Decision 5's fallback, drop `[First Name]` from both the subject and body
+Decision 4's fallback, drop `[First Name]` from both the subject and body
 opening rather than inventing new PII-handling — resulting text: Subject
 `Just checking in`; Body opens `Hi, We noticed it's been a little while...`
 adjusted to read naturally without the name (e.g. "Hi there," or dropping the
@@ -279,7 +271,7 @@ auto-expire structure as every prior write-back function.
 ## "Cape Clarity Discontinuation Feedback" Zoho Form
 
 2 substantive fields + hidden token — the shortest form of any milestone,
-content sourced verbatim from Confluence (`m5-research.md` Decision 5), not
+content sourced verbatim from Confluence (`m5-research.md` Decision 4), not
 drafted:
 
 1. **Dropdown (or Radio — decide against the live Forms builder's ergonomics
@@ -325,7 +317,7 @@ unbounded" pattern):
   `'Okay To Reach Back Out: '`.
 
 **Not applicable**: no Clinical Safety Flag column changes — per
-`m5-research.md` Decision 7, the Alliance rule doesn't apply to M5's data,
+`m5-research.md` Decision 6, the Alliance rule doesn't apply to M5's data,
 and M5 introduces no alliance domains for any rule to evaluate.
 
 Exact Analytics formula syntax is to be verified against the live workspace
@@ -352,14 +344,14 @@ don't assume" discipline.
   categorical** data" requirement — the first milestone where this view is a
   categorical breakdown rather than a numeric-score bar chart.
 - **"M5 Okay To Reach Back Out Breakdown"** (optional second breakdown, low
-  cost to add alongside the one above per `m5-research.md`'s Reporting
-  section — not required to clear the FR-018 bar, which needs only one) —
-  same shape, over the 3-value `Okay To Reach Back Out` column.
+  cost to add alongside the one above — not required to clear the FR-018
+  bar, which needs only one) — same shape, over the 3-value `Okay To Reach
+  Back Out` column.
 - **"M5 - Discontinuation Feedback" dashboard** — new dashboard bundling the
   reports above, built via "Create New Dashboards" (not "Save As," since no
   prior dashboard has a matching panel set), same shape as
   M0/M1/M2/M3/M4's own dashboards. No shared "Flagged for Review" panel to
-  include (Decision 7 — not applicable to M5).
+  include (Decision 6 — not applicable to M5).
 
 ## Out of scope for M5
 
