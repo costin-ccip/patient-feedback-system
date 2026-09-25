@@ -26,7 +26,7 @@ patient records read). No browser access to Leads/Patients. No live test actions
   `Discontinued (Patient Choice)` (M4/M5 trigger filter values) are live, exact-match values.
 - `Patients1.Session_Count` is a plain integer field, as every M2/M3 note assumes.
 
-### 0.2 New finding: Clinician is hardcoded, but the practice now has 3 contractors
+### 0.2 New finding: Clinician is hardcoded, but the practice now has 3 contractors — FIXED 2026-09-25
 Every trigger flow's `issueFeedbackToken` call (M0, M2, M3, M4, M5 — see each
 milestone's implementation notes) passes `clinician` as a **typed literal**,
 `"Liana Preudhomme"` — never derived from the record that fired the trigger.
@@ -71,6 +71,17 @@ parameter panel and confirm the `clinician` field shows a chip (not literal text
 `Assigned_Therapist`; confirm via the same discipline the rest of this project uses
 (read the live value back, don't trust a screenshot alone).
 
+**Built and verified 2026-09-25.** All four flows ("M2 - Session 3 Trigger", "M3 -
+Periodic Check-In Trigger", "M4 - Discharge Trigger", "M5 - Discontinuation Trigger")
+now map `clinician` to the chip `Updated module entry → Assigned Therapist`
+(`${trigger.Assigned_Therapist}`) instead of the literal `Liana Preudhomme`. Each
+flow's parameter panel was reopened after saving and the chip confirmed present
+(not just trusted from the save screenshot) — M2 and M3 confirmed inline during the
+build; M4 and M5 confirmed in a follow-up pass. All four flows remain **OFF**. M0
+was left hardcoded, per Costin's decision above. Full change record, per flow:
+`m2-implementation-notes.md` §12, `m3-implementation-notes.md` §8,
+`m4-implementation-notes.md` §8, `m5-implementation-notes.md` §7.
+
 ### 0.3 Stale test data — deletion attempted, blocked, needs Costin
 
 `Milestone_Instances` currently holds 9 leftover records, none newer than 2026-09-12:
@@ -113,7 +124,7 @@ open Leads to check without your permission.
 
 ## 2. Pre-test checklist (before flipping anything ON)
 
-- [ ] §0.2 Clinician-derivation fix built and structurally verified on M2/M3/M4/M5's trigger flows.
+- [x] §0.2 Clinician-derivation fix built and structurally verified on M2/M3/M4/M5's trigger flows (2026-09-25).
 - [ ] §0.3 Stale records cleared (Costin's action).
 - [ ] Test Patient ID + Assigned_Therapist value + test email, and test Lead ID, provided by Costin.
 - [ ] Confirm current state: all 9 flows (M0/M2/M3/M4/M5 trigger + write-back pairs, minus

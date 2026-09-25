@@ -500,3 +500,23 @@ Leads/Patients modules), so the standing "don't open CRM Leads/Patients
 modules without permission" constraint did not apply to this phase. No CRM
 Leads or Patients records were viewed or edited in the browser during the
 form, trigger-flow, write-back-flow, or Analytics build.
+
+## 8. Change (2026-09-25): clinician now derived from Assigned Therapist, not hardcoded
+
+Same bug and same fix as `m2-implementation-notes.md` §12 (read that
+section for the full finding, the `Assigned_Therapist` picklist
+confirmation, and the clearing/insertion mechanics — not repeated here).
+On "M4 - Discharge Trigger", the `issueFeedbackToken` node's `clinician`
+parameter was changed from the literal text `Liana Preudhomme` (§2 above
+shows the pre-fix parameter list) to the chip `Updated module entry →
+Assigned Therapist` (`${trigger.Assigned_Therapist}`). All other
+`issueFeedbackToken` parameters unchanged. Cleared via click → `End` →
+`Backspace` ×25, inserted via the Insert Variable panel's "Updated module
+entry" category (expand via the category header, not the search box, to
+avoid stealing focus from the target field), saved, then reopened to
+confirm the chip persisted.
+
+M0 deliberately left unchanged, same reasoning as M2's §12. Identical
+treatment applied the same session to M2, M3, and M5 — see
+`m2-implementation-notes.md` §12, `m3-implementation-notes.md` §8, and
+`m5-implementation-notes.md`. Flow stays **OFF**.

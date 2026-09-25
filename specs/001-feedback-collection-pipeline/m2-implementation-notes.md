@@ -896,3 +896,48 @@ as `specs/004-legacy-patient-exclusion` (spec, plan, research, data-model,
 quickstart, tasks, checklist, implementation-notes); see that folder's
 `implementation-notes.md` for full chronology and builder gotchas. The identical
 treatment on M3 is documented in `m3-implementation-notes.md` §7.
+
+## 12. Change (2026-09-25): clinician now derived from Assigned Therapist, not hardcoded
+
+Found during pre-live-test structural review
+(`coordinated-live-test-plan.md` §0.2): `issueFeedbackToken`'s `clinician`
+parameter was a hardcoded literal `"Liana Preudhomme"` on this flow (§10
+above shows the pre-fix parameter list), even though the `Patients1` CRM
+module has its own `Assigned_Therapist` picklist field (`['-None-', 'Liana
+Preudhomme', 'Deborah Webster', 'Shana Lacastro']`, confirmed via
+`mcp__Zoho_CRM__getFields`, with Costin's explicit one-time permission to
+inspect schema-only — no records — on that module). Left uncorrected, any
+patient actually assigned to Deborah Webster or Shana Lacastro would have
+had every M2 feedback-request record attributed to Liana Preudhomme
+instead — a silent data-misattribution bug that would only have surfaced
+once those two contractors' patients started generating real submissions.
+
+**Fix**: on "M2 - Session 3 Trigger", the `issueFeedbackToken` node's
+`clinician` parameter was changed from the literal text `Liana Preudhomme`
+to the chip `Updated module entry → Assigned Therapist`
+(`${trigger.Assigned_Therapist}`), so the value now derives from the
+patient's actual assigned therapist at trigger time rather than a fixed
+string. All other `issueFeedbackToken` parameters unchanged.
+
+**Mechanics**: the literal text did not clear via `ctrl+a`/`Delete` (the
+same Ember.js text-field corruption gotcha §3.3 already documents for this
+parameter panel) — cleared instead via click → `End` → `Backspace` ×25.
+The chip was inserted via the Insert Variable panel: clicking the
+"Updated module entry" category header expands it without stealing focus
+from the target field; typing in the panel's own search box, by contrast,
+steals focus and misdirects the insertion (caught on a first attempt,
+which inserted garbled text into the search box itself, not the
+`clinician` field). Re-clicked the `clinician` field to restore focus,
+then clicked the now-expanded "Assigned Therapist" entry. Saved, then
+reopened the panel afterward to confirm the chip persisted (not just
+trusted from the save screenshot).
+
+**M0 deliberately left unchanged** (still hardcoded `Liana Preudhomme`) —
+Costin's explicit decision: M0 fires off Lead Status, not Patient, and
+only Liana runs free consults, so there's no equivalent
+assigned-therapist ambiguity there.
+
+Identical treatment applied the same session to M3, M4, and M5 — see
+`m3-implementation-notes.md`, `m4-implementation-notes.md`, and
+`m5-implementation-notes.md` for each flow's own change record. Flow
+stays **OFF**.
