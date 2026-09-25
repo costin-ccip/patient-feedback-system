@@ -15,13 +15,19 @@
 > 3 fields + thank-you page) is built and verified by screenshot after each
 > field save — see §1. One deviation from the sourced closing line, forced
 > by a builder character limit, is recorded in §1.1 — flagged for Costin's
-> awareness at Checkpoint 2, not silently absorbed.** Phase 2 is also now
-> built and verified structurally: the **"M5 - Discontinuation Trigger"**
-> flow (single-condition trigger, both On Error branches) — see §2 — and the
+> awareness at Checkpoint 2, not silently absorbed.** Phase 2 is also built
+> and verified structurally: the **"M5 - Discontinuation Trigger"** flow
+> (single-condition trigger, both On Error branches) — see §2 — and the
 > **"M5 - Discontinuation Write-back"** flow (`submitDiscontinuationFeedbackResponse`)
 > — see §3. Both flows are left **OFF**; no live/end-to-end test was run.
-> This is Checkpoint 3 per Costin's standing checkpoint list — paused here
-> for his review before Phase 7 (Analytics).
+> Checkpoint 3 (both flows built) was closed by Costin's "let's move to
+> analytics" instruction. **Phase 7 (T019-T021: 2 Analytics formula columns,
+> 4 reports, 1 dashboard) is also now built and verified structurally — see
+> §4, including one naming deviation (the "Okay To Reach Back Out" formula
+> column was renamed to avoid a case-insensitive collision with M0's existing
+> column of nearly the same name).** This is Checkpoint 4 per Costin's
+> standing checkpoint list — paused here for his review of the Analytics
+> reporting/dashboard before Phase 8 (live test data).
 
 ## 1. "Cape Clarity Discontinuation Feedback" Zoho Form (T001)
 
@@ -232,13 +238,138 @@ write-back flow shape exactly (trigger → function, no email or CRM update
 node beyond what the function itself does). Left switched **OFF** after
 building. No live/end-to-end test was run.
 
-## 4. Remaining work (not yet built)
+## 4. M5's own Analytics: formula columns, reports, and dashboard (T019-T021)
 
-- Phase 7 (T019-T021): Analytics formula columns, reports, dashboard —
-  **paused, pending Checkpoint 3 approval** (both flows now built first).
-- Phase 8 (T022-T026): live test data — pending Checkpoint 4 approval and
-  direct involvement from Costin (a test Patient ID, per his no-live-test-
-  without-me instruction).
+Per `m5-tasks.md` Phase 7 (Reporting) and `m5-data-model.md`'s Analytics
+formula columns/Reporting sections, built M5's own (not shared) Analytics
+objects on the "Milestone Instances" table (workspace
+`3251423000000083002`), reached directly at
+`https://analytics.zoho.com/workspace/3251423000000083002` (already signed
+in as `liana.preudhomme@capeclarity.com`). Per `m5-research.md` Decision 6,
+no Clinical Safety Flag gate changes were needed for M5 (the Alliance rule
+and its domains don't apply to M5's data) — confirmed by inspection, no
+edit made.
+
+- **"Reason For Leaving" formula column**:
+  ```
+  substring_between("Milestone Instances"."Response Data", 'Reason For Leaving: ', '---', 1)
+  ```
+  Added via Add → "Add Formula: Formula Column", matching `m5-data-model.md`'s
+  spec verbatim. Saved without incident; Text-typed (`T` icon confirmed in
+  the raw table view header) and present via "Edit Formulas and Buckets" →
+  search.
+
+- **"Discontinuation: Okay To Reach Back Out" formula column** — **named
+  differently from `m5-data-model.md`'s literal spec ("Okay To Reach Back
+  Out"), a deviation forced by a naming collision, not a content choice**:
+  M0's own Analytics build (a prior milestone, not part of this file's
+  scope) already has a formula column named "Okay to Reach Back Out"
+  (lowercase "to"), which is *bounded* (`substring_between(...,
+  'Okay to reach back out: ', '---', 1)` — M0 has further Response_Data
+  segments after this field, unlike M5, where it's the last segment).
+  Attempting to save a new column named "Okay To Reach Back Out" (title-case
+  "To") failed with "Column Name already exists" — Zoho Analytics' formula
+  column names are apparently case-insensitive for uniqueness purposes, even
+  though the on-screen labels differ in case. Rather than overwrite or
+  rename M0's existing column (out of scope, and still needed by M0's own
+  reports), the new M5 column was named **"Discontinuation: Okay To Reach
+  Back Out"** instead, using an *unbounded* extraction appropriate to M5's
+  blob shape (this field is the last Response_Data segment, with no
+  trailing `---`):
+  ```
+  substring_after("Milestone Instances"."Response Data", 'Okay To Reach Back Out: ')
+  ```
+  `substring_after(string_column, delimiter, delimiter_count)` was found via
+  the formula editor's Functions panel (searched "substring"); its built-in
+  tooltip documents `delimiter_count` as optional, defaulting to 1st
+  occurrence, matching the exact behavior needed here (return everything
+  after the first — and only — occurrence of the label text, to the end of
+  the string). Confirmed Text-typed after saving, same as the M0 precedent's
+  column type. **Lesson for future milestones**: before naming a new formula
+  column, check for an existing column whose name differs only in case —
+  the builder's uniqueness check is case-insensitive even though the UI
+  will happily show you two differently-cased labels right up until the
+  save attempt fails.
+
+- **"M5 Submitted Responses" report**: new Tabular View (not a Save-As — no
+  existing report has this exact 4-column shape). Built via the "+" (Create)
+  menu → "Tabular View" → base table "Milestone Instances". Columns, in
+  order: Submitted Date Time, Token, Reason For Leaving, Discontinuation:
+  Okay To Reach Back Out (no Patient/identity column, no scored/flag
+  columns — matches M5's minimal-fields spec and every prior milestone's
+  privacy pattern). Filtered to `Milestone` Wildcard Exactly Matches `"5B -
+  Discontinuation, Email Fallback"`, added via the Filters tab's drag-the-
+  column-onto-the-drop-zone technique `m4-implementation-notes.md` §5
+  documents (checkbox-click only adds a tabular column, even on the Filters
+  tab). Saved to "Zoho CRM Modules (Data)". View ID `3251423000000232237`.
+  Verified in View Mode: correct headers, 0 rows (expected, no M5
+  submissions exist yet).
+
+- **"M5 Status Breakdown" report**: Save As off "M4 Status Breakdown"
+  (`m4-implementation-notes.md` §5, view ID `3251423000000232098`), same bar
+  chart config preserved (X-Axis `Status` Actual, Y-Axis `Id` Count). Only
+  change: Milestone Wildcard filter value swapped from `"4 - Discharge"` to
+  `"5B - Discontinuation, Email Fallback"`. Saved to "Zoho CRM Modules
+  (Data)". View ID `3251423000000232243`. Regenerated graph shows "No Data
+  Available" (expected).
+
+- **"M5 Reason For Leaving Distribution" report**: Save As off "M2 Alliance
+  Check-In Total Distribution" (`m2-implementation-notes.md` §9.5, view ID
+  `3251423000000141097`), then X-Axis column swapped from "Alliance
+  Check-In Total" to "Reason For Leaving" and the Milestone Wildcard filter
+  value swapped to `"5B - Discontinuation, Email Fallback"`. Y-Axis
+  unchanged: `Id` (Count). Confirmed the X-Axis dropdown shows plain
+  `Actual` (not `Actual(D)`) immediately after the column swap — since
+  "Reason For Leaving" is Text-typed, no explicit `Treat as Text` re-set was
+  needed, consistent with M4's precedent (`m4-implementation-notes.md` §5).
+  Saved to "Zoho CRM Modules (Data)". View ID `3251423000000232265`.
+  Regenerated graph shows "No Data Available" (expected).
+
+- **"M5 Okay To Reach Back Out Breakdown" report** (optional second
+  breakdown, per `m5-tasks.md`'s Phase 7 task text): Save As off "M5 Reason
+  For Leaving Distribution" (this section), X-Axis column swapped to
+  "Discontinuation: Okay To Reach Back Out", filter unchanged (already `"5B
+  - Discontinuation, Email Fallback"` via the copy). Saved to "Zoho CRM
+  Modules (Data)". View ID `3251423000000232293`. Regenerated graph shows
+  "No Data Available" (expected).
+
+- **"M5 - Discontinuation Feedback" dashboard**: new dashboard, view ID
+  `3251423000000232368`, built via "Create New Dashboards" (not Save As —
+  no prior dashboard has a matching panel set). Bundles all four reports
+  above, dragged in from the Reports panel (searched by exact name, one at a
+  time, to sidestep the alphabetical re-flow mishap
+  `m3-implementation-notes.md` §1.8 documents for multi-report dashboard
+  builds): M5 Status Breakdown, M5 Reason For Leaving Distribution, M5
+  Submitted Responses, M5 Okay To Reach Back Out Breakdown. **No shared
+  "Flagged for Review" panel** — not applicable to M5, per `m5-research.md`
+  Decision 6 (unlike M4, which widened the shared M2/M3 gate to also cover
+  itself). Left at "Auto Add User Filters" on and "Make User Filters Global"
+  off, matching every prior milestone's dashboard defaults. All four panels
+  verified rendering correctly in View Mode: the two chart panels (Status
+  Breakdown, Reason For Leaving Distribution) show "No Data Available" and
+  the two tabular/breakdown panels (Submitted Responses, Okay To Reach Back
+  Out Breakdown) show their correct column headers / "No Data Available"
+  with 0 rows — all expected, since no real M5 submissions exist yet.
+
+## 5. Remaining work (not yet built)
+
+- Phase 8 (T022-T026): live test data — paused at Checkpoint 4 (just
+  reached, per §4) pending Costin's review of the Analytics
+  reporting/dashboard, and pending his direct involvement (a test Patient
+  ID, per his no-live-test-without-me instruction). Includes confirming the
+  new formula columns and reports actually parse a real M5 submission
+  correctly.
 - The open item recorded in `m5-research.md` ("Open item for spec.md") is
   still open: this build covers only the cancellation leg of spec.md's
   Milestones-table row 5, not the no-show leg. Unaffected by today's work.
+
+## 6. Access constraint compliance
+
+All Analytics work this session used the Zoho Analytics builder directly
+(not the CRM's Leads/Patients modules), so the standing "don't open CRM
+Leads/Patients modules without permission" constraint did not apply to this
+phase. No CRM Leads or Patients records were viewed or edited in the
+browser during the Analytics build. No live/end-to-end test or real test
+data was submitted, per the standing no-live-test-without-Costin
+instruction, which this file's header confirms extends explicitly to
+Analytics.
