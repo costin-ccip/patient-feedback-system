@@ -106,6 +106,24 @@ non-sample M0 records) are also worth a quick look before deleting — they don'
 the documented sample-data pattern and may reference real leads; this session can't
 open Leads to check without your permission.
 
+### 0.4 M0 live test in progress — form link bug found and fixed (2026-09-25)
+
+Costin began running this plan manually himself (per standing instruction, he runs
+live test actions, not Claude) and reached M0's Step A before this file's other
+sections were fully worked through. He received the token-issuance email as
+expected, but the survey link 404'd — a genuine Zoho-side bug on that one form
+object, not a config error (full diagnosis, evidence, and fix in
+`m0-implementation-notes.md` §13). Fix: the M0 form was rebuilt as a new Zoho Forms
+object (Duplicate), the new permalink was verified to resolve (HTTP 200), "M0 -
+Feedback Survey Write-back"'s trigger was repointed at the new form (field mappings
+re-verified, not assumed), and "M0 - Lost Lead Feedback Token"'s email link was
+updated to the new permalink. Both forms were renamed so the display title Costin
+sees is unchanged (`M0 - Free Consult Non-Conversion Survey`); only the underlying
+object changed. **Costin can resume Step A from where he left off** — set the test
+Lead's `Lead_Status` to `Lost Lead` again (or re-click a freshly issued link) to
+get a working survey URL. Everything else in Step A (idempotency/supersede check,
+write-back behavior, failure path) is unaffected and still needs live verification.
+
 ## 1. Test data plan
 
 - **One test Patient**, walked through the lifecycle sequentially (Costin's

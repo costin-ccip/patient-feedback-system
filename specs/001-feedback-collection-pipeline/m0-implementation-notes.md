@@ -16,6 +16,10 @@
 > outside the spec-kit plan/tasks workflow the project constitution calls for.
 > See §11 for a 2026-09-08 correction to the token-issuance trigger mechanism.
 > **2026-09-23: token issuance no longer uses a subflow. See §12.**
+> **2026-09-25: the public survey form was rebuilt as a new Zoho Forms object after
+> the original's permalink started 404ing (Zoho-side bug, not a config error). The
+> form Costin/patients see is still titled "M0 - Free Consult Non-Conversion
+> Survey"; only its underlying object and permalink changed. See §13.**
 
 ## 1. What M0 does
 
@@ -400,3 +404,87 @@ recipient email (`Milestone <m> - <token prefix>`), and this flow now has On Err
 branches: issuance failure → alert to costin@capeclarity.com; patient-email failure →
 record Status `Send Failed` → alert. Resend runbook:
 `specs/003-issuance-privacy-and-failure-handling/quickstart.md` §C.
+
+## 13. Fix (2026-09-25): M0 public form permalink 404'd — form rebuilt as a new object
+
+Costin began manually running the coordinated live test (per his own standing
+instruction that he runs live tests, not Claude) and reached M0. He received the
+token-issuance email as expected, but the survey link 404'd:
+`https://forms.zohopublic.com/lianapreudhommecapec1/form/M0FreeConsultNonConversionSurvey/formperma/GFdd7kA1Yp8jIxhsMuTJTN1QDEiSl5K6FoQjceHsnAg`
+(the exact permalink recorded in §12) returned "Sorry! Page not found." on direct
+navigation.
+
+**Diagnosis.** Confirmed via `read_network_requests` that the document-level GET to
+that formperma URL itself returned HTTP 404 (not a client-side rendering issue).
+Ruled out, in order: a copy/paste typo (the URL matched byte-for-byte across three
+independent UI renderings — Share tab, Custom Form Link Name settings, and a
+zoomed screenshot compare); a token/prefill problem (reproduced the 404 with and
+without the `?token=` query param); account-wide misconfiguration (a sibling form,
+M2's "Cape Clarity Alliance Check-In," resolves fine on the identical
+`forms.zohopublic.com/.../formperma/...` URL pattern on the same account); a
+billing/plan restriction (subscription is Basic Plan, active and paid through 18
+Sep 2027); and a custom domain or Custom Form Link Name setting (neither
+configured for this form). Toggling the form's "Share Publicly" setting off and
+back on — the standard remedy for this class of Zoho Forms glitch — did **not**
+fix it; the 404 was reproduced again immediately afterward. This was a genuine,
+reproducible Zoho-side bug specific to that one form object, not a config error on
+our side.
+
+**Fix.** Costin approved rebuilding the form fresh rather than continuing to chase
+the underlying Zoho bug. Used Zoho Forms' own "Duplicate" action (My Forms → "⋮" on
+the form → Duplicate) to clone "M0 - Free Consult Non-Conversion Survey" into a new
+form object — same questions, same field structure, new internal form ID and a
+new permalink token. The duplicate's public formperma URL was verified to resolve
+(HTTP 200 via `read_network_requests`, confirmed with the browser's own "Access
+Form" link so the URL was never hand-transcribed):
+
+```
+https://forms.zohopublic.com/lianapreudhommecapec1/form/M0FreeConsultNonConversionSurveyNEW/formperma/yoRiV9UKbs18x9p5nfIBADh_KlyZ2sriJF6ytCwk1XA
+```
+
+(URL slug `M0FreeConsultNonConversionSurveyNEW` is a permanent artifact of
+duplication-time naming and does not change when the form's display title is
+edited afterward — see renaming below.)
+
+Two downstream components had to be repointed at the new form object (duplicating
+a Zoho Form does **not** automatically move flows that reference the old one):
+
+1. **"M0 - Feedback Survey Write-back"**'s trigger ("Form entry submitted", Zoho
+   Forms) was reconfigured from the old form to the new one. Re-verified — did not
+   assume — that the `submitFeedbackResponse` parameter mappings (§3) still
+   resolved correctly against the new form's field schema: all six parameters
+   (`token`, `ratingHeard`, `reasonNotMovingForward`, `addAnything`, `reachBackOk`,
+   `anythingElse`) still showed bound, resolved field labels in the Insert
+   Variable panel after the trigger form was switched, with no "field not found"
+   errors. This confirms Zoho's Duplicate preserved the same internal field
+   API names (`SingleLine`, `Rating`, `Radio`, `MultiLine`, `Radio1`,
+   `MultiLine1`) from §3's table — expected but not assumed, and now confirmed.
+2. **"M0 - Lost Lead Feedback Token"**'s Send Email step body was updated to the
+   new permalink above, keeping the same `?token=${issueFeedbackToken_1.token}`
+   suffix. (First attempt at this edit accidentally swallowed the `?` character
+   when replacing a partial text selection in the rich-text body editor — caught
+   by re-zooming on the edited text before saving, and fixed by triple-clicking to
+   select the whole line and retyping it complete, including the token suffix.
+   Worth flagging for any future session editing this same rich-text field: verify
+   the full string after any partial-selection edit, don't assume the boundary
+   landed where intended.)
+
+Both flow changes were applied to the live flows (Zoho Flow's "Apply changes" on a
+Draft), not left as unpublished drafts.
+
+**Renaming.** Old form renamed `[RETIRED] M0 - Free Consult Non-Conversion Survey`
+(Form Properties → Form title, in the Builder — Zoho Forms has no direct
+"Rename" action in the dashboard's "⋮" menu). New form's Form Properties title was
+set to the canonical `M0 - Free Consult Non-Conversion Survey` (its URL slug stays
+`M0FreeConsultNonConversionSurveyNEW`, which is cosmetic-only and does not need to
+match the display title). The retired form's public sharing was left as-is
+(already effectively dead since it 404s); it was not explicitly disabled.
+
+**Component table (§2) correction**: the "Public form" row's underlying Zoho Forms
+object changed from the original (now `[RETIRED]`) form to the new one at the
+`M0FreeConsultNonConversionSurveyNEW` slug; the display title Costin and patients
+see is unchanged (`M0 - Free Consult Non-Conversion Survey`).
+
+No CRM data, Analytics formulas, or the `submitFeedbackResponse` function body
+changed — this was purely a Zoho Forms object swap plus repointing the two flows
+that referenced it.
