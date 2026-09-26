@@ -912,3 +912,20 @@ M0 deliberately left unchanged, same reasoning as M2's §12. Identical
 treatment applied the same session to M2, M4, and M5 — see
 `m2-implementation-notes.md` §12, `m4-implementation-notes.md`, and
 `m5-implementation-notes.md`. Flow stays **OFF**.
+
+## 9. Fix (2026-09-25, pre-emptive): Field Alias missing for hidden Token field
+
+Found while investigating a real M2 write-back failure Costin hit in his
+live test — see `m2-implementation-notes.md` §13 for the full diagnosis.
+Same root cause applies here: "Cape Clarity Periodic Check-In"'s hidden
+`Token` field had no Field Alias configured (Settings → Prefill → Field
+Alias - Prefill URL was on the empty "Configure Now" screen), so the
+`?token=...` URL parameter the trigger flow sends would never have
+reached the field — this would have failed the same way M2 did the
+moment Costin live-tested M3, not something specific to M3's own build.
+
+**Fixed**: Field Label `Token`, Field Alias `token` → Save. Not yet
+live-tested end-to-end (M3's flows are still OFF per §1), so this is a
+pre-emptive fix, not a confirmed-working one the way M2's is — worth
+confirming during M3's own live test that the hidden field actually
+prefills, same as M2 §13's verification step.

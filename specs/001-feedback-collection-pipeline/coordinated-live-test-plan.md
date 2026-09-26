@@ -124,6 +124,36 @@ Lead's `Lead_Status` to `Lost Lead` again (or re-click a freshly issued link) to
 get a working survey URL. Everything else in Step A (idempotency/supersede check,
 write-back behavior, failure path) is unaffected and still needs live verification.
 
+### 0.5 M2 live test hit a second bug — write-back silently no-op'd — found, fixed, and fixed pre-emptively for M3/M4/M5 (2026-09-25)
+
+Costin continued his live test into Step B (M2) and hit a different bug: the
+Alliance Check-In form submitted fine and reached Zoho Flow, but the
+`Milestone_Instances` record never updated. Root cause: the form's hidden
+`Token` field was never configured with a Zoho Forms "Field Alias" (Settings
+→ Prefill → Field Alias - Prefill URL), so the `?token=...` value in the
+email link had nowhere to land — the field stayed blank on every submission,
+and the write-back function correctly (and safely) rejected it as "Missing
+token" rather than corrupting anything. Full diagnosis in
+`m2-implementation-notes.md` §13.
+
+**Fixed and verified for M2**: Field Alias configured (`token` →
+Token field), confirmed working via a direct test load of the public form
+URL with `?token=<test value>` appended (not a real submission). Costin's
+existing `Issued` record and email link are both still valid — **he can
+resubmit the same Alliance Check-In email he already received** without
+needing a new token issued; §3 Step B, Scenario 1 continues from wherever he
+left off.
+
+**Same gap found and fixed pre-emptively in M3, M4, and M5's forms** (none
+of the three had reached a live submission yet, so this was caught before it
+could bite, not from a reported failure) — see each milestone's own
+implementation-notes §9. M0 and M1's forms already had this configured
+correctly and needed no change. Worth treating "hidden field prefills
+correctly from the email link" as an explicit checkpoint the first time each
+milestone's own happy-path scenario runs, since (per M2/M3/M4/M5's own
+notes) it's a builder step that fails silently rather than throwing an
+error anyone would notice without checking Flow's Task History.
+
 ## 1. Test data plan
 
 - **One test Patient**, walked through the lifecycle sequentially (Costin's

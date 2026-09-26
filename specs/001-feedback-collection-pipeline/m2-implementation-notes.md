@@ -941,3 +941,65 @@ Identical treatment applied the same session to M3, M4, and M5 — see
 `m3-implementation-notes.md`, `m4-implementation-notes.md`, and
 `m5-implementation-notes.md` for each flow's own change record. Flow
 stays **OFF**.
+
+## 13. Bug found + fixed (2026-09-25): M2 write-back silently no-op'd — hidden Token field never got prefilled
+
+**Symptom, reported by Costin from his live test**: submitted the Alliance
+Check-In form via the real email link. The submission reached Zoho Flow
+(confirmed in the flow's own Task History — trigger fired, "Completed"),
+but the corresponding `Milestone_Instances` record never updated —
+`Status` stayed `Issued`, `Response_Data`/`Submitted_Date_Time` stayed
+null.
+
+**Diagnosis**: checked "M2 - Alliance Check-In Write-back"'s Task History
+(`flow.zoho.com` → flow → History) for the Sep 25, 2026 11:12:49 PM run.
+The `submitAllianceCheckInResponse` step's **input** showed all four
+slider values correctly (`connection: "7"`, etc.) but `"token": ""` —
+empty. Its **output** was `{"status":"error","message":"Missing token"}`
+— the function's own first guard clause (§3.4.1) correctly caught this
+and safely bailed without touching the CRM record. So the function itself
+was never the bug; nothing was ever at risk of being corrupted.
+
+**Root cause**: the "M2 - Session 3 Trigger" flow's email correctly
+contains `.../formperma/<permalink>?token=<value>` (confirmed byte-for-
+byte in that flow's own "Send email" step input — token matched the CRM
+record's `Token` field exactly). But Zoho Forms does **not** auto-map a
+URL query parameter to a field just because the parameter name happens to
+match the field's internal name. It requires an explicit **Field Alias**
+— Settings → Prefill → "Field Alias - Prefill URL" — mapping an alias
+string to the field, and the URL parameter key must match that alias, not
+the field's internal name. This form's Field Alias page had never been
+configured (found on the empty "Configure Now" screen, no rows). So the
+hidden `SingleLine` (Token) field simply stayed blank on every submission
+— this was never going to work, regardless of who submitted the form or
+when.
+
+**Fix**: Settings → Prefill → Field Alias - Prefill URL → Configure Now →
+Field Label `Token`, Field Alias `token` (matching the `?token=` the
+trigger flow already sends) → Save. **Verified working**: loaded the
+public permalink with `?token=verificationtest123` appended and confirmed
+via direct DOM read (`document.getElementById('SingleLine-arialabel').value`
+— the field's real DOM id has an `-arialabel` suffix not mentioned in §1.1;
+worth noting for future milestones) that the hidden field now receives the
+URL value. Did not submit a real response as part of this verification —
+Costin's stale `Issued` record (id `6825601000004465001`, same token,
+expiry `2026-10-02`, still valid) is untouched and ready for him to
+resubmit via the same email link he already has; no new token/email
+needs to be issued.
+
+**Scope check — this affects M3, M4, and M5 too, already fixed**: M0's
+and M1's forms both already had this Field Alias configured correctly
+(both were early builds); M2, M3, and M4/M5's forms were each built fresh
+via "New Form" rather than cloned, and every one of them skipped this
+setting. Checked and fixed all four in this session — see
+`m3-implementation-notes.md` §9, `m4-implementation-notes.md` §9, and
+`m5-implementation-notes.md` §9. None of M3/M4/M5 had reached a live
+submission yet, so this was caught pre-emptively for those three, not
+from a reported failure.
+
+**Takeaway for future milestones**: when building a new Zoho Form with a
+hidden token field fed by a `?token=` URL parameter, the Field Alias step
+(Settings → Prefill → Field Alias - Prefill URL) is a required, easy-to-
+forget part of the build — it doesn't fail loudly, it just silently drops
+the value. Worth adding as an explicit checklist item alongside "hide the
+field" in any future milestone's form-build task list.
