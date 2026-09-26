@@ -155,74 +155,270 @@ write-back behavior, failure path) is unaffected and still needs live verificati
 Flip ON only the flow(s) needed for the step being tested, not all 9 at once — makes
 failures easier to attribute.
 
+### 3.0 The full journey, and how to verify each stage
+
+Every milestone's happy path is the same six-stage journey. This section describes it
+once so the steps below don't have to repeat it — "tested end to end" means confirming
+all six stages, not stopping once an email arrives or a CRM record looks right.
+
+1. **Trigger fires** — a CRM field change (M0: Lead `Lead_Status`; M2/M3: Patient
+   `Session_Count`; M4/M5: Patient `Patient_Status`) matches the flow's trigger filter
+   and, for M2-M5, the milestone's own eligibility function (idempotency check, and for
+   M2/M3/M4/M5 also `isCreatedAfterCutoff`) returns true.
+2. **`Milestone_Instances` record created**, Status `Issued`, via the shared
+   `issueFeedbackToken` function — token + expiry set, `Clinician` populated
+   (hardcoded for M0 by design, derived from `Assigned_Therapist` for M2-M5 per
+   §0.2's fix), `Name` follows the token-prefix pattern with no email in it
+   (feature 003).
+3. **Email sent** to the patient/lead's address, with the survey link and
+   `?token=...` appended.
+4. **Patient submits the form.** The milestone's write-back flow's "Form entry
+   submitted" trigger fires, calls its `submitFeedbackResponse`-family function,
+   which looks up the record by token, checks `Status == Issued` and expiry, and on
+   success writes `Response_Data`, sets `Status` → `Submitted`, and stamps
+   `Submitted_Date_Time`.
+5. **Zoho Analytics syncs from CRM — and this is NOT real-time.** Confirmed live
+   2026-09-25: the "Zoho CRM" data source on the shared Analytics workspace
+   (`3251423000000083002`) syncs on a fixed **daily schedule, 5:00 PM EDT**, not on
+   every CRM write (`Schedule: Daily at 17:00 hrs EST`, checked via the workspace's
+   own Data Sources panel — not documented anywhere before this). Don't wait up to
+   24 hours for a change to show up during this test — trigger it manually instead:
+   in the Analytics workspace, left nav → **Data Sources** → **Zoho CRM** row →
+   **Sync Now**. Wait for "Data Sync Successful" and a fresh "Last Data Sync Time"
+   before checking any dashboard below.
+6. **Dashboard/report reflects it.** Only after step 5 — open the milestone's
+   dashboard and confirm the new record appears in every panel that should show it
+   (status breakdown, submitted-responses table, any distribution charts, and the
+   shared "M2, M3 & M4 Flagged for Review" report where applicable) — not just that
+   the flow ran and the CRM record looks right. Panel names/view IDs are listed
+   per milestone below and in each milestone's own implementation-notes "Analytics"
+   section.
+
+Each Step below marks its happy-path scenario `[Full journey]` to mean all 6 stages
+get checked, sync included. The other scenarios per step are likely deviations from
+the happy path — chosen because they're what "does the flow fire" testing tends to
+miss (a response that never arrives, a link reused, a token that outlives its TTL,
+a threshold jumped over), not because they're exhaustive.
+
 ### Step A — M0 (Lead-based)
+
+Dashboard: **"M0 - Free Consult Non-Conversion Feedback"** (view `3251423000000083524`)
+— panels: M0 Submitted Responses, M0 Biggest Factor, M0 Feeling Heard Distribution,
+M0 % Reachable, plus the pre-existing Status Breakdown/Response Rate/Volume-by-Week.
+
+**Scenario 1 — Happy path `[Full journey]`**
 1. Turn ON "M0 - Lost Lead Feedback Token" and "M0 - Feedback Survey Write-back".
 2. Set the test Lead's `Lead_Status` to `Lost Lead`.
    **Expect**: 1 new `Milestone_Instances` record (`0 - No Conversion`, Issued,
    `Lead_Reference` = lead ID, token + expiry set, `Name` = `Milestone 0 - No Conversion - <8 hex>`
-   with no email in it per feature 003), 1 email from `info@capeclarity.com`.
-3. Repeat the same status set once more. **Expect**: first record → Superseded, second → Issued
-   (idempotency/supersede check).
-4. Submit the survey via the emailed link. **Expect**: write-back flow marks it Submitted,
-   `Response_Data` filled per `m0-implementation-notes.md` §4's blob format.
-5. (Failure path, optional) Issue to a Lead with an invalid email. **Expect**: `Status` → `Send Failed`,
-   alert email to `costin@capeclarity.com` naming milestone + record ID only, no patient email sent
-   (per `specs/003.../quickstart.md` §B.2).
+   with no email in it per feature 003), 1 email from `info@capeclarity.com` with the
+   (now-fixed, §0.4) survey link.
+3. Submit the survey via the emailed link. **Expect**: write-back flow marks it
+   Submitted, `Response_Data` filled per `m0-implementation-notes.md` §4's blob format.
+4. Sync Analytics (§3.0 stage 5) and open the M0 dashboard above. **Expect**: the
+   submission appears in M0 Submitted Responses, and — depending on the answers
+   given — M0 Biggest Factor / M0 Feeling Heard Distribution / M0 % Reachable all
+   move.
+
+**Scenario 2 — Re-trigger before response (supersede)**
+5. On a fresh test Lead, set `Lead_Status` to `Lost Lead`, then set it again before
+   submitting. **Expect**: the first record → Superseded, the second → Issued — only
+   the newest Issued record's link should still work; the superseded one's link
+   should now be rejected if submitted (`Status != Issued`).
+
+**Scenario 3 — Issued, never submitted (non-response)**
+6. Issue a token to a third test Lead and don't submit it. **Expect**: it stays
+   `Issued`. After an Analytics sync, confirm it shows up as `Issued` in the M0
+   Status Breakdown panel rather than being absent from the dashboard entirely —
+   this is the case most likely to be missed if reports are only ever eyeballed
+   right after a submission.
+
+**Scenario 4 — Duplicate/late submission**
+7. After Scenario 1's link has been submitted once, load the same link again and
+   resubmit. **Expect**: rejected (`Status != Issued` in `submitFeedbackResponse`)
+   — `Response_Data`/`Submitted_Date_Time` must NOT change a second time, and the
+   CRM record stays exactly as Scenario 1 left it.
+
+**Scenario 5 — Expired token**
+8. Pick one Issued test record and, via CRM MCP tools (not the browser), edit its
+   `Expiry_Date_Time` to a past timestamp — waiting out the real 7-day TTL
+   (`m0-implementation-notes.md` §12) isn't practical here. Submit that token.
+   **Expect**: rejected, and the record auto-transitions to `Expired`
+   (`m0-implementation-notes.md` §3.1).
+
+**Scenario 6 — Issuance/send failure (optional; shared logic, worth testing once)**
+9. Issue to a Lead with an invalid email. **Expect**: `Status` → `Send Failed`, alert
+   email to `costin@capeclarity.com` naming milestone + record ID only, no patient
+   email sent (per `specs/003.../quickstart.md` §B.2). This is shared infrastructure
+   (`issueFeedbackToken`'s On Error branch, identical on every milestone per
+   `CLAUDE.md`) — confirming it once here is representative; no need to repeat it
+   identically on M2-M5 unless something about a specific milestone's wiring is in
+   doubt.
+
+**Standard scenario set, referenced from Steps B-E below**: Scenarios 2-6 above
+(re-trigger/supersede, non-response, duplicate submission, expired token,
+send-failure) apply the same way to every other milestone — same mechanics, just
+substitute that milestone's own trigger field/value and `Milestone_Instances`
+record. Steps B-E call out only what's genuinely different for that milestone
+(milestone-specific eligibility logic, extra Analytics gates) rather than repeating
+the same 5 scenarios five times.
 
 ### Step B — M2 (Session 3 / Early Alliance Check)
+
+Dashboard: **"M2 - Early Alliance Check Feedback"** (view `3251423000000141282`) —
+panels: M2 Status Breakdown, M2 Alliance Check-In Total Distribution, M2 Submitted
+Responses, plus the shared "M2, M3 & M4 Flagged for Review" report.
+
+**Scenario 1 — Happy path `[Full journey]`**
 1. Turn ON "M2 - Session 3 Trigger" and "M2 - Alliance Check-In Write-back".
-2. Set the test Patient's `Session_Count` to 3. **Expect**: 1 Issued `2 - Early Alliance Check`
-   record, `Clinician` = the test Patient's actual `Assigned_Therapist` (confirms §0.2's fix),
-   1 email.
-3. Re-save at 3 again. **Expect**: no second record (idempotency).
-4. **Cutoff-exclusion check** (per `specs/004.../quickstart.md` §C): confirm with Costin
-   whether the test Patient's `Created_Time` is before or after 2026-09-23. If before, this
-   step should produce **no** record at all regardless of Session_Count — if that's not what
-   you want to test, use a Patient created on/after 2026-09-23.
-5. Submit the survey. **Expect**: write-back marks Submitted, `Response_Data` filled per
-   `m2-implementation-notes.md` §3.4.1.
-6. **Clinical Safety Flag check**: submit (or edit in test data) at least one response where
-   the total is ≤20 or any domain ≤4. **Expect**: "Clinical Safety Flag" formula column reads
-   `true`, "Flag Rule Triggered" names the specific rule(s), the row appears in "M2, M3 & M4
-   Flagged for Review", and — critically — no contractor-facing notification of any kind fires
-   (there is none in the build to fire, but confirm no side effect appears anywhere).
+2. Set the test Patient's `Session_Count` to 3. **Expect**: 1 Issued
+   `2 - Early Alliance Check` record, `Clinician` = the test Patient's actual
+   `Assigned_Therapist` (confirms §0.2's fix), 1 email.
+3. Submit the survey. **Expect**: write-back marks Submitted, `Response_Data` filled
+   per `m2-implementation-notes.md` §3.4.1.
+4. Sync Analytics (§3.0 stage 5) and open the M2 dashboard above. **Expect**: the row
+   appears in M2 Submitted Responses and M2 Status Breakdown, and M2 Alliance
+   Check-In Total Distribution moves.
+
+**Scenario 2 — Idempotency (no duplicate issuance)**
+5. Re-save `Session_Count` at 3 again (no change). **Expect**: no second record —
+   the flow's own idempotency check, not the supersede logic, should suppress this
+   (distinct from Step A Scenario 2, which is a genuine re-trigger before response).
+
+**Scenario 3 — Cutoff-exclusion (legacy patient)**
+6. Per `specs/004.../quickstart.md` §C: confirm with Costin whether the test
+   Patient's `Created_Time` is before or after 2026-09-23. If before, this step
+   should produce **no** record at all regardless of `Session_Count` — if that's not
+   what you want to test here, use a Patient created on/after 2026-09-23 instead.
+
+**Scenario 4 — Clinical Safety Flag**
+7. Submit (or edit in test data) at least one response where the alliance total is
+   ≤20 or any domain ≤4. **Expect**: the "Clinical Safety Flag" formula column reads
+   `true`, "Flag Rule Triggered" names the specific rule(s), the row appears in
+   "M2, M3 & M4 Flagged for Review" after syncing, and — critically — no
+   contractor-facing notification of any kind fires (there is none in the build to
+   fire; confirm no side effect appears anywhere).
+
+**Scenarios 5-9 — standard set**: re-trigger/supersede, non-response, duplicate
+submission, expired token, send-failure — same as Step A Scenarios 2/3/4/5/6, on
+this milestone's own trigger/record.
 
 ### Step C — M3 (Periodic Consolidated, every 8th session)
+
+Dashboard: **"M3 - Periodic Check-In Feedback"** (view `3251423000000186289`) —
+panels: M3 Status Breakdown, M3 Practice Experience: Scheduling/Communication
+Distribution, M3 Practice Experience: Billing Distribution, M3 Therapist
+Professionalism Distribution, M3 Submitted Responses, plus the shared "M2, M3 & M4
+Flagged for Review" report.
+
+**Scenario 1 — Happy path, two checkpoints `[Full journey]`**
 1. Turn ON "M3 - Periodic Check-In Trigger" and "M3 - Periodic Check-In Write-back".
-2. Set `Session_Count` to 8. **Expect**: 1 Issued `3 - Periodic Consolidated` record, 1 email.
-3. Set `Session_Count` to 16. **Expect**: a second Issued record at the next checkpoint
-   (`m3-implementation-notes.md` §1.5's `checkPeriodicCheckInDue` checkpoint-list logic).
-4. Submit both surveys. **Expect**: write-back fills all 7 segments correctly (4 reused
-   alliance domains + 3 new Practice Experience/Professionalism fields) — this is the first
-   real-data confirmation that the reused M2 Analytics formula columns parse M3 rows
-   correctly (flagged as unverified in `m3-implementation-notes.md` §1.2).
+2. Set `Session_Count` to 8. **Expect**: 1 Issued `3 - Periodic Consolidated`
+   record, 1 email.
+3. Set `Session_Count` to 16. **Expect**: a second Issued record at the next
+   checkpoint (`checkPeriodicCheckInDue`'s checkpoint-list logic —
+   `m3-implementation-notes.md` §1.5).
+4. Submit both surveys. **Expect**: write-back fills all 7 segments correctly (4
+   reused alliance domains + 3 new Practice Experience/Professionalism fields) —
+   this is the first real-data confirmation that the reused M2 Analytics formula
+   columns parse M3 rows correctly (flagged as unverified in
+   `m3-implementation-notes.md` §1.2).
+5. Sync Analytics (§3.0 stage 5) and open the M3 dashboard above. **Expect**: both
+   submissions appear in M3 Submitted Responses/Status Breakdown, and all three
+   distribution panels move.
+
+**Scenario 2 — Skipped checkpoint**
+6. On a fresh test Patient (or after resetting), set `Session_Count` directly to a
+   value that jumps past an unclaimed checkpoint — e.g. straight to 20 without ever
+   passing through 8 or 16. **Expect**: `checkPeriodicCheckInDue` only issues **one**
+   record, for the next unclaimed threshold (8, since `existingCount` is 0) — it
+   does NOT backfill a second record for 16 just because 20 also clears it. This
+   is a direct reading of the function's logic (§3.0/`m3-implementation-notes.md`
+   §1.5: `nextThreshold = checkpoints.get(existingCount)`, evaluated once per
+   trigger firing) but has never been exercised live — worth confirming it behaves
+   as the code implies rather than assuming.
+
+**Scenario 3 — Cutoff-exclusion**
+7. Same check as Step B Scenario 3, for this milestone's own trigger.
+
+**Scenarios 4-8 — standard set**: Clinical Safety Flag (on either checkpoint's
+submission), re-trigger/supersede, non-response, duplicate submission, expired
+token, send-failure — same as Step A/B, on this milestone's own records.
 
 ### Step D — M4 (Discharge)
+
+Dashboard: **"M4 - Discharge Feedback"** (view `3251423000000232202`) — panels: M4
+Status Breakdown, M4 Looking Ahead: Likelihood To Recommend Distribution, M4
+Submitted Responses, plus the shared "M2, M3 & M4 Flagged for Review" report.
+
+**Scenario 1 — Happy path `[Full journey]`**
 1. Turn ON "M4 - Discharge Trigger" and "M4 - Discharge Write-back".
 2. Set `Patient_Status` to `Completed Treatment`. **Expect**: 1 Issued `4 - Discharge`
    record, 1 email.
-3. Submit the survey. **Expect**: write-back fills Looking-Ahead fields + reused alliance
-   domains (`m4-implementation-notes.md` §3) — first real-data confirmation for M4's reused
-   columns (flagged unverified, T020 in `m4-tasks.md`).
+3. Submit the survey. **Expect**: write-back fills Looking-Ahead fields + reused
+   alliance domains (`m4-implementation-notes.md` §3) — first real-data confirmation
+   for M4's reused columns (flagged unverified, T020 in `m4-tasks.md`).
+4. Sync Analytics (§3.0 stage 5) and open the M4 dashboard above. **Expect**: the row
+   appears in M4 Submitted Responses/Status Breakdown, and the Looking-Ahead
+   distribution panel moves.
+
+**Scenario 2 — Cutoff-exclusion**
+5. Same check as Step B Scenario 3 — M4 also gates on `isCreatedAfterCutoff`
+   (confirmed in `m4-implementation-notes.md`, not just M2/M3 as `CLAUDE.md`'s
+   older summary implies).
+
+**Scenario 3 — Clinical Safety Flag**
+6. Same as Step B Scenario 4 — M4 reuses the shared alliance-domain columns, so a
+   low-total M4 response should also land in "M2, M3 & M4 Flagged for Review".
+
+**Scenarios 4-7 — standard set**: re-trigger/supersede, non-response, duplicate
+submission, expired token, send-failure — same as Step A, on this milestone's own
+records.
 
 ### Step E — M5 (Discontinuation)
+
+Dashboard: **"M5 - Discontinuation Feedback"** (view `3251423000000232368`) —
+panels: M5 Status Breakdown, M5 Reason For Leaving Distribution, M5 Submitted
+Responses, M5 Okay To Reach Back Out Breakdown. **No shared Flagged for Review
+panel** — not applicable to M5 (`m5-research.md` Decision 6).
+
+**Scenario 1 — Happy path `[Full journey]`**
 1. Turn ON "M5 - Discontinuation Trigger" and "M5 - Discontinuation Write-back".
 2. Set `Patient_Status` to `Discontinued (Patient Choice)`. **Expect**: 1 Issued
-   `5B - Discontinuation, Email Fallback` record, 1 email (subject "Just checking in").
-3. Submit the survey (2 fields only — reason + okay-to-reach-back-out). **Expect**: write-back
-   fills `Response_Data`, and — separately — confirm a **non-response** case (don't submit a
-   second test instance) still shows up as "issued but not submitted" in "M5 Submitted
-   Responses"/"M5 Status Breakdown" rather than silently vanishing (FR-015/SC-... requirement).
-4. **Cutoff-exclusion check** for M5 too, same as Step B.4.
+   `5B - Discontinuation, Email Fallback` record, 1 email (subject "Just checking
+   in").
+3. Submit the survey (2 fields only — reason + okay-to-reach-back-out). **Expect**:
+   write-back fills `Response_Data`.
+4. Sync Analytics (§3.0 stage 5) and open the M5 dashboard above. **Expect**: the row
+   appears in M5 Submitted Responses/Status Breakdown, and M5 Reason For Leaving
+   Distribution / M5 Okay To Reach Back Out Breakdown both move.
+
+**Scenario 2 — Issued, never submitted (non-response) — already flagged as a
+required check, not optional**
+5. On a second test Patient, issue but don't submit. **Expect**: still shows up as
+   "issued but not submitted" in M5 Submitted Responses/M5 Status Breakdown rather
+   than silently vanishing — this is an explicit product requirement (FR-015), not
+   just a good-practice check like Step A Scenario 3.
+
+**Scenario 3 — Cutoff-exclusion**
+6. Same check as Step B Scenario 3, for M5's own trigger.
+
+**Scenarios 4-6 — standard set**: re-trigger/supersede, duplicate submission,
+expired token — same as Step A. (Send-failure already covered once in Step A
+Scenario 6; M5 has no Clinical Safety Flag panel to re-check, per the dashboard
+note above.)
 
 ### Step F — Dashboard/access checks (Story 3/User Story 4, cuts across all of the above)
-1. As admin: open each milestone's dashboard, confirm the new test data renders in every
-   panel (not just "No Data Available" anymore).
-2. Confirm the "M2, M3 & M4 Flagged for Review" report shows the flagged row(s) from Step B.6,
-   with no Patient/identity column.
-3. **Negative test, needs a contractor login**: confirm a contractor account (Deborah's or
-   Shana's, if one exists) cannot reach any of these dashboards/reports at all (FR-009/SC-004).
-   This session cannot do this step — needs Costin or a contractor to attempt it.
+1. As admin: open each milestone's dashboard (listed at the top of Steps A-E above),
+   confirm the new test data renders in every panel (not just "No Data Available"
+   anymore) — this doubles as the final confirmation of §3.0 stage 6 for every
+   scenario run above, not only the happy paths.
+2. Confirm the "M2, M3 & M4 Flagged for Review" report shows the flagged row(s) from
+   Steps B/C/D's Clinical Safety Flag scenarios, with no Patient/identity column.
+3. **Negative test, needs a contractor login**: confirm a contractor account
+   (Deborah's or Shana's, if one exists) cannot reach any of these dashboards/reports
+   at all (FR-009/SC-004). This session cannot do this step — needs Costin or a
+   contractor to attempt it.
 
 ### Step G — Cleanup
 - Delete all test `Milestone_Instances` records created above via CRM MCP tools (not browser).
