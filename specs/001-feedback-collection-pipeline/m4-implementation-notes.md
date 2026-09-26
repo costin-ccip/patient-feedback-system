@@ -8,10 +8,10 @@
 > it's built, per the `CLAUDE.md` convention of updating implementation notes
 > in the same session as the change.
 >
-> Last updated: 2026-09-24
-> Status: **T009-T013 (the "Cape Clarity Discharge Feedback" Zoho Form, all 7
-> fields) are built and verified by top-to-bottom scroll. T003-T008 ("M4 -
-> Discharge Trigger" flow, including both On Error branches) are also built
+> Last updated: 2026-09-26
+> Status: **T009-T013 (the "Cape Clarity Discharge Feedback" Zoho Form) are
+> built and verified by top-to-bottom scroll. T003-T008 ("M4 - Discharge
+> Trigger" flow, including both On Error branches) are also built
 > and verified structurally — see §2. T008-T009/T014-T015 ("M4 - Discharge
 > Write-back" flow: trigger, `submitDischargeFeedbackResponse` function,
 > parameter mapping) are also built and verified structurally — see §3.**
@@ -20,11 +20,17 @@
 > notification requirement) are also built and verified — see §4, which
 > also updated `m2-implementation-notes.md` and `m3-implementation-notes.md`
 > in the same session per `m4-data-model.md`'s Decision 6. T020-T022 (M4's
-> own new Analytics: 2 formula columns, 3 reports, and the "M4 - Discharge
+> own new Analytics: formula columns, reports, and the "M4 - Discharge
 > Feedback" dashboard) are also built and verified structurally — see §5.
 > The discharge-trigger filter value (`Patient_Status = "Completed
 > Treatment"`) is confirmed correct by Costin (2026-09-24) — see §2.
-> Remaining work (T023-T027 live test data) is listed in §6.
+> **2026-09-26: the form, write-back function, and Analytics were all
+> corrected against the real Confluence source page (now directly reachable
+> via `Atlassian_Rovo`), which diverged from the drafted-not-sourced content
+> §1/§3/§5 originally recorded — see §10 for the full change record; §1/§3/§5
+> below are left as a historical build log and are superseded by §10 where
+> they conflict.** Remaining work (T023-T027 live test data) is listed in
+> §6.
 
 ## 1. "Cape Clarity Discharge Feedback" Zoho Form (T009-T013)
 
@@ -535,3 +541,203 @@ reached the field.
 live-tested end-to-end (M4's flows are still OFF per §2/§3), so this is a
 pre-emptive fix — worth confirming during M4's own live test that the
 hidden field actually prefills, same as M2 §13's verification step.
+
+## 10. Fix (2026-09-26): form, write-back function, and Analytics corrected against the real Confluence source; freeform field removed
+
+**Trigger**: this session gained direct Confluence read access via the
+`Atlassian_Rovo` MCP tools (not available when §1/§3/§5 and the original
+`m4-research.md`/`m4-data-model.md` drafts were written on 2026-09-23, which
+is why those sections carried a "source Confluence design pages aren't
+available to this session" caveat). Fetched the real source page, "Milestone
+4 — Discharge Survey"
+(`https://icostin.atlassian.net/wiki/spaces/LP/pages/564101170/Milestone+4+Discharge+Survey`,
+last modified 2026-09-11), and compared it question-by-question against the
+live "Cape Clarity Discharge Feedback" Zoho Form (§1). Found three
+divergences: (1) the four alliance-domain prompts and the Looking Ahead
+prompt were worded differently from Confluence's actual text (past tense,
+"so far" dropped, "Likelihood to recommend" retitled "Likelihood to
+continue/refer" with different prompt phrasing); (2) the drafted "Anything
+else looking ahead" Multi Line field should never have existed — Confluence's
+design notes are explicit: "No open text, consistent with Milestones 2–3, to
+minimize HIPAA exposure and avoid an unmonitored channel for clinical
+disclosures"; (3) Confluence specifies an intro paragraph (shown once, before
+Section 1) and a closing line, neither of which the live form had.
+
+Presented these findings to Costin, who gave explicit approval to fix
+everything and assess downstream impact: *"fix it all now and assess impact
+on other parts of the flow as well (e.g., do we need to update the analytics
+dashboard)."* Everything below was done under that approval.
+
+### 10.1 "Cape Clarity Discharge Feedback" Zoho Form — corrected
+
+All edits made live in the Zoho Forms builder
+(`https://forms.zoho.com/lianapreudhommecapec1/form/CapeClarityDischargeFeedback/builder`)
+and saved individually, confirmed via each field's "Saved" indicator:
+
+- **Connection** (field 1): reworded to "Overall, how comfortable have you
+  felt being open and honest with your therapist?"
+- **Understanding** (field 2): reworded to "Overall, how well do you feel
+  your therapist understood what matters to you?"
+- **Shared direction** (field 3): reworded to "Overall, how much did you and
+  your therapist agree on what you were working toward?"
+- **Fit of approach** (field 4): reworded to "Overall, how well did your
+  therapist's approach work for you?"
+- **Likelihood** (field 5): reworded to "Looking back, how likely would you
+  be to return to Cape Clarity in the future, or recommend us to someone
+  else facing something similar?"
+- **"Is there anything else..." Multi Line field (field 6): deleted
+  entirely** — Confluence's HIPAA-driven no-open-text design note applies to
+  M4 exactly as it does to M2/M3; the field should never have been drafted.
+- **New Description field added as the very first field** (intro copy, shown
+  once before Section 1): "As you finish up here, we'd love to hear how
+  things feel looking back on your time with us. This takes about a minute,
+  there's no right or wrong answer, and it genuinely helps us understand
+  what this time has meant and how we can keep showing up well for the
+  people we work with." Verified correctly positioned via a full
+  top-to-bottom scroll after adding.
+- **Thank You Page** (Settings → Thank You Page & Redirection, Plain Text,
+  100-char cap): updated to "Thank you for trusting us with this part of
+  your journey — we're glad you spent this time with us." (98 chars) — a
+  necessarily-shortened paraphrase of Confluence's 195-character closing
+  line ("...Wherever you go from here, we're genuinely glad you spent this
+  time with us, and the door is always open if you'd like to come back."),
+  which does not fit Zoho's cap. Saved, confirmed via the "Saved" indicator.
+
+**Builder gotchas hit and worked around this session** (all self-corrected,
+no blocked work):
+- **Field-label text replacement is unreliable via click-and-type**: the
+  existing Field Label text doesn't reliably get replaced by clicking the
+  field and typing. Reliable fix, used for all five reworded fields: via
+  `javascript_tool`, find the `<input>` by its current `.value`, then
+  `Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype,
+  'value').set.call(el, newValue)` followed by dispatching `input` and
+  `change` events.
+- **Description field's rich-text editor lives inside an
+  `iframe.ze_area`**: typing directly via `computer.type` left the
+  placeholder text "Add content..." prepended to the typed text instead of
+  replacing it, and keyboard `ctrl+a`+`Delete` only removed one character
+  (the select-all didn't target the iframe's own `contentDocument`). Fix:
+  `javascript_tool` reaching into
+  `document.querySelector('iframe.ze_area').contentDocument`, setting the
+  editable `<div>`'s `.innerHTML` directly, and dispatching `input`,
+  `keyup`, `change` events.
+- **Drag-and-drop field placement is unreliable at 100% zoom**: dropping the
+  Description field from the palette near the top of the form landed it at
+  the very end of the form instead (or, dropped over the title/header area,
+  added nothing at all). Fix: `document.body.style.zoom = '0.5'` via
+  `javascript_tool` so both the palette source and the intended drop target
+  were simultaneously visible, then a single `left_click_drag` correctly
+  inserted the field at the top; zoom reset to `'1'` afterward and placement
+  confirmed via screenshot.
+- **Thank You Page textarea**: `ctrl+a`+`type` inserted the new text before
+  the old text rather than replacing it (the 100-char cap interrupted the
+  typing mid-stream), producing an over-length string and a stale "Maximum
+  length exceeded" error that persisted even after the text was corrected.
+  Fix: set the value via `javascript_tool` using the native
+  `HTMLTextAreaElement.prototype.value` setter + `input`/`change` dispatch,
+  then cleared the stale validation error with one real keystroke (`End` →
+  `BackSpace` → retype the last character) to force re-validation.
+
+### 10.2 "M4 - Discharge Write-back" flow — `submitDischargeFeedbackResponse` corrected
+
+Opened via the node's "⋮" menu → "View function" (not the pencil icon, which
+opens parameter mapping, and not clicking the node's title, which enters
+inline rename mode). Removed the `anythingElse` parameter from the function
+signature (now 6 params, not 7 — see `m4-data-model.md`'s corrected
+signature) and removed the corresponding
+`responseText = responseText + "Looking Ahead: Anything Else: " + ...`
+concatenation line, so `responseText` now goes directly from the Likelihood
+line to the Connection line. Saved successfully — confirmation toast "We
+have successfully updated the function."
+
+Reopened the flow node's parameter-mapping panel (pencil icon) afterward:
+all 6 remaining parameters were already correctly mapped to their "Form
+entry submitted" fields, and the `anythingElse` mapping chip had been
+auto-removed by Zoho Flow with no orphan reference — Zoho Flow derives a
+function node's parameter list from the current function signature, so no
+separate manual step was needed here. (The mapping panel's field-reference
+captions still show the pre-correction question wording; this is cosmetic
+only, since Zoho Forms fields are bound by internal field ID, not label
+text.)
+
+**Anomaly encountered, investigated, and resolved as spurious**: saving the
+edited function twice triggered Zoho Flow's "used in other flows" warning,
+naming "M5 - Discontinuation Trigger" — a genuinely concerning signal, since
+M4 and M5 write-back logic should be fully independent (unlike the
+legitimately shared `issueFeedbackToken`/`isCreatedAfterCutoff` functions).
+Investigated by opening both "M5 - Discontinuation Trigger" and "M5 -
+Discontinuation Write-back" in the Builder and inspecting every custom
+function node directly: M5-Trigger uses only `checkDischargeExists`-sibling
+`checkDiscontinuationExists` and the shared `issueFeedbackToken` (neither is
+`submitDischargeFeedbackResponse`), and M5-Write-back uses its own,
+completely separate `submitDiscontinuationFeedbackResponse` function with a
+different signature entirely. Concluded the warning is a stale/incorrect
+entry in Zoho Flow's own dependency-tracking UI, not a real cross-flow
+dependency, and proceeded with the save. **Worth a sanity-check note to
+Costin** — not a blocker, but flagged in case Zoho's dependency tracking is
+also wrong elsewhere in ways that matter more.
+
+### 10.3 Zoho Analytics — "Looking Ahead: Anything Else" column removed, downstream impact assessed
+
+Per Costin's "assess impact... e.g., do we need to update the analytics
+dashboard" instruction:
+
+1. Attempted to delete the "Looking Ahead: Anything Else" formula column
+   directly from the "Milestone Instances" base table — blocked: "Column...
+   cannot be deleted due to the following reason: Used in the Report 'M4
+   Submitted Responses'."
+2. Opened "M4 Submitted Responses" in Edit Design mode (the read-only View
+   Mode column menu has no true remove option, only Hide/Freeze/Format).
+   Removed the column from the report's column list via its chip's "X"
+   (confirmed by tooltip it was the "Anything Else" chip, not the adjacent
+   "Likelihood To Recommend" one, since both truncate to "Looking Ahe..."),
+   then Saved. Verified in View Mode: correct 10 remaining columns, renders
+   without error.
+3. Retried "Delete Column" on "Looking Ahead: Anything Else" in "Milestone
+   Instances" — succeeded this time, no further blocking dependency.
+4. **Checked every other M4-related report and the M4 dashboard individually
+   for any reference to the deleted column**, since Zoho's "used in a
+   report" check only covers reports, not necessarily every place a column
+   could be referenced:
+   - "M4 Looking Ahead: Likelihood To Recommend Distribution" — columns are
+     Likelihood To Recommend, Id, Milestone Instance, Created/Modified Time
+     only; no reference. 0 rows (pre-existing, expected — no live M4
+     submissions exist yet).
+   - "M4 Status Breakdown" — no reference (bar chart over `Status`/`Id`
+     only).
+   - "M2, M3 & M4 Flagged for Review" — column list has no "Anything Else"
+     entry; no reference.
+   - "M4 - Discharge Feedback" dashboard — bundles exactly the four reports
+     above; all four render correctly in View Mode (two chart panels show
+     "No Data Available", two tabular panels show correct headers with 0
+     rows — all expected pre-live-test state, not a symptom of the column
+     removal).
+
+   No other report, view, or dashboard in the workspace referenced the
+   removed column. Downstream impact assessment complete — no further
+   Analytics changes needed.
+
+`m4-data-model.md` and `m4-research.md` have been updated in the same
+session to record the corrected form content, Response_Data blob shape (5
+segments, not 6), write-back function signature, and Analytics column list,
+per CLAUDE.md's same-session documentation convention.
+
+### 10.4 Not yet done / flagged for Costin
+
+- **Live end-to-end verification of the corrected form/flow/Analytics is
+  still pending** — per the standing instruction that Costin runs live test
+  submissions himself, no test submission was made this session. The form's
+  question text/structure should be spot-checked against Confluence by
+  loading the live form (without submitting) before Costin's own M4
+  happy-path test resumes.
+- **Two anomalies worth a sanity-check note to Costin, not yet raised**:
+  (1) the spurious "M5 - Discontinuation Trigger" dependency warning (§10.2
+  above) when saving `submitDischargeFeedbackResponse` — investigated and
+  concluded to be stale Zoho Flow UI state, not a real dependency, but
+  worth Zoho support attention if it recurs; (2) a previously-observed
+  (earlier session) "You've been moved to the Free Plan" warning modal in
+  Zoho Flow, potentially relevant given this pipeline now has more than 5
+  live flows — a subsequent test run completed successfully, so it may be a
+  grace-period notice only, but it hasn't been formally surfaced to Costin.
+- Flows remain **OFF**, matching every prior milestone's build-first-
+  verify-later convention. No live/end-to-end test was run this session.

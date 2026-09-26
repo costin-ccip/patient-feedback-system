@@ -2,7 +2,10 @@
 
 **Input**: `m4-plan.md`, `m4-research.md`
 
-**Date**: 2026-09-23
+**Date**: 2026-09-23 (form field wording, Response_Data blob shape, and
+Analytics columns corrected 2026-09-26 against the real Confluence source —
+see the "Corrected 2026-09-26" notes inline below and
+`m4-implementation-notes.md` §10 for the full change record)
 
 ## Milestone_Instances usage for M4
 
@@ -167,11 +170,17 @@ build-first-verify-later convention.
 
 ## Response_Data blob format for the Discharge Feedback survey
 
-6 `---`-delimited segments. Field order deliberately different from the
-form's on-screen section order — see `m4-research.md` Decision 5:
+**Corrected 2026-09-26** (`m4-implementation-notes.md` §10; `m4-research.md`
+Decision 5's superseded note): originally drafted as 6 segments including a
+freeform "Looking Ahead: Anything Else" segment. Confluence's real source
+page ("Milestone 4 — Discharge Survey") confirms M4 has no freeform field —
+"No open text, consistent with Milestones 2–3, to minimize HIPAA exposure" —
+so the blob is **5** `---`-delimited segments. Field order deliberately
+different from the form's on-screen section order — see `m4-research.md`
+Decision 5:
 
 ```text
-Looking Ahead: Likelihood To Recommend (0-10): {value}---Looking Ahead: Anything Else: {value}---Connection (0-10): {value}---Understanding (0-10): {value}---Shared direction (0-10): {value}---Fit of approach (0-10): {value}
+Looking Ahead: Likelihood To Recommend (0-10): {value}---Connection (0-10): {value}---Understanding (0-10): {value}---Shared direction (0-10): {value}---Fit of approach (0-10): {value}
 ```
 
 The last 4 segments are **byte-for-byte identical label text** to M2/M3's
@@ -183,14 +192,14 @@ edits**, per `m4-research.md` Decision 5.
 
 **Write-back function**: `submitDischargeFeedbackResponse` — same pure
 string-concatenation shape as `submitAllianceCheckInResponse`/
-`submitPeriodicCheckInResponse`, 7 input parameters (`token`,
-`likelihoodToRecommend`, `anythingElse`, `connection`, `understanding`,
-`sharedDirection`, `fitOfApproach`). Illustrative draft (confirm exact syntax
-against the live Deluge editor when built, per every prior milestone's
-"verify, don't assume" discipline):
+`submitPeriodicCheckInResponse`, **6** input parameters (`token`,
+`likelihoodToRecommend`, `connection`, `understanding`, `sharedDirection`,
+`fitOfApproach` — no `anythingElse`, removed 2026-09-26). As built and
+verified live in the Zoho Flow Deluge editor (`m4-implementation-notes.md`
+§10):
 
 ```text
-map submitDischargeFeedbackResponse(string token,string likelihoodToRecommend,string anythingElse,string connection,string understanding,string sharedDirection,string fitOfApproach)
+map submitDischargeFeedbackResponse(string token,string likelihoodToRecommend,string connection,string understanding,string sharedDirection,string fitOfApproach)
 {
 	resp = Map();
 	if(token == null || token.trim() == "")
@@ -237,7 +246,6 @@ map submitDischargeFeedbackResponse(string token,string likelihoodToRecommend,st
 		return resp;
 	}
 	responseText = "Looking Ahead: Likelihood To Recommend (0-10): " + ifnull(likelihoodToRecommend,"") + "---";
-	responseText = responseText + "Looking Ahead: Anything Else: " + ifnull(anythingElse,"") + "---";
 	responseText = responseText + "Connection (0-10): " + ifnull(connection,"") + "---";
 	responseText = responseText + "Understanding (0-10): " + ifnull(understanding,"") + "---";
 	responseText = responseText + "Shared direction (0-10): " + ifnull(sharedDirection,"") + "---";
@@ -260,35 +268,47 @@ auto-expire structure as every prior write-back function.
 
 ## "Cape Clarity Discharge Feedback" Zoho Form
 
-6 substantive fields + hidden token, on-screen order: Alliance Check-In (1,
-reused sliders), Looking Ahead (2, new fields):
+**Corrected 2026-09-26 against the real Confluence source** ("Milestone 4 —
+Discharge Survey"; see `m4-research.md` Decision 4's superseded note and
+`m4-implementation-notes.md` §10 for the full change record). 5 substantive
+fields + an intro Description field + hidden token, on-screen order: Intro,
+Alliance Check-In (1, reused-instrument sliders), Looking Ahead (2, one
+slider, no freeform field):
 
-1. **Slider — Connection** (reused verbatim from M2/M3): "Overall, how
-   comfortable have you felt being open and honest with your therapist so
-   far?" / "Domain: Connection. 0 = Not comfortable, 10 = Very comfortable."
-   / range 0-10 / Mandatory.
-2. **Slider — Understanding** (reused verbatim): "Overall, how well do you
-   feel your therapist has understood what matters to you so far?" /
-   "Domain: Understanding. 0 = Not understood, 10 = Fully understood." /
-   range 0-10 / Mandatory.
-3. **Slider — Shared direction** (reused verbatim): "Overall, how much do
-   you feel you and your therapist agree on what you're working toward?" /
-   "Domain: Shared direction. 0 = Not aligned, 10 = Fully aligned." / range
-   0-10 / Mandatory.
-4. **Slider — Fit of approach** (reused verbatim): "Overall, how well has
-   your therapist's approach been working for you so far?" / "Domain: Fit
-   of approach. 0 = Hasn't worked, 10 = Worked well." / range 0-10 /
-   Mandatory.
-5. **Slider — Likelihood to recommend** (new, drafted this session, **not
-   yet reviewed by Costin/Liana** — per `m4-research.md` Decision 4): "How
-   likely are you to recommend Cape Clarity to someone in a similar
-   situation?" / "0 = Not at all likely, 10 = Extremely likely." / range
-   0-10 / Mandatory.
-6. **Multi Line — Anything else looking ahead** (new, same review caveat):
-   "Is there anything else you'd like to share as you finish up your care
-   with us?" / Optional.
-7. **Single Line — Token**: label "Token", Visibility = Hide. Same
+0. **Description (intro copy)**, shown once as the very first field: "As you
+   finish up here, we'd love to hear how things feel looking back on your
+   time with us. This takes about a minute, there's no right or wrong
+   answer, and it genuinely helps us understand what this time has meant
+   and how we can keep showing up well for the people we work with."
+1. **Slider — Connection** (instrument reused from M2/M3; prompt wording
+   corrected to match Confluence): "Overall, how comfortable have you felt
+   being open and honest with your therapist?" / 0 = Not comfortable, 10 =
+   Very comfortable. / range 0-10 / Mandatory.
+2. **Slider — Understanding** (wording corrected): "Overall, how well do you
+   feel your therapist understood what matters to you?" / 0 = Not
+   understood, 10 = Fully understood. / range 0-10 / Mandatory.
+3. **Slider — Shared direction** (wording corrected): "Overall, how much did
+   you and your therapist agree on what you were working toward?" / 0 = Not
+   aligned, 10 = Fully aligned. / range 0-10 / Mandatory.
+4. **Slider — Fit of approach** (wording corrected): "Overall, how well did
+   your therapist's approach work for you?" / 0 = Didn't work, 10 = Worked
+   well. / range 0-10 / Mandatory.
+5. **Slider — Likelihood to continue/refer** (wording corrected): "Looking
+   back, how likely would you be to return to Cape Clarity in the future,
+   or recommend us to someone else facing something similar?" / range 0-10
+   / Mandatory.
+6. **Single Line — Token**: label "Token", Visibility = Hide. Same
    hidden-prefill-token pattern as every prior form.
+
+**No freeform field** (the originally-drafted "Anything else looking ahead"
+Multi Line field was removed 2026-09-26 — Confluence's design notes are
+explicit that M4 has no open-text field, "consistent with Milestones 2–3, to
+minimize HIPAA exposure").
+
+**Thank You Page** (Plain Text, 100-char cap): Confluence's exact closing
+line is 195 characters and doesn't fit; shortened while preserving the
+sentiment: "Thank you for trusting us with this part of your journey — we're
+glad you spent this time with us." (98 chars).
 
 No name, email, or phone field, per Principle I.
 
@@ -301,12 +321,21 @@ No name, email, or phone field, per Principle I.
   M4 rows only because Decision 5 keeps it last in the blob)
 - Alliance Check-In Total (`SUM`/`to_integer()` of the 4 Domain columns)
 
-**New, M4-only** (bounded `substring_between`, since each is followed by
-another segment in the chosen order):
+**New, M4-only**:
 - **Looking Ahead: Likelihood To Recommend** —
   `substring_between("Milestone Instances"."Response Data", 'Looking Ahead: Likelihood To Recommend (0-10): ', '---', 1)`
-- **Looking Ahead: Anything Else** —
-  `substring_between("Milestone Instances"."Response Data", 'Looking Ahead: Anything Else: ', '---', 1)`
+  (bounded `substring_between`, since it's followed by another segment).
+
+**Removed 2026-09-26** (`m4-implementation-notes.md` §10): **"Looking Ahead:
+Anything Else"** formula column — the underlying freeform form field was
+removed per the Confluence-sourced correction (see above), so this column
+had nothing to parse. Deleted from the "Milestone Instances" base table
+after first removing it from the "M4 Submitted Responses" report's column
+list (Zoho Analytics blocks deleting a column that's still referenced by a
+report). No other report or dashboard in the workspace referenced this
+column — confirmed by checking every M4-related report ("M4 Looking Ahead:
+Likelihood To Recommend Distribution", "M4 Status Breakdown", "M2, M3 & M4
+Flagged for Review", the "M4 - Discharge Feedback" dashboard) individually.
 
 **Modified, shared with M2/M3** (`m4-research.md` Decision 6 — requires
 `m2-implementation-notes.md` AND `m3-implementation-notes.md` updates in the
@@ -330,11 +359,13 @@ don't assume" discipline.
 ## Reporting (User Story 6 / FR-018 baseline bar; FR-013 flag visibility)
 
 - **"M4 Submitted Responses"** — new Tabular View, same shape as M2/M3's:
-  Submitted Date Time, Token, Looking Ahead: Likelihood To Recommend, Looking
-  Ahead: Anything Else, Domain: Connection, Domain: Understanding, Domain:
-  Shared Direction, Domain: Fit Of Approach, Alliance Check-In Total,
-  Clinical Safety Flag, Flag Rule Triggered. No `Patient`/identity column.
-  Filtered to `Milestone` Wildcard Exactly Matches `"4 - Discharge"`.
+  Submitted Date Time, Token, Looking Ahead: Likelihood To Recommend, Domain:
+  Connection, Domain: Understanding, Domain: Shared Direction, Domain: Fit Of
+  Approach, Alliance Check-In Total, Clinical Safety Flag, Flag Rule
+  Triggered. No `Patient`/identity column. Filtered to `Milestone` Wildcard
+  Exactly Matches `"4 - Discharge"`. (Originally included a "Looking Ahead:
+  Anything Else" column; removed 2026-09-26 along with the underlying
+  freeform field and formula column — see above.)
 - **"M4 Status Breakdown"** — status/volume view, "Save As" off M2's or M3's
   equivalent, Milestone filter swapped to `"4 - Discharge"`.
 - **"M4 Looking Ahead: Likelihood To Recommend Distribution"** —

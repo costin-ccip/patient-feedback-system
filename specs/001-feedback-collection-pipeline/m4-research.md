@@ -183,38 +183,76 @@ this milestone no longer closes any pre/post wellbeing comparison." Per the
 fifth-pass spec revision note: Milestone 3's "likelihood to continue/refer"
 question was removed because it's "already captured at Milestone 4" — meaning
 M4 is expected to carry a likelihood-to-refer/recommend question in its
-Looking Ahead section. No exact wording for this section exists anywhere in
-this repo (the source Confluence design pages aren't available to this
-session) — same situation M1/M2/M3 were in for their own new content, each
-flagged as drafted-not-sourced pending Costin/Liana review.
+Looking Ahead section.
 
-**Structure** (2 new fields, drafted this session, **not yet reviewed by
-Costin/Liana** — same caveat as every prior milestone's own new copy):
+**Superseded 2026-09-26**: this session gained direct Confluence access via
+the `Atlassian_Rovo` MCP tools and fetched the actual source page, "Milestone
+4 — Discharge Survey" (`https://icostin.atlassian.net/wiki/spaces/LP/pages/564101170/Milestone+4+Discharge+Survey`,
+last modified 2026-09-11). The drafted-not-sourced structure below (as
+originally written 2026-09-23) turned out to diverge from the real source in
+three ways: (1) the live Zoho form's four alliance-domain questions and the
+Looking Ahead question were worded slightly differently from Confluence's
+actual prompts; (2) Confluence's own design notes explicitly rule out any
+open-text field for M4 ("No open text, consistent with Milestones 2–3, to
+minimize HIPAA exposure and avoid an unmonitored channel for clinical
+disclosures") — the "Anything else looking ahead" field drafted below should
+never have been added; (3) Confluence specifies an intro paragraph (shown
+once, before Section 1) and a closing line, neither of which existed in the
+original draft. Costin reviewed these findings and gave explicit approval —
+"fix it all now and assess impact on other parts of the flow as well (e.g.,
+do we need to update the analytics dashboard)" — and the live form, the
+`submitDischargeFeedbackResponse` write-back function, and the Analytics
+objects were all corrected to match. Full change record: 
+`m4-implementation-notes.md` §10. The **confirmed, Confluence-sourced**
+structure is below, replacing the original draft in this section.
 
-1. **Slider — Likelihood to recommend** (0-10): "How likely are you to
-   recommend Cape Clarity to someone in a similar situation?" / "0 = Not at
-   all likely, 10 = Extremely likely." Mandatory. This is the question
-   `m3-research.md` (Decision 3) and spec.md's fifth-pass note both point to
-   as already-scoped-for-M4 content, so it's the one piece of M4's Looking
-   Ahead section with a documented reason to exist, even though its exact
-   wording is still new.
-2. **Multi Line — Anything else looking ahead**: "Is there anything else
-   you'd like to share as you finish up your care with us?" Optional
-   (freeform text is never a Clinical Safety Flag input and doesn't need to
-   be mandatory to satisfy any requirement here — mirrors M0's optional
-   "Anything Else" field).
+**Structure** (confirmed against Confluence 2026-09-26, no longer a draft):
 
-Plus the 4 alliance domain sliders, reused **verbatim** from M2/M3 (same
-prompt/instructions/range text, byte-for-byte) — Connection, Understanding,
-Shared direction, Fit of approach — since spec.md describes M4's alliance
-reading as "final" in content, not different in instrument. On-screen section
-order: Alliance Check-In (1, reused sliders), Looking Ahead (2, the two new
-fields) — the reverse of M3's order (Alliance last) because M4 has only two
-sections and spec.md's own prose order for M4 is "an alliance reading...plus
-a looking ahead...section", alliance first.
+- **Intro** (Description field, shown once before Section 1): "As you finish
+  up here, we'd love to hear how things feel looking back on your time with
+  us. This takes about a minute, there's no right or wrong answer, and it
+  genuinely helps us understand what this time has meant and how we can keep
+  showing up well for the people we work with."
+- **Section 1 — Alliance Check-In (final reading)**, 4 sliders reused
+  verbatim in *instrument* from M2/M3 (same domains, same 0-10 scale) but
+  with prompt wording corrected to Confluence's actual text (past tense,
+  "so far" dropped):
+  1. Connection: "Overall, how comfortable have you felt being open and
+     honest with your therapist?" / 0 (Not comfortable) – 10 (Very
+     comfortable).
+  2. Understanding: "Overall, how well do you feel your therapist understood
+     what matters to you?" / 0 (Not understood) – 10 (Fully understood).
+  3. Shared direction: "Overall, how much did you and your therapist agree
+     on what you were working toward?" / 0 (Not aligned) – 10 (Fully
+     aligned).
+  4. Fit of approach: "Overall, how well did your therapist's approach work
+     for you?" / 0 (Didn't work) – 10 (Worked well).
+- **Section 2 — Looking ahead**, 1 slider (no freeform field — see
+  superseded note above):
+  5. Likelihood to continue/refer: "Looking back, how likely would you be to
+     return to Cape Clarity in the future, or recommend us to someone else
+     facing something similar?" / 0-10. Mandatory.
+- **Closing line** (Thank You Page): Confluence's exact text — "Thank you
+  for trusting us with this part of your journey. Wherever you go from here,
+  we're genuinely glad you spent this time with us, and the door is always
+  open if you'd like to come back." — is 195 characters, over Zoho Forms'
+  100-character Plain Text Thank You Page cap. Shortened to fit while
+  preserving the sentiment: "Thank you for trusting us with this part of
+  your journey — we're glad you spent this time with us." (98 chars). See
+  `m4-implementation-notes.md` §10 for the mechanics of setting this.
+
+On-screen section order: Alliance Check-In (1, reused sliders), Looking Ahead
+(2, the new field) — matches spec.md's own prose order for M4 ("an alliance
+reading...plus a looking ahead...section", alliance first) and Confluence's
+own section order.
 
 Plus the hidden `Token` single-line field, same prefill-URL pattern as every
 prior form.
+
+**No freeform field on this form** (corrected 2026-09-26 — see superseded
+note above): unlike M0, M4 has no "Anything Else" style open-text field.
+Confluence's design notes are explicit that M4 follows M2/M3's no-open-text
+convention, not M0's.
 
 **Rejected alternative**: a wellbeing pre/post close-out question, since M4
 is the natural point in a patient's journey to "close the loop" on any
@@ -226,33 +264,26 @@ would resurrect content the spec deliberately eliminated.
 
 ## Decision 5: Response_Data blob field order
 
-6 segments. Same reasoning as `m3-research.md` Decision 4 (M3): put the new
-content first, keep the 4 reused alliance domains last in the exact same
-relative order M2/M3 use, so the existing "Domain: Connection", "Domain:
-Understanding", "Domain: Shared Direction" (bounded `substring_between`) and
-"Domain: Fit Of Approach" (the unbounded-last-field pattern) Analytics
-formula columns parse M4 rows with **zero formula edits**, exactly as they
-already do for M3 rows:
+**Corrected 2026-09-26** (see Decision 4's superseded note): originally
+drafted as 6 segments including a freeform "Looking Ahead: Anything Else"
+segment; Confluence confirms M4 has no freeform field, so the blob is **5
+segments**. Same reasoning as `m3-research.md` Decision 4 (M3) for the
+remaining shape: put the new content first, keep the 4 reused alliance
+domains last in the exact same relative order M2/M3 use, so the existing
+"Domain: Connection", "Domain: Understanding", "Domain: Shared Direction"
+(bounded `substring_between`) and "Domain: Fit Of Approach" (the
+unbounded-last-field pattern) Analytics formula columns parse M4 rows with
+**zero formula edits**, exactly as they already do for M3 rows:
 
 ```text
-Looking Ahead: Likelihood To Recommend (0-10): {value}---Looking Ahead: Anything Else: {value}---Connection (0-10): {value}---Understanding (0-10): {value}---Shared direction (0-10): {value}---Fit of approach (0-10): {value}
+Looking Ahead: Likelihood To Recommend (0-10): {value}---Connection (0-10): {value}---Understanding (0-10): {value}---Shared direction (0-10): {value}---Fit of approach (0-10): {value}
 ```
-
-The freeform "Looking Ahead: Anything Else" segment sits mid-blob (not last),
-bounded by `substring_between` like every other non-terminal segment — the
-same pattern `m0-implementation-notes.md` §4/§6 already establishes for its
-own two freeform fields ("Additional Comments", "Anything Else"), one of
-which is mid-blob and bounded exactly this way. A freeform answer containing
-the literal delimiter text (`---`) would corrupt parsing from that point
-forward; this is an accepted, undocumented-until-now edge case already
-implicit in M0's design and not something this milestone introduces or needs
-to newly solve.
 
 **Write-back function**: `submitDischargeFeedbackResponse` — same pure
 string-concatenation shape as `submitAllianceCheckInResponse`/
-`submitPeriodicCheckInResponse`, 7 input parameters (`token`,
-`likelihoodToRecommend`, `anythingElse`, `connection`, `understanding`,
-`sharedDirection`, `fitOfApproach`), identical token-lookup /
+`submitPeriodicCheckInResponse`, **6** input parameters (`token`,
+`likelihoodToRecommend`, `connection`, `understanding`, `sharedDirection`,
+`fitOfApproach` — no `anythingElse`), identical token-lookup /
 `Status != "Issued"` rejection / expiry-check-and-auto-expire structure as
 every prior write-back function. No arithmetic, no conditional flag logic,
 per Constitution Principle VII.
