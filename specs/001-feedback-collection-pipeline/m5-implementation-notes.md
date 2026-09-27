@@ -10,14 +10,24 @@
 > it's built, per the `CLAUDE.md` convention of updating implementation notes
 > in the same session as the change.
 >
-> Last updated: 2026-09-26
-> Status update (2026-09-26): both flows are now live/ON and Costin is
-> running live end-to-end tests himself. §9 and §10 document two fixes found
-> during that live testing (a missing Field Alias on the hidden Token field,
-> and a broken patient-facing survey link caused by a styled `<a>` tag instead
-> of the established plain-URL convention) — the rest of this header (below)
-> predates live testing and is left as-is for history; treat §9/§10 as the
-> current state of the patient-facing Send Email step.
+> Last updated: 2026-09-27
+> Status update (2026-09-27): both flows are still live/ON and Costin is
+> running live end-to-end tests himself. §9, §10 and §11 document three fixes
+> found during that live testing (a missing Field Alias on the hidden Token
+> field, a broken patient-facing survey link caused by a styled `<a>` tag
+> instead of the established plain-URL convention, and — most recently — a
+> genuine Zoho-side 404 bug on the public form permalink itself, fixed by
+> rebuilding the form as a new object, same as M0 §13) — the rest of this
+> header (below) predates live testing and is left as-is for history; treat
+> §9/§10/§11 as the current state of the patient-facing survey form and Send
+> Email step. **§11 also flags an unresolved, pre-existing issue**: the "M5 -
+> Discontinuation Write-back" flow's trigger still points at the now-retired
+> form object and could not be repointed in this session because the shared
+> "Connection to Cape Clarity Zoho Forms" connection is showing "The
+> connection does not have permission to process this trigger" on every flow
+> that uses it (confirmed on M4's write-back flow too, untouched by this
+> session, so it's a connection-wide problem, not something this session
+> caused) — fixing it needs an OAuth reconnect only Costin can approve.
 > Status: **T001 (the "Cape Clarity Discontinuation Feedback" Zoho Form, all
 > 3 fields + thank-you page) is built and verified by screenshot after each
 > field save — see §1. One deviation from the sourced closing line, forced
@@ -484,7 +494,130 @@ each edit with a small selection check (e.g. `Shift+→` over 1-2 characters)
 before typing, rather than assuming a click landed at the intended character
 offset.
 
-**Not yet done**: Costin was mid-test when this was found; this fix has not
-yet been confirmed against a fresh live send (his in-flight test's email was
-already sent before the fix, so it will still show the old broken link — he'll
-need to re-trigger M5 for a test patient to see the corrected email).
+**Confirmed (2026-09-27)**: Costin re-triggered M5 for a fresh test patient
+and the email now renders the survey link as clean plain text (no more
+literal `[Share a quick note →](url)`). That confirmed this fix — but revealed
+a second, separate bug in the link itself: see §11.
+
+## 11. Fix (2026-09-27): public survey form permalink 404'd — form rebuilt as
+a new object, same bug class as M0 §13
+
+**Symptom**: after §10's link-text fix was confirmed (email now shows the
+plain-text link correctly), Costin re-tested M5 again and reported that
+clicking the survey link now returns Zoho's own "Sorry! Page not found."
+error page (screenshot attached to his report). The link he received:
+
+```
+https://forms.zohopublic.com/lianapreudhommecapec1/form/CapeClarityDiscontinuationFeedback/formperma/6h7a2uGbEbrORj9hjp_eIKb5eV9ocY4ctW2efXxHXmw?token=<real-resolved-token>
+```
+
+**Diagnosis**, following the exact playbook `m0-implementation-notes.md` §13
+used for the same bug class:
+
+- Reproduced the 404 independently by navigating directly to the formperma
+  URL, with and without the `?token=` param — confirmed via
+  `read_network_requests` that the document-level GET itself returns HTTP
+  404 (a genuine server-side 404, not a client-rendering issue).
+- Ruled out a copy/paste mismatch: compared the URL embedded in the flow's
+  Send Email body against the form's own Share tab → Form Permalink (URL)
+  field, byte-for-byte (zoomed screenshot comparison) — they matched
+  exactly.
+- Ruled out the share setting being off: Share Publicly showed **Enabled**.
+- Tried the standard remedy anyway (toggle Share Publicly off, confirm the
+  "this URL will be invalid henceforth" warning, then back on) — did **not**
+  fix it; the 404 reproduced again immediately afterward, same as M0's
+  finding.
+- Ruled out an account-wide problem: a sibling form on the identical
+  `forms.zohopublic.com/.../formperma/...` URL pattern and account (M4's
+  "Cape Clarity Discharge Feedback") resolved fine (HTTP 200, form rendered
+  correctly).
+- Confirmed the form object itself is intact: its authenticated internal
+  Builder preview rendered both fields (the "What led to stepping away..."
+  dropdown and "Would it be okay to reach back out..." radio group)
+  correctly.
+
+Conclusion: the same genuine, reproducible Zoho-side bug M0 §13 already hit
+and documented, specific to that one form object's public formperma link,
+not a configuration error on our side.
+
+**Fix**: rebuilt the form fresh, following M0 §13's remediation exactly.
+Used Zoho Forms' own Duplicate action (My Forms → hover the form's row → "⋮"
+→ Duplicate), named the duplicate "Cape Clarity Discontinuation Feedback
+NEW" at creation time (this also becomes the permanent URL slug —
+`CapeClarityDiscontinuationFeedbackNEW` — cosmetic-only and unaffected by
+retitling afterward, same as M0's `...NEW` slug). Verified before touching
+anything else:
+
+- The hidden Token field's Field Alias (Settings → Prefill → Field Alias -
+  Prefill URL) carried over from the original as `Token` → `token` —
+  Zoho's Duplicate preserves this, so §9's fix did not need to be repeated.
+- Share Publicly was Enabled by default on the duplicate.
+- The new public formperma URL resolves — confirmed via
+  `read_network_requests` showing HTTP 200 on the document-level GET, both
+  with and without a `?token=` test value appended:
+
+  ```
+  https://forms.zohopublic.com/lianapreudhommecapec1/form/CapeClarityDiscontinuationFeedbackNEW/formperma/Sw2QlbJj9kAM5h6Mh5sf_7-M7d7cYFSTdLGv96Dn4Vk
+  ```
+
+**Renaming**: old form's Form Properties → Form title changed to `[RETIRED]
+Cape Clarity Discontinuation Feedback` (Zoho Forms has no direct dashboard
+"Rename" action, same as M0). New form's Form Properties → Form title set to
+the canonical `Cape Clarity Discontinuation Feedback` (its URL slug stays
+`CapeClarityDiscontinuationFeedbackNEW`). The retired form's public sharing
+was left as-is (already effectively dead since it 404s), not explicitly
+disabled — matching M0's choice.
+
+**Flow repointed**: the "M5 - Discontinuation Trigger" flow's patient-facing
+"Send email" node Body was updated (same Draft → "Apply Changes?" review →
+Apply pattern as §10, confirmed the dialog listed only "Configuration changed
+in Send email") to the new permalink, keeping the same
+`?token=${issueFeedbackToken_1.token}` suffix:
+
+```
+Share a quick note: https://forms.zohopublic.com/lianapreudhommecapec1/form/CapeClarityDiscontinuationFeedbackNEW/formperma/Sw2QlbJj9kAM5h6Mh5sf_7-M7d7cYFSTdLGv96Dn4Vk?token=${issueFeedbackToken_1.token}
+```
+
+Edited entirely in the Body field's code view, using the same click →
+`Shift+→` → zoom-verify boundary technique as §10 (verified both the start
+boundary right before `https` and the end boundary right before `?token=`
+before typing the replacement), so no hand-retyping of the rest of the body
+was needed and no WYSIWYG auto-linkification risk was introduced. Live flow
+confirmed matching afterward.
+
+**Not yet repointed — needs Costin**: unlike M0 (which only had to repoint
+one other flow, its write-back trigger, and that connection worked), M5's
+own write-back flow — **"M5 - Discontinuation Write-back"**, trigger "Form
+entry submitted" on the old form — could **not** be repointed in this
+session. Opening that trigger's configuration panel (on this flow, and
+independently confirmed on M4's write-back flow too, which this session
+never touched) shows:
+
+> The connection does not have permission to process this trigger.
+
+with a "Reconnect" button that leads to an OAuth authorization screen. Since
+this is a pre-existing, connection-wide problem (reproduced on an untouched
+flow using the same "Connection to Cape Clarity Zoho Forms" connection) and
+fixing it requires an OAuth grant, it was left alone rather than
+reauthorizing on Costin's behalf. **Practical effect**: until this is fixed
+and the write-back trigger's Form is switched from the retired object to the
+new "Cape Clarity Discontinuation Feedback" form, a real patient's submission
+on the new (working) survey form will not be written back to CRM — the
+write-back flow is still listening on the old, now-dead form object. Costin
+needs to: (1) reconnect/reauthorize "Connection to Cape Clarity Zoho Forms"
+in Zoho Flow (Settings → Connections, or via the Reconnect button on either
+write-back flow's trigger), then (2) reopen the "M5 - Discontinuation
+Write-back" flow's trigger and change its Form from the retired object to
+"Cape Clarity Discontinuation Feedback" (the new one), verify the three
+parameter mappings (`token`, `reasonForLeaving`/"What led to stepping
+away...", `okayToReachBackOut`/"Would it be okay to reach back out...") still
+resolve against the new form's field schema (expected to, since Duplicate
+preserves internal field API names — confirmed by this same pattern in M0
+§13), and apply the change live.
+
+**Verification still pending**: an actual end-to-end submission through the
+new form (token prefill + write-back landing in CRM) has not been tested —
+blocked on the write-back repoint above. Once that's done, re-trigger M5 for
+a fresh test patient and confirm the link both loads (not 404s) and, after
+submitting, the response appears against the right `Milestone_Instances`
+record in CRM.
