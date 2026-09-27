@@ -10,7 +10,14 @@
 > it's built, per the `CLAUDE.md` convention of updating implementation notes
 > in the same session as the change.
 >
-> Last updated: 2026-09-24
+> Last updated: 2026-09-26
+> Status update (2026-09-26): both flows are now live/ON and Costin is
+> running live end-to-end tests himself. §9 and §10 document two fixes found
+> during that live testing (a missing Field Alias on the hidden Token field,
+> and a broken patient-facing survey link caused by a styled `<a>` tag instead
+> of the established plain-URL convention) — the rest of this header (below)
+> predates live testing and is left as-is for history; treat §9/§10 as the
+> current state of the patient-facing Send Email step.
 > Status: **T001 (the "Cape Clarity Discontinuation Feedback" Zoho Form, all
 > 3 fields + thank-you page) is built and verified by screenshot after each
 > field save — see §1. One deviation from the sourced closing line, forced
@@ -411,3 +418,73 @@ reached the field.
 live-tested end-to-end (M5's flows are still OFF per §2/§3), so this is a
 pre-emptive fix — worth confirming during M5's own live test that the
 hidden field actually prefills, same as M2 §13's verification step.
+
+## 10. Fix (2026-09-26): patient-facing survey link rendered as literal
+Markdown-style text instead of a clickable link
+
+**Symptom**: Costin ran a live M5 test (moved a test patient to
+`Discontinued (Patient Choice)`) and received the discontinuation email, but
+the survey link was broken/unclickable and the email "read weird" — it showed
+the literal text `[Share a quick note →](https://forms.zohopublic.com/...)`
+instead of a working hyperlink.
+
+**Root cause**: the patient-facing "Send email" node's Body field (§2's step
+"Then → Zoho Mail 'Send email' (patient-facing)") had the call-to-action built
+as a real HTML anchor — `<a href="...token=${issueFeedbackToken_1.token}">
+<b>Share a quick note →</b></a>` — unlike every other milestone's pattern
+(M0-M4), which prints the raw survey URL directly in the body as plain text
+and relies on the recipient's mail client to auto-linkify it (see e.g.
+`m4-implementation-notes.md` line ~131: "Body's link ends
+`?token=${issueFeedbackToken_1.token}`"). Confirmed via Task History → the
+9/26 7:41:37 PM run's "Send email" step **input** (the fully-resolved payload
+handed to Zoho Mail's API): the Body string Zoho Flow actually sent contained
+a well-formed `<a href="https://forms.zohopublic.com/.../formperma/...?
+token=<real-resolved-token>"><b>Share a quick note →</b></a>` — so the
+`${issueFeedbackToken_1.token}` substitution itself was working correctly;
+the bug was specifically that Zoho Mail's "Send email" action does not render
+this style of anchor tag as a clickable link the way the rest of the flow's
+Send Email nodes' plain-URL bodies do — it (or an intermediate plain-text
+conversion) re-renders the anchor as `[link text](href)`.
+
+Likely origin: `m5-research.md` Decision 4's source table represents the
+call-to-action as `**[Share a quick note →]** (link to the form)` — its own
+authoring shorthand meaning "make this text a link to the form" (the same way
+`[First Name]` there is a placeholder marker, not literal text) — and an
+earlier build pass took that literally and built a styled anchor instead of
+following the established plain-URL convention.
+
+**Fixed**: in the "M5 - Discontinuation Trigger" flow, Builder → the
+patient-facing "Send email" node → pencil/edit icon (not the "⋮" menu, which
+only opens a generic Clone/Delete context menu) opens the node's full
+configuration panel. In the Body field's code view (`<>` toolbar icon),
+replaced the `<a href="..."><b>Share a quick note →</b></a>` block with plain
+text, matching M0-M4's convention exactly:
+
+```
+Share a quick note: https://forms.zohopublic.com/lianapreudhommecapec1/form/CapeClarityDiscontinuationFeedback/formperma/6h7a2uGbEbrORj9hjp_eIKb5eV9ocY4ctW2efXxHXmw?token=${issueFeedbackToken_1.token}
+```
+
+No other part of the Body changed. Saved via the node panel's "Done" (which
+puts the flow into a **Draft** state — the live flow keeps running the old
+version until explicitly published), then reviewed the single pending change
+("Configuration changed in Send email") in the "Apply Changes?" dialog before
+clicking **Apply** — confirmed via the success toast and by re-opening the
+node afterward that the live version now matches. Node title is unchanged
+("Send email"); no other node, connection, or field was touched.
+
+**Builder gotcha worth flagging for future sessions**: the Body field's
+WYSIWYG (rich-text) editor auto-linkifies a bare URL as soon as you type
+adjacent text next to `https://` — if a character lands immediately before
+the URL with no space (e.g. from an imprecise text replacement), the editor
+can silently wrap the URL in its own generated `<a>` tag with a mangled href
+(observed once mid-fix: `href="http://..."` — note the dropped `s` — wrapping
+a duplicated copy of the URL text). Safer to make this kind of body edit
+entirely in the code view (`<>` icon), never partly in WYSIWYG, and to verify
+each edit with a small selection check (e.g. `Shift+→` over 1-2 characters)
+before typing, rather than assuming a click landed at the intended character
+offset.
+
+**Not yet done**: Costin was mid-test when this was found; this fix has not
+yet been confirmed against a fresh live send (his in-flight test's email was
+already sent before the fix, so it will still show the old broken link — he'll
+need to re-trigger M5 for a test patient to see the corrected email).
