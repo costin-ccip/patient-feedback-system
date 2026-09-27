@@ -20,14 +20,19 @@
 > rebuilding the form as a new object, same as M0 §13) — the rest of this
 > header (below) predates live testing and is left as-is for history; treat
 > §9/§10/§11 as the current state of the patient-facing survey form and Send
-> Email step. **§11 also flags an unresolved, pre-existing issue**: the "M5 -
-> Discontinuation Write-back" flow's trigger still points at the now-retired
-> form object and could not be repointed in this session because the shared
-> "Connection to Cape Clarity Zoho Forms" connection is showing "The
-> connection does not have permission to process this trigger" on every flow
-> that uses it (confirmed on M4's write-back flow too, untouched by this
-> session, so it's a connection-wide problem, not something this session
-> caused) — fixing it needs an OAuth reconnect only Costin can approve.
+> Email step. **§11's "Resolved" subsection**: the "M5 - Discontinuation
+> Write-back" flow's trigger was pointing at the now-retired form object and
+> couldn't be repointed at first because the shared "Connection to Cape
+> Clarity Zoho Forms" connection was showing "The connection does not have
+> permission to process this trigger" on every flow that used it (confirmed
+> on M4's write-back flow too). Costin reconnected the connection and gave
+> explicit go-ahead for this session to complete a second, trigger-specific
+> OAuth authorization step that the general reconnect didn't cover; the
+> trigger's Form was then switched to the new form, its field mappings
+> verified, and the change applied live. M4's trigger also cleared (no
+> changes needed there — its Form was already correct). Only real
+> end-to-end verification (a live submission actually landing in CRM) is
+> still pending — see §11's closing note.
 > Status: **T001 (the "Cape Clarity Discontinuation Feedback" Zoho Form, all
 > 3 fields + thank-you page) is built and verified by screenshot after each
 > field save — see §1. One deviation from the sourced closing line, forced
@@ -585,39 +590,47 @@ before typing the replacement), so no hand-retyping of the rest of the body
 was needed and no WYSIWYG auto-linkification risk was introduced. Live flow
 confirmed matching afterward.
 
-**Not yet repointed — needs Costin**: unlike M0 (which only had to repoint
-one other flow, its write-back trigger, and that connection worked), M5's
-own write-back flow — **"M5 - Discontinuation Write-back"**, trigger "Form
-entry submitted" on the old form — could **not** be repointed in this
-session. Opening that trigger's configuration panel (on this flow, and
-independently confirmed on M4's write-back flow too, which this session
-never touched) shows:
+**Resolved (2026-09-27, later same day)**: Costin reconnected "Connection to
+Cape Clarity Zoho Forms" in Zoho Flow (Settings → Connections — the general
+connection-level reconnect). That alone did **not** clear the error on
+either write-back flow's trigger; reopening "M5 - Discontinuation
+Write-back"'s trigger config still showed the same "The connection does not
+have permission to process this trigger." with its own separate
+"Reconnect" button. Confirmed with Costin before proceeding (per this
+session's standing rule on OAuth/SSO grants), then clicked that trigger's
+own "Reconnect" → "Authorize" (scoped to "Form entry submitted" only, per
+the "Only specific triggers and actions" option already selected) — this
+is a second, trigger-specific authorization step distinct from the
+connection-level reconnect Costin had already done, and it's what actually
+cleared the error (toast: "Connection reconnected").
 
-> The connection does not have permission to process this trigger.
+With the trigger config now loading cleanly, changed its **Form** field from
+`[RETIRED] Cape Clarity Discontinuation Feedback` to the new **Cape Clarity
+Discontinuation Feedback** (the rebuilt object, §11 above). Opened the
+downstream `submitDiscontinuationFeedbackResponse` function step and
+confirmed all three parameter mappings resolved cleanly against the new
+form's fields with no broken references: `token` → Form entry submitted →
+Token, `reasonForLeaving` → Form entry submitted → "What led to stepping
+away from sessions right now?", `okayToReachBackOut` → Form entry submitted
+→ "Would it be okay to reach back out if things change?" (as expected,
+since Duplicate preserves internal field API names — same pattern already
+confirmed in M0 §13). Saved the trigger config ("Done"), which put the flow
+into Draft, then **Apply changes** → confirmed the review dialog showed
+exactly one change ("Configuration changed in Form entry submitted") →
+**Apply**. Flow returned to **• Live**. Re-opened the trigger config
+afterward to confirm the Form field change had actually persisted (it had).
 
-with a "Reconnect" button that leads to an OAuth authorization screen. Since
-this is a pre-existing, connection-wide problem (reproduced on an untouched
-flow using the same "Connection to Cape Clarity Zoho Forms" connection) and
-fixing it requires an OAuth grant, it was left alone rather than
-reauthorizing on Costin's behalf. **Practical effect**: until this is fixed
-and the write-back trigger's Form is switched from the retired object to the
-new "Cape Clarity Discontinuation Feedback" form, a real patient's submission
-on the new (working) survey form will not be written back to CRM — the
-write-back flow is still listening on the old, now-dead form object. Costin
-needs to: (1) reconnect/reauthorize "Connection to Cape Clarity Zoho Forms"
-in Zoho Flow (Settings → Connections, or via the Reconnect button on either
-write-back flow's trigger), then (2) reopen the "M5 - Discontinuation
-Write-back" flow's trigger and change its Form from the retired object to
-"Cape Clarity Discontinuation Feedback" (the new one), verify the three
-parameter mappings (`token`, `reasonForLeaving`/"What led to stepping
-away...", `okayToReachBackOut`/"Would it be okay to reach back out...") still
-resolve against the new form's field schema (expected to, since Duplicate
-preserves internal field API names — confirmed by this same pattern in M0
-§13), and apply the change live.
+**Cross-checked M4 while in there**: opened "M4 - Discharge Write-back"'s
+trigger config (read-only check, no edits) — it now also loads cleanly with
+no connection error and its Form field is already correctly set to "Cape
+Clarity Discharge Feedback" (M4 was never affected by the 404/retirement
+issue, only by the shared connection's permission error). So the
+trigger-level Authorize step fixed the connection for both flows at once;
+M4 needed no further changes and remains **Paused/OFF**, unchanged from
+before this session.
 
 **Verification still pending**: an actual end-to-end submission through the
-new form (token prefill + write-back landing in CRM) has not been tested —
-blocked on the write-back repoint above. Once that's done, re-trigger M5 for
-a fresh test patient and confirm the link both loads (not 404s) and, after
-submitting, the response appears against the right `Milestone_Instances`
-record in CRM.
+new form (token prefill + write-back landing in CRM) has not been tested
+yet. Costin should re-trigger M5 for a fresh test patient and confirm both
+that the link loads (not 404s) and that, after submitting, the response
+appears against the right `Milestone_Instances` record in CRM.
