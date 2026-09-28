@@ -9,6 +9,11 @@
 > as the change.
 >
 > **2026-09-23: token issuance no longer uses a subflow. See §10; §3.3 is history.**
+> **2026-09-28: the patient-facing email's Subject and Body were redesigned to
+> match the real Zoho Bookings confirmation template, with new Tone-of-Voice copy
+> (including a new confidentiality/reassurance line). See §14 (and
+> `m0-implementation-notes.md` §14 for the shared design rationale across all five
+> milestones).**
 >
 > Last updated: 2026-09-24 (see §9.2/§9.6 changelog notes — the Clinical
 > Safety Flag gate and the Flagged for Review report were both touched by
@@ -1003,3 +1008,47 @@ hidden token field fed by a `?token=` URL parameter, the Field Alias step
 forget part of the build — it doesn't fail loudly, it just silently drops
 the value. Worth adding as an explicit checklist item alongside "hide the
 field" in any future milestone's form-build task list.
+
+## 14. Change (2026-09-28): patient-facing email redesigned — real Zoho Bookings template, new ToV copy
+
+Same redesign as M0/M3/M4/M5 — see `m0-implementation-notes.md` §14 for the full
+shared rationale (real Zoho Bookings template as the visual basis, single
+full-URL link, verification method used before saving). This section covers only
+M2's own before/after copy.
+
+**Old Subject** (live before this change): "How's therapy going so far? Quick
+check-in from Cape Clarity"
+**New Subject**: "How are things feeling so far?"
+
+**Old Body** (plain-text pattern, live before this change):
+
+```
+Hi,
+
+Thanks for continuing your sessions with us. We'd love to hear how things have been going with your therapist so far. Please take a moment to share your feedback using the link below:
+
+https://forms.zohopublic.com/lianapreudhommecapec1/form/CapeClarityAllianceCheckIn/formperma/bRYJ3IA6ocer84TfXo45HWPYMWgMZXIFkcAQ3rSZ3ZE?token=${issueFeedbackToken_1.token}
+
+Thank you,
+Cape Clarity
+```
+
+**New Body** (verbatim, now saved in "M2 - Session 3 Trigger"'s patient-facing
+"Send email" step — this flow is currently **OFF/Paused**, so this is a config
+change only, not yet sending live traffic):
+
+```html
+<div class="cc-email-notification-container" style="background: #FFF; padding: 0; margin: 0; color: rgb(43, 43, 43); width: 100%; height: 100%; display: table; font-family: &quot;Open Sans&quot;, &quot;Trebuchet MS&quot;, sans-serif"><table align="center" width="600" style="text-align: center"><tbody><tr><td><table cellpadding="0" cellspacing="0" align="center" style="text-align: left; background: #FFF; margin-top: 50px; border-radius: 10px 10px 5px 5px; border: 1px solid rgb(224, 224, 224)"><tbody><tr><td><img alt="Cape Clarity Integrative Psychology" style="width: 100%; max-width: 600px; display: block; border: 0" width="600" src="https://cdn.prod.website-files.com/67dcadb2b4365cb9f4268b42/6a6a9e1731b99ce6392f9ecc_cape-clarity-email-header-band.png"></td></tr><tr><td><table class="inner-content" style="padding: 45px 55px"><tbody><tr><td><section><p style="margin:0px; line-height: 30px;"><span style="color:rgb(43, 43, 43)"><b><span style="font-size: 18px; margin: 0px; line-height: 30px;">Hi there,<br></span></b></span></p><div style="font-size: 15px; line-height: 28px; padding: 16px 0 0 0; color: rgb(43, 43, 43);">You're a few sessions in, and we want to make sure it's off to the right start. <b style="color:rgb(43, 43, 43);font-weight:600;">This is reviewed by our practice team, not your therapist,</b> so we can keep improving the care we provide you and everyone we work with:<br></div><div style="font-size: 15px; line-height: 24px; padding: 10px 0 4px 0; word-break: break-all;"><a rel="noopener noreferrer" target="_blank" href="https://forms.zohopublic.com/lianapreudhommecapec1/form/CapeClarityAllianceCheckIn/formperma/bRYJ3IA6ocer84TfXo45HWPYMWgMZXIFkcAQ3rSZ3ZE?token=${issueFeedbackToken_1.token}" style="color: #175328; text-decoration: underline; font-weight: 600;">https://forms.zohopublic.com/lianapreudhommecapec1/form/CapeClarityAllianceCheckIn/formperma/bRYJ3IA6ocer84TfXo45HWPYMWgMZXIFkcAQ3rSZ3ZE?token=${issueFeedbackToken_1.token}</a></div><div style="font-size: 15px; line-height: 28px; padding: 16px 0 0 0; color: rgb(43, 43, 43);">Thank you for helping us take good care of you.<br></div><hr style="opacity: 0.3; margin: 35px 0px 35px 0px"><p style="margin: 10px 0px"><span style="color:rgb(43, 43, 43)"><span style="font-size: 15px; margin: 10px 0px;">Warmly,</span></span><br></p><p style="margin: 10px 0px"><span style="font-size: 15px; margin: 10px 0px;"><b style="color: rgb(43, 43, 43); font-weight: 600;">Cape Clarity Integrative Psychology</b></span><br></p></section></td></tr></tbody></table></td></tr></tbody></table></td></tr><tr><td><table align="center" style="margin-top: 30px; text-align: center"><tbody><tr><td valign="middle" style="display: block; text-align: center; padding: 0px 0 10px; font-size: 13px; line-height: 22px"><span style="color: rgb(119, 119, 119); font-weight: normal;">This email may contain information intended only for the person named above. If you received it in error, please let us know and delete it.</span><br></td></tr><tr><td valign="middle" style="display: block; text-align: center; padding: 0px 0 40px; font-size: 13px; line-height: 22px"><span style="color: rgb(119, 119, 119); font-weight: normal;">Cape Clarity Integrative Psychology</span><br></td></tr></tbody></table></td></tr></tbody></table></div>
+```
+
+**Note on the bolded confidentiality line**: this is new copy, not a rewording of
+anything previously reviewed — it reframes the practice-team-not-therapist
+distinction (already true per Constitution Principle IV — contractors have zero
+feedback-data access in v1) around improving care rather than inviting complaints,
+per Costin's explicit request. He reviewed and approved this exact wording before
+it was applied.
+
+Since this flow is OFF, there was no "Apply Changes?" live-flow confirmation
+dialog (Zoho Flow only shows that gate for a flow that's currently Live/ON) —
+Done alone commits the change; reopening the node after saving confirmed the new
+Subject and the rendered new Body persisted.

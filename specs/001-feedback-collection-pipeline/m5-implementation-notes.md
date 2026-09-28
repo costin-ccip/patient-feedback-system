@@ -10,6 +10,11 @@
 > it's built, per the `CLAUDE.md` convention of updating implementation notes
 > in the same session as the change.
 >
+> **2026-09-28: the patient-facing email's Subject and Body were redesigned to
+> match the real Zoho Bookings confirmation template, with new Tone-of-Voice copy.
+> Applied live. See §12 (and `m0-implementation-notes.md` §14 for the shared
+> design rationale across all five milestones).**
+>
 > Last updated: 2026-09-27
 > Status update (2026-09-27): both flows are still live/ON and Costin is
 > running live end-to-end tests himself. §9, §10 and §11 document three fixes
@@ -634,3 +639,47 @@ new form (token prefill + write-back landing in CRM) has not been tested
 yet. Costin should re-trigger M5 for a fresh test patient and confirm both
 that the link loads (not 404s) and that, after submitting, the response
 appears against the right `Milestone_Instances` record in CRM.
+
+## 12. Change (2026-09-28): patient-facing email redesigned — real Zoho Bookings template, new ToV copy
+
+Same redesign as M0/M2/M3/M4 — see `m0-implementation-notes.md` §14 for the full
+shared rationale (real Zoho Bookings template as the visual basis, single
+full-URL link, verification method used before saving). This section covers only
+M5's own before/after copy.
+
+**Old Subject** (live before this change): "Just checking in"
+**New Subject**: "Checking in, and wishing you well"
+
+**Old Body** (plain-text pattern, live before this change):
+
+```
+Hi there,
+We noticed it's been a little while since your last visit, and we wanted to reach out and see how you're doing.
+If you have a minute, we'd love to hear a bit about where things stand for you right now. This is completely optional, takes less than a minute, and won't affect anything if you'd ever like to come back.
+Share a quick note:
+https://forms.zohopublic.com/lianapreudhommecapec1/form/CapeClarityDiscontinuationFeedbackNEW/formperma/Sw2QlbJj9kAM5h6Mh5sf_7-M7d7cYFSTdLGv96Dn4Vk?token=${issueFeedbackToken_1.token}
+Whatever's next for you, we're glad you gave us the chance to work together, and the door's always open.
+Warmly,
+The Cape Clarity Team
+```
+
+**New Body** (verbatim, now live in "M5 - Discontinuation Trigger"'s
+patient-facing "Send email" step):
+
+```html
+<div class="cc-email-notification-container" style="background: #FFF; padding: 0; margin: 0; color: rgb(43, 43, 43); width: 100%; height: 100%; display: table; font-family: &quot;Open Sans&quot;, &quot;Trebuchet MS&quot;, sans-serif"><table align="center" width="600" style="text-align: center"><tbody><tr><td><table cellpadding="0" cellspacing="0" align="center" style="text-align: left; background: #FFF; margin-top: 50px; border-radius: 10px 10px 5px 5px; border: 1px solid rgb(224, 224, 224)"><tbody><tr><td><img alt="Cape Clarity Integrative Psychology" style="width: 100%; max-width: 600px; display: block; border: 0" width="600" src="https://cdn.prod.website-files.com/67dcadb2b4365cb9f4268b42/6a6a9e1731b99ce6392f9ecc_cape-clarity-email-header-band.png"></td></tr><tr><td><table class="inner-content" style="padding: 45px 55px"><tbody><tr><td><section><p style="margin:0px; line-height: 30px;"><span style="color:rgb(43, 43, 43)"><b><span style="font-size: 18px; margin: 0px; line-height: 30px;">Hi there,<br></span></b></span></p><div style="font-size: 15px; line-height: 28px; padding: 16px 0 0 0; color: rgb(43, 43, 43);">As you step away from care for now, we wanted to check in. People pause for all kinds of reasons, and we'd love to understand yours. Two quick questions, if you're willing:<br></div><div style="font-size: 15px; line-height: 24px; padding: 10px 0 4px 0; word-break: break-all;"><a rel="noopener noreferrer" target="_blank" href="https://forms.zohopublic.com/lianapreudhommecapec1/form/CapeClarityDiscontinuationFeedbackNEW/formperma/Sw2QlbJj9kAM5h6Mh5sf_7-M7d7cYFSTdLGv96Dn4Vk?token=${issueFeedbackToken_1.token}" style="color: #175328; text-decoration: underline; font-weight: 600;">https://forms.zohopublic.com/lianapreudhommecapec1/form/CapeClarityDiscontinuationFeedbackNEW/formperma/Sw2QlbJj9kAM5h6Mh5sf_7-M7d7cYFSTdLGv96Dn4Vk?token=${issueFeedbackToken_1.token}</a></div><div style="font-size: 15px; line-height: 28px; padding: 16px 0 0 0; color: rgb(43, 43, 43);">We wish you well, and we're here whenever you're ready, if you are.<br></div><hr style="opacity: 0.3; margin: 35px 0px 35px 0px"><p style="margin: 10px 0px"><span style="color:rgb(43, 43, 43)"><span style="font-size: 15px; margin: 10px 0px;">Warmly,</span></span><br></p><p style="margin: 10px 0px"><span style="font-size: 15px; margin: 10px 0px;"><b style="color: rgb(43, 43, 43); font-weight: 600;">Cape Clarity Integrative Psychology</b></span><br></p></section></td></tr></tbody></table></td></tr></tbody></table></td></tr><tr><td><table align="center" style="margin-top: 30px; text-align: center"><tbody><tr><td valign="middle" style="display: block; text-align: center; padding: 0px 0 10px; font-size: 13px; line-height: 22px"><span style="color: rgb(119, 119, 119); font-weight: normal;">This email may contain information intended only for the person named above. If you received it in error, please let us know and delete it.</span><br></td></tr><tr><td valign="middle" style="display: block; text-align: center; padding: 0px 0 40px; font-size: 13px; line-height: 22px"><span style="color: rgb(119, 119, 119); font-weight: normal;">Cape Clarity Integrative Psychology</span><br></td></tr></tbody></table></td></tr></tbody></table></div>
+```
+
+**Note on the copy change**: dropped "We noticed you've stepped away" (per
+Costin's edit — this milestone's survey can also fire when a patient tells the
+practice directly they'd like to end treatment, not only when they go quiet, so
+the old "we noticed" framing didn't fit both cases). No em dashes in the new copy
+(house style). The closing line ("We wish you well, and we're here whenever
+you're ready, if you are") intentionally echoes the survey's own thank-you page
+wording, which Costin already reviewed separately.
+
+Applied to the live flow via Zoho Flow's "Apply changes" on a Draft (M5 was
+already Live/ON going into this change, same as M0); the "Apply Changes?"
+confirmation dialog showed exactly one item ("Configuration changed in Send
+email") before Apply was clicked, confirming nothing else in the flow was
+touched.

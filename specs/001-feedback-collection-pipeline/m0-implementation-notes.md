@@ -20,6 +20,10 @@
 > the original's permalink started 404ing (Zoho-side bug, not a config error). The
 > form Costin/patients see is still titled "M0 - Free Consult Non-Conversion
 > Survey"; only its underlying object and permalink changed. See §13.**
+> **2026-09-28: the patient-facing email's Subject and Body were redesigned to
+> match the real Zoho Bookings confirmation template, with new Tone-of-Voice copy.
+> Applied live. See §14 — also the reference section for M2/M3/M4/M5's matching
+> changes.**
 
 ## 1. What M0 does
 
@@ -488,3 +492,74 @@ see is unchanged (`M0 - Free Consult Non-Conversion Survey`).
 No CRM data, Analytics formulas, or the `submitFeedbackResponse` function body
 changed — this was purely a Zoho Forms object swap plus repointing the two flows
 that referenced it.
+
+## 14. Change (2026-09-28): patient-facing email redesigned — real Zoho Bookings template, new ToV copy
+
+Costin asked whether the milestone emails (M0, M2, M3, M4, M5) could look as
+polished as the free-consult booking-confirmation email, then supplied the actual
+production HTML behind that confirmation (a Zoho Bookings notification template)
+to build from directly, rather than an invented design. New copy was drafted in
+Cape Clarity's Tone of Voice (Confluence: "Cape Clarity ToV"), reviewed with Costin
+via a review artifact, revised per his pointed edits (below), and applied directly
+to each milestone's live/paused "Send email" step — Subject and Body only. No
+trigger, function, On Error branch, or CRM write changed in any of the five flows.
+**This section documents the shared design/rationale; M2/M3/M4/M5's own
+implementation-notes files each have a matching, shorter section for their own
+before/after copy and cross-reference here.**
+
+**What changed and why (applies to all five milestones):**
+- Layout/markup rebuilt from the real Zoho Bookings confirmation HTML: same
+  hosted header-band image
+  (`https://cdn.prod.website-files.com/.../cape-clarity-email-header-band.png`),
+  card border/radius, `"Open Sans", "Trebuchet MS"` font stack, and link-green
+  `#175328` (read directly from the real template, not approximated from a
+  screenshot). Zoho Bookings' own `%customername%`/`%staffname%`-style merge tags
+  don't apply here — these emails send through Zoho Flow's "Send email" step,
+  which merges with Flow's own `${...}` chip syntax instead, so the survey link
+  uses `${issueFeedbackToken_1.token}`. The greeting is a fixed "Hi there," rather
+  than a first-name merge — none of these triggers' modules expose a first-name-
+  only field (established during M5's build, §10).
+- Link style: each email now shows a single full-URL link (the URL is both the
+  `href` and the visible link text), replacing the old pattern of a short intro
+  sentence followed by a bare-text URL on its own line. Costin's call: a full URL
+  as the link itself is clearer to the recipient about what they're clicking, and
+  it stays close to the plain-bare-URL pattern already proven safe on every
+  milestone — avoiding a repeat of the M5 §10 bug, where a styled `<a>` with a
+  *nested* `<b>` tag got mangled into literal `[text](url)` text by Zoho Flow's
+  renderer. This markup has no nested tag inside the anchor.
+- Copy: shorter and more direct throughout per Costin's edits — no em dashes, no
+  exact-time-expectation phrasing ("it only takes a minute" language), and
+  milestone-specific framing changes documented in each file's own section (M2's
+  confidentiality line, M3's benefit framing, M5's opening line).
+
+**Verification method used for every milestone** (worth reusing for any future
+edit to a Zoho Flow "Send email" Body field): the Body field's HTML code-view is a
+plain `<textarea class="ze_editor_textarea">`, not a CodeMirror instance (confirmed
+via DOM inspection — a `.CodeMirror.setValue()` shortcut does **not** apply here,
+unlike the Deluge function editors elsewhere in this project). Content was
+select-all + retyped in full (never a partial-range edit — see §13's swallowed-`?`
+lesson), then verified via `javascript_tool` by reading `textarea.value` directly
+and checking: exact character length against the source fragment, exactly one
+`href="` (single-link pattern), the token chip appearing exactly twice (once in
+`href`, once as the visible link text), the string starting with
+`<div class="cc-email-notification-container"` and ending with `</div>`, and the
+old copy's key phrase being absent while the new phrase is present — all before
+clicking Done/Apply.
+
+**M0 — old Subject** (live before this change): "A quick check-in from Cape
+Clarity"
+**M0 — new Subject**: "A note about your consultation with Cape Clarity"
+
+**M0 — old Body** (see §12 for the plain-text version this replaces).
+
+**M0 — new Body** (verbatim, now live in "M0 - Lost Lead Feedback Token"'s "Send
+email" step):
+
+```html
+<div class="cc-email-notification-container" style="background: #FFF; padding: 0; margin: 0; color: rgb(43, 43, 43); width: 100%; height: 100%; display: table; font-family: &quot;Open Sans&quot;, &quot;Trebuchet MS&quot;, sans-serif"><table align="center" width="600" style="text-align: center"><tbody><tr><td><table cellpadding="0" cellspacing="0" align="center" style="text-align: left; background: #FFF; margin-top: 50px; border-radius: 10px 10px 5px 5px; border: 1px solid rgb(224, 224, 224)"><tbody><tr><td><img alt="Cape Clarity Integrative Psychology" style="width: 100%; max-width: 600px; display: block; border: 0" width="600" src="https://cdn.prod.website-files.com/67dcadb2b4365cb9f4268b42/6a6a9e1731b99ce6392f9ecc_cape-clarity-email-header-band.png"></td></tr><tr><td><table class="inner-content" style="padding: 45px 55px"><tbody><tr><td><section><p style="margin:0px; line-height: 30px;"><span style="color:rgb(43, 43, 43)"><b><span style="font-size: 18px; margin: 0px; line-height: 30px;">Hi there,<br></span></b></span></p><div style="font-size: 15px; line-height: 28px; padding: 16px 0 0 0; color: rgb(43, 43, 43);">We're glad you reached out. Thank you for taking the time to talk with us about starting therapy. We'd love to hear what shaped your decision, whatever it was. It's quick and easy:<br></div><div style="font-size: 15px; line-height: 24px; padding: 10px 0 4px 0; word-break: break-all;"><a rel="noopener noreferrer" target="_blank" href="https://forms.zohopublic.com/lianapreudhommecapec1/form/M0FreeConsultNonConversionSurveyNEW/formperma/yoRiV9UKbs18x9p5nfIBADh_KlyZ2sriJF6ytCwk1XA?token=${issueFeedbackToken_1.token}" style="color: #175328; text-decoration: underline; font-weight: 600;">https://forms.zohopublic.com/lianapreudhommecapec1/form/M0FreeConsultNonConversionSurveyNEW/formperma/yoRiV9UKbs18x9p5nfIBADh_KlyZ2sriJF6ytCwk1XA?token=${issueFeedbackToken_1.token}</a></div><div style="font-size: 15px; line-height: 28px; padding: 16px 0 0 0; color: rgb(43, 43, 43);">Whatever comes next for you, we wish you well.<br></div><hr style="opacity: 0.3; margin: 35px 0px 35px 0px"><p style="margin: 10px 0px"><span style="color:rgb(43, 43, 43)"><span style="font-size: 15px; margin: 10px 0px;">Warmly,</span></span><br></p><p style="margin: 10px 0px"><span style="font-size: 15px; margin: 10px 0px;"><b style="color: rgb(43, 43, 43); font-weight: 600;">Cape Clarity Integrative Psychology</b></span><br></p></section></td></tr></tbody></table></td></tr></tbody></table></td></tr><tr><td><table align="center" style="margin-top: 30px; text-align: center"><tbody><tr><td valign="middle" style="display: block; text-align: center; padding: 0px 0 10px; font-size: 13px; line-height: 22px"><span style="color: rgb(119, 119, 119); font-weight: normal;">This email may contain information intended only for the person named above. If you received it in error, please let us know and delete it.</span><br></td></tr><tr><td valign="middle" style="display: block; text-align: center; padding: 0px 0 40px; font-size: 13px; line-height: 22px"><span style="color: rgb(119, 119, 119); font-weight: normal;">Cape Clarity Integrative Psychology</span><br></td></tr></tbody></table></td></tr></tbody></table></div>
+```
+
+Applied to the live flow via Zoho Flow's "Apply changes" on a Draft (M0 was
+already Live/ON going into this change); the "Apply Changes?" confirmation dialog
+showed exactly one item ("Configuration changed in Send email") before Apply was
+clicked, confirming nothing else in the flow was touched.
