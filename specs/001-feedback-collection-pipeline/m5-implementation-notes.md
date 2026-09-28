@@ -13,9 +13,13 @@
 > **2026-09-28: the patient-facing email's Subject and Body were redesigned to
 > match the real Zoho Bookings confirmation template, with new Tone-of-Voice copy.
 > Applied live. See §12 (and `m0-implementation-notes.md` §14 for the shared
-> design rationale across all five milestones).**
+> design rationale across all five milestones). Same day, follow-up: the Body's
+> "Two quick questions, if you're willing:" line was changed to "A few quick
+> questions, if you're willing:" because Costin changed the survey's question
+> count and wants the copy to stay question-count-agnostic going forward. Also
+> applied live. See §13.**
 >
-> Last updated: 2026-09-27
+> Last updated: 2026-09-28
 > Status update (2026-09-27): both flows are still live/ON and Costin is
 > running live end-to-end tests himself. §9, §10 and §11 document three fixes
 > found during that live testing (a missing Field Alias on the hidden Token
@@ -683,3 +687,45 @@ already Live/ON going into this change, same as M0); the "Apply Changes?"
 confirmation dialog showed exactly one item ("Configuration changed in Send
 email") before Apply was clicked, confirming nothing else in the flow was
 touched.
+
+## 13. Fix (2026-09-28): Body line made question-count-agnostic
+
+Same-day follow-up to §12. Costin changed the number of questions in the
+Discontinuation survey and asked that the email copy not reference an exact
+count again, so a future survey change doesn't require another email edit.
+
+**Old line** (from §12's new Body, live for a few hours before this fix):
+"Two quick questions, if you're willing:"
+
+**New line** (now live): "A few quick questions, if you're willing:"
+
+No other part of the Subject or Body changed — same redesigned template as
+§12, only this one line's wording. Full new Body HTML is identical to §12's
+except for this phrase.
+
+**Builder gotcha (new, worth flagging for future edits to this same field)**:
+a first attempt to make this edit by setting the Body code-view textarea's
+`.value` directly via JavaScript (native property setter + dispatched
+`input`/`change` events), instead of clicking into the field and retyping via
+keyboard, silently failed — Zoho Flow's internal editor state did not pick up
+the DOM-level change. Reading `textarea.value` back immediately after the JS
+edit falsely showed the new text (a false positive), but toggling to the
+WYSIWYG view still rendered the old phrase, and toggling back to code view
+showed the textarea had reverted to the pre-edit content. The fix was to
+click into the field, select all (Cmd+A), and retype the complete corrected
+HTML via the keyboard, then verify via **both** (a) the code-view textarea's
+content (length, single `href`, token-marker count of 2, container div intact
+start-to-end, old phrase absent / new phrase present) and (b) the WYSIWYG
+round-trip (toggle to rendered view and confirm the visible text shows the
+new phrase, not the old one) before saving. Only doing (a) is not sufficient
+for this field — see the false positive above.
+
+Applied to the live flow the same way as §12: Done → Apply changes → the
+confirmation dialog showed exactly one item ("Configuration changed in Send
+email") → Apply. Reopened the node afterward and confirmed in code view that
+the new phrase is present, the old phrase is gone, and the rest of the Body
+(container class, background style, single href, two token-marker
+occurrences) is unchanged — Zoho reformats/reorders some inline style
+attributes on reload (e.g. `style` moving before `class`), which is cosmetic,
+not a content change, consistent with the same behavior noted for other
+milestones in `m0-implementation-notes.md` §14.
