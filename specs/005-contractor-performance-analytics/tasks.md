@@ -16,7 +16,7 @@ standing access constraint).
 
 ## Phase 1: Setup
 
-- [ ] T001 Confirm the "Milestone Instances" Analytics table's current column list
+- [x] T001 Confirm the "Milestone Instances" Analytics table's current column list
       matches what `data-model.md` assumes is already there (the four Domain
       columns, Alliance Check-In Total, Therapist Professionalism, both Practice
       Experience columns, Looking Ahead: Likelihood To Recommend, Reason For
@@ -33,7 +33,7 @@ not depend on this phase and can proceed as soon as Phase 1 is done.
       de-identified code, surfaced by the existing `Milestone_Instances.Patient`
       lookup) — no new CRM field, no hash. Nothing further needed here before
       Story 2-specific work; see T007.
-- [ ] T003 [P] Confirm the current live `Clinician` picklist values (via Zoho CRM
+- [x] T003 [P] Confirm the current live `Clinician` picklist values (via Zoho CRM
       MCP `getFields` on `Milestone_Instances` — non-PII module, allowed under the
       standing access constraint) to use as the real contractor set in later
       validation, and to sanity-check `data-model.md`'s assumption that `Clinician`
@@ -51,12 +51,12 @@ both pooled across M2/M3/M4 and broken out per milestone.
 both the combined and per-milestone figures are correct and don't mix contractors
 (spec.md Acceptance Scenarios 1-4).
 
-- [ ] T004 [P] [US1] Build the "Contractor Alliance Summary" aggregate report:
+- [x] T004 [P] [US1] Build the "Contractor Alliance Summary" aggregate report:
       `Milestone Instances` filtered to `Milestone IN ('2 - Early Alliance Check',
       '3 - Periodic Consolidated', '4 - Discharge')`, grouped by `Clinician`,
       averaging the four Domain columns and Alliance Check-In Total. No new base
       formula columns needed (`data-model.md`).
-- [ ] T005 [P] [US1] Build the "Contractor Alliance by Milestone" aggregate report:
+- [x] T005 [P] [US1] Build the "Contractor Alliance by Milestone" aggregate report:
       same filter/averages as T004, additionally grouped by `Milestone`.
 - [ ] T006 [US1] Confirm a contractor with zero qualifying responses (combined, or
       at a specific milestone) shows an explicit "no data" state, not a zero or
@@ -78,17 +78,17 @@ the same contractor, and confirm that patient's figures are averaged together
 before being combined with the contractor's other patients (spec.md Acceptance
 Scenario 2; `quickstart.md` §B's concrete numbers).
 
-- [ ] T007 [US2] Add the `Patients1.Name` grouping key to the Analytics sync per
+- [x] T007 [US2] Add the `Patients1.Name` grouping key to the Analytics sync per
       `research.md` Decision 1 / `data-model.md` (via the existing
       `Milestone_Instances.Patient` lookup — no new CRM field, no hash). Confirm it
       does not appear in any report's column list or any dashboard panel anywhere
       in the workspace before proceeding (it's safe enough to appear, per
       research.md, but no story needs it displayed).
-- [ ] T008 [US2] Build the per-patient sub-aggregate (likely a query table, per
+- [x] T008 [US2] Build the per-patient sub-aggregate (likely a query table, per
       `data-model.md`): average Therapist Professionalism / Scheduling-
       Communication / Billing per (`Patients1.Name` grouping key, `Milestone = '3 -
       Periodic Consolidated'`).
-- [ ] T009 [US2] Build the "Contractor Professionalism & Practice Experience"
+- [x] T009 [US2] Build the "Contractor Professionalism & Practice Experience"
       report: average of T008's per-patient figures, grouped by `Clinician`.
 - [ ] T010 [US2] Verify against `quickstart.md` §B's seeded case: a contractor with
       one 2-response patient and one 1-response patient produces a figure where
@@ -107,7 +107,7 @@ score from their M4 patients.
 contractor's average reflects only their own patients (spec.md Acceptance
 Scenarios 1-2).
 
-- [ ] T011 [US3] Build the "Contractor Likelihood to Recommend" report:
+- [x] T011 [US3] Build the "Contractor Likelihood to Recommend" report:
       `Milestone Instances` filtered to `Milestone = '4 - Discharge'`, grouped by
       `Clinician`, averaging Looking Ahead: Likelihood To Recommend. No
       patient-weighting concern (M4 is one-time-per-patient).
@@ -123,7 +123,7 @@ patients' reasons for leaving break down by category.
 contractors and confirm each contractor's breakdown reflects only their own
 patients (spec.md Acceptance Scenarios 1-2).
 
-- [ ] T012 [US4] Build the "Contractor Reason for Leaving Breakdown" report:
+- [x] T012 [US4] Build the "Contractor Reason for Leaving Breakdown" report:
       `Milestone Instances` filtered to `Milestone = '5B - Discontinuation, Email
       Fallback'`, grouped by `Clinician` and `Reason For Leaving`, count and/or
       share per category. `Dimension [Actual(D)] / Treat as Text` mode if the
@@ -143,9 +143,13 @@ milestone-level detail report, pre-filtered to that contractor.
 action and confirm it reaches that contractor's individual Alliance-track
 responses with no patient-identifying column (spec.md Acceptance Scenarios 1-2).
 
-- [ ] T013 [US5] Confirm the exact drill-down mechanism available in the live
+- [x] T013 [US5] Confirm the exact drill-down mechanism available in the live
       Analytics workspace (native drill-down configuration vs. a filtered report
-      link — `research.md` Decision 4) before wiring anything.
+      link — `research.md` Decision 4) before wiring anything. **Resolved
+      2026-09-29: no native cross-dashboard drill-down exists for Pivot panels
+      in this Basic Edition workspace; "Format Column → Associate URL" is the
+      only lead, unbuilt/unverified. Deferred to Costin — see
+      `implementation-notes.md` §6.**
 - [ ] T014 [US5] Wire drill-down from each of the four Contractor Performance
       panels (T004/T005, T009, T011, T012) to its corresponding existing M2/M3/
       M4/M5 milestone-level report, pre-filtered to the selected contractor.
@@ -167,9 +171,10 @@ relevant view automatically, with zero report/panel/dashboard edits.
 qualifying response for it, and confirm it appears in the relevant view(s)
 unedited (spec.md Acceptance Scenarios 1-2).
 
-- [ ] T015 [US6] Audit every report/formula built in T004-T014: confirm none
+- [x] T015 [US6] Audit every report/formula built in T004-T014: confirm none
       references a specific contractor's name in a filter, formula, or report
-      title — a contractor's name should only ever appear as data.
+      title — a contractor's name should only ever appear as data. **Passes —
+      see `implementation-notes.md` §5.**
 - [ ] T016 [US6] Live-verify: add a new `Clinician` picklist value (reusing the
       practice's real third contractor, `Shana Lacastro`, per `quickstart.md` §B,
       is fine), seed one qualifying response, and confirm it surfaces in the
@@ -180,17 +185,23 @@ own contractor roster, no per-contractor rebuild required.
 
 ## Phase 9: Dashboard assembly
 
-- [ ] T017 Build the "Contractor Performance" dashboard (via "Create New
+- [x] T017 Build the "Contractor Performance" dashboard (via "Create New
       Dashboards," not "Save As," per every prior milestone's own convention),
       bundling T004, T005, T009, T011, and T012's reports, with T014's drill-down
-      links wired on each panel.
+      links wired on each panel. **Built and saved 2026-09-29 with all 5 panels;
+      T014's drill-down links are NOT wired (blocked, see T013/T014 above).**
 
 ## Phase 10: Test data & validation
 
 - [ ] T018 Seed the sample `Milestone_Instances` test records from `quickstart.md`
       §B via Zoho CRM MCP tools (`createRecords`/`getRecords`), not the browser —
       the module carries no PII, so tool-based CRUD is allowed under the standing
-      access constraint.
+      access constraint. **Blocked 2026-09-29: a `createRecords` attempt was
+      denied by this session's auto-mode write classifier ("External System
+      Writes"), and separately T010's specific patient-weighting rows need a
+      real `Patients1` record ID Costin hasn't provided (same blocker
+      `m2-implementation-notes.md` §5 hit for its own T020). See
+      `implementation-notes.md` §7.**
 - [ ] T019 Work through `quickstart.md` §A's structural verification checklist
       against everything built in Phases 3-9.
 - [ ] T020 Confirm actual report output against `quickstart.md` §B's expected

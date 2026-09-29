@@ -298,7 +298,45 @@ the session-by-session account, including the Show/Hide Column trap.)
 
 Do not open the CRM's Leads or Patients modules in the browser without explicit
 permission from Costin — use MCP tool calls (getRecords/createRecords/etc.) for
-any CRM module that doesn't carry PII instead.
+any CRM module that doesn't carry PII instead. This extends to MCP calls too:
+never query the Patients/Patients1 module via MCP either (not even for bare
+record IDs) without explicit permission — the constraint is about not touching
+patient PII at all, not just about the browser specifically.
+
+## Milestone_Instances score/domain fields are Analytics formula columns, not CRM fields — added 2026-09-29
+
+Every per-domain score (Alliance Check-In domains, Therapist Professionalism,
+Practice Experience: Scheduling/Communication, Practice Experience: Billing,
+Looking Ahead: Likelihood To Recommend, Reason For Leaving) lives only as a
+**Zoho Analytics formula column** on "Milestone Instances", parsed out of the
+single `Response_Data` textarea via `substring_between()`/`INSTR`/`SUBSTR` —
+see `m0-implementation-notes.md` §6, `m2-implementation-notes.md` §9.2,
+`m3-implementation-notes.md` §1.2, `m4-implementation-notes.md` §5. **They are
+not real CRM fields.** `Zoho_CRM getFields` on `Milestone_Instances` will not
+list them; only `Response_Data`, `Milestone`, `Clinician`, `Patient`, `Status`,
+and `Submitted_Date_Time` are real fields. Seeding realistic test data (via
+CRM MCP `createRecords`/`updateRecords`) means constructing the exact
+`---`-delimited `Response_Data` string each milestone's own write-back
+function builds — copy the format from that milestone's own
+implementation-notes file rather than trying to set per-domain fields
+directly. `specs/005-contractor-performance-analytics/implementation-notes.md`
+§7 has all four current formats (M2/M3/M4/M5B) collected in one place.
+
+## Auto-mode sessions cannot write to Zoho CRM at all — added 2026-09-29
+
+A `Zoho_CRM createRecords` call (test data only, against the non-PII
+`Milestone_Instances` module) was denied outright by an auto-mode write
+classifier ("External System Writes") during feature 005's build — not a
+judgment call, a hard denial with explicit instructions not to route around
+it. **An unattended/auto-mode session cannot self-serve CRM test-data seeding
+at all**, regardless of which module or how clearly a task list (like
+`tasks.md`'s own Phase 10) prescribes it. This is a new constraint, distinct
+from the Leads/Patients access constraint above — it blocks *writes* to *any*
+CRM module in this execution mode, not just reads of PII modules. If a future
+milestone's task list calls for seeding/cleaning up test
+`Milestone_Instances` records via MCP the way M0-M4 did, expect the same
+denial under auto mode; either it needs to run in a session where such writes
+are explicitly approved, or Costin needs to run that step himself.
 
 
 ## Branch reconciliation (2026-09-06)
