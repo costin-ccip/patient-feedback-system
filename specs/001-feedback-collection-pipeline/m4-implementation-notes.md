@@ -12,6 +12,10 @@
 > match the real Zoho Bookings confirmation template, with new Tone-of-Voice copy.
 > See §11 (and `m0-implementation-notes.md` §14 for the shared design rationale
 > across all five milestones).**
+> **2026-09-28: the form's title and its Description ("intro") field copy were
+> both updated — title to a more user-centered "Your Feedback on Your Time at
+> Cape Clarity," and intro copy to match the new email framing in §11. Applied
+> live. See §12.**
 >
 > Last updated: 2026-09-26
 > Status: **T009-T013 (the "Cape Clarity Discharge Feedback" Zoho Form) are
@@ -594,12 +598,13 @@ and saved individually, confirmed via each field's "Saved" indicator:
   entirely** — Confluence's HIPAA-driven no-open-text design note applies to
   M4 exactly as it does to M2/M3; the field should never have been drafted.
 - **New Description field added as the very first field** (intro copy, shown
-  once before Section 1): "As you finish up here, we'd love to hear how
-  things feel looking back on your time with us. This takes about a minute,
-  there's no right or wrong answer, and it genuinely helps us understand
-  what this time has meant and how we can keep showing up well for the
-  people we work with." Verified correctly positioned via a full
-  top-to-bottom scroll after adding.
+  once before Section 1). **Superseded 2026-09-28 — see §12**; original copy,
+  live 2026-09-26 through 2026-09-28, kept here for history: "As you finish
+  up here, we'd love to hear how things feel looking back on your time with
+  us. This takes about a minute, there's no right or wrong answer, and it
+  genuinely helps us understand what this time has meant and how we can keep
+  showing up well for the people we work with." Verified correctly
+  positioned via a full top-to-bottom scroll after adding.
 - **Thank You Page** (Settings → Thank You Page & Redirection, Plain Text,
   100-char cap): updated to "Thank you for trusting us with this part of
   your journey — we're glad you spent this time with us." (98 chars) — a
@@ -779,3 +784,52 @@ good" — no wording edits requested for M4, unlike the other four milestones.
 Since this flow is OFF, there was no "Apply Changes?" live-flow confirmation
 dialog — Done alone commits the change; reopening the node after saving confirmed
 the new Subject and the rendered new Body persisted.
+
+## 12. Change (2026-09-28): form title changed, Description ("intro") field copy updated to match the new email framing
+
+Per Costin's direct instruction: the form's title (unchanged since build,
+still the internal-sounding "Cape Clarity Discharge Feedback") was replaced
+with a more user-centered title, and the Description field's intro copy
+(§10.1) was aligned with the new email body copy already applied in §11.
+
+**Title.** Old: "Cape Clarity Discharge Feedback". New: **"Your Feedback on
+Your Time at Cape Clarity"** — this exact title was not specified verbatim by
+Costin (the instruction was "something more user-centered, not 'Cape Clarity
+Discharge Feedback'"), so it was chosen to match the pattern M0 already
+established for the same kind of rename (`m0-implementation-notes.md` §15.1:
+"Your Feedback on Your Free Consultation"). Edited via Form Properties (click
+the form's title on the builder canvas → "Form title" field in the panel that
+opens), triple-click to select the existing value, typed the replacement,
+Save. First Save produced a "Saved Successfully" toast but the canvas title
+didn't visibly update until the panel was closed; closing via the X produced
+an "Changes are not saved. Do you want to proceed?" alert — treated as a
+warning not to trust, clicked **No** to stay, clicked **Save** again
+explicitly (second "Saved Successfully" toast), and only then closed the
+panel — the canvas correctly showed the new title afterward. Worth flagging
+as a builder gotcha for future title edits: don't rely on the toast alone: reopen or
+watch the canvas re-render before treating a Form Properties save as done.
+
+**Description field copy.** Old (live 2026-09-26 through today, §10.1):
+> "As you finish up here, we'd love to hear how things feel looking back on
+> your time with us. This takes about a minute, there's no right or wrong
+> answer, and it genuinely helps us understand what this time has meant and
+> how we can keep showing up well for the people we work with."
+
+New (verbatim, now live — matches §11's email body sentence exactly, so the
+form and the email now carry the same framing):
+> "As you finish this chapter of care with us, we'd love to hear how the
+> journey felt and where you're landing now. Your reflections help the next
+> person who sits where you sat."
+
+Edited by clicking the intro text on the builder canvas, which opened the
+field's Description panel directly. Existing text selected via triple-click
+(selected the whole paragraph across both wrapped visual lines, confirmed via
+the highlight in a screenshot before deleting), deleted, new copy typed,
+verified character-for-character via a zoomed screenshot, Save — "Saved
+Successfully" toast, canvas re-rendered with the new copy in place
+immediately (no repeat-save needed here, unlike the title edit above).
+
+No CRM, Flow, or Analytics changes accompanied this — Zoho Forms content only.
+Both M4 flows ("M4 - Discharge Trigger" and "M4 - Discharge Write-back") were
+already OFF going into this change (per this project's still-in-testing
+status, per Costin) and remain OFF.

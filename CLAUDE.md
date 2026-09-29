@@ -246,6 +246,54 @@ GitHub's web upload flow instead:
 Whichever way the push happens, never force-push and never skip hooks to get
 around a block.
 
+## Deleting Analytics objects (formula columns, reports, dashboard panels) — added 2026-09-28
+
+Retiring a field/response type touches Analytics in three layers — a
+dashboard panel, the report it comes from, and (often) a formula column on
+the base table — and Zoho Analytics won't let you delete a formula column
+while anything still depends on it. Delete in this order, checking
+dependents first:
+
+1. Open the column's **Dependency Details** panel (Explorer → the report or
+   column's "⋮" menu → Dependency Details) to see every dashboard and report
+   that references it before touching anything.
+2. Remove the panel from each dependent **dashboard** first (Edit Design →
+   select the panel → its toolbar trash icon → confirm → Save). This
+   unbundles the panel; it does not delete the underlying report.
+3. **Delete the report** itself (Explorer → "⋮" → Delete) — but only once
+   nothing else needs it; if a *different* report also embeds the column as
+   one of its own tabular columns (not just via a shared filter), leave that
+   report alone at this step and go to 4.
+4. If the column delete still fails with "Used in the Report '...'" naming a
+   report you want to *keep* (not delete) — this means that report shows the
+   column as one of its own columns, and it has to be removed from the
+   report's design, not just hidden. **`More → Show/Hide Column` on a
+   Tabular View report is a session/display-level toggle only** — unchecking
+   a column there hides it from view and even reports "saved successfully",
+   but it does **not** change the report's actual column definition and does
+   **not** clear the dependency; deleting the formula column will still fail
+   with the same error, and reopening the report later shows the column
+   checked again. The fix that actually works: open the report → **Edit
+   Design** → its column list shows real removable chips, each with an "×" —
+   click the "×" on the column you're removing → this surfaces a **"Click
+   Here to Generate Tabular"** prompt (the design change doesn't take effect
+   until the view regenerates) → click it → confirm the preview now excludes
+   the column → **Save**.
+5. **Now delete the formula column** (Data → the table → right-click the
+   column header → Delete Column → confirm). If it still fails, the error
+   message names exactly which report/dashboard still references it — go
+   back and clear that one specifically rather than guessing.
+
+Separately: a workspace's **Aggregate Formulas** are a distinct object type
+from row-level formula columns — they're not listed or editable from a
+table's own column list or "Edit Formulas and Buckets" search, only from
+**Unified Metrics** (left sidebar). If you're hunting for a formula you know
+exists but can't find it as a column, check there before concluding it
+doesn't exist. (First surfaced in `m0-implementation-notes.md` §15; the
+Analytics-deletion sequence above was worked out fully during M5's
+Okay-To-Reach-Back-Out cleanup — see `m5-implementation-notes.md` §13.3 for
+the session-by-session account, including the Show/Hide Column trap.)
+
 ## Access constraints
 
 Do not open the CRM's Leads or Patients modules in the browser without explicit

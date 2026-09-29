@@ -24,6 +24,12 @@
 > match the real Zoho Bookings confirmation template, with new Tone-of-Voice copy.
 > Applied live. See §14 — also the reference section for M2/M3/M4/M5's matching
 > changes.**
+> **2026-09-28: the survey itself was simplified — the "Okay to reach back out" and
+> "Anything else on your mind" fields were removed from the form, the write-back
+> function, and Analytics, per Costin's direct instruction. Both M0 flows were
+> turned OFF before this edit. See §15 — §4, §6 and §7 below are corrected in place
+> to reflect the new as-built state; read §15 first if anything below looks
+> inconsistent with it.**
 
 ## 1. What M0 does
 
@@ -72,16 +78,20 @@ Flow: **M0 - Feedback Survey Write-back** (folder: Customer Feedback System)
    | `ratingHeard` | `${trigger.Rating}` (Feeling Heard Score, 1-5) |
    | `reasonNotMovingForward` | `${trigger.Radio}` (Biggest Factor) |
    | `addAnything` | `${trigger.MultiLine}` (Additional Comments) |
-   | `reachBackOk` | `${trigger.Radio1}` (Okay to Reach Back Out: Yes/Maybe/No) |
-   | `anythingElse` | `${trigger.MultiLine1}` (Anything Else) |
+
+   **(2026-09-28: `reachBackOk`/`${trigger.Radio1}` and `anythingElse`/
+   `${trigger.MultiLine1}` were removed — see §15. The table above shows the
+   current, 4-parameter mapping.)**
 
 ### 3.1 `submitFeedbackResponse` — verbatim Deluge source
 
-Captured directly from the Flow builder on 2026-09-06. This is the authoritative
-source; if you change the function, update this block too.
+**Captured live on 2026-09-28, after the §15 signature change — this is the
+current, authoritative source.** The original 2026-09-06 capture had six
+parameters (`reachBackOk`, `anythingElse` included); see §15 for the exact
+before/after diff if you need the retired version.
 
 ```
-map submitFeedbackResponse(string token, string ratingHeard, string reasonNotMovingForward, string addAnything, string reachBackOk, string anythingElse)
+map submitFeedbackResponse(string token, string ratingHeard, string reasonNotMovingForward, string addAnything)
 {
 	resp = Map();
 	if(token == null || token.trim() == "")
@@ -130,8 +140,6 @@ map submitFeedbackResponse(string token, string ratingHeard, string reasonNotMov
 	responseText = "How much did you feel heard and understood (1-5): " + ifnull(ratingHeard,"") + "---";
 	responseText = responseText + "Biggest factor in decision: " + ifnull(reasonNotMovingForward,"") + "---";
 	responseText = responseText + "Anything you would like to add: " + ifnull(addAnything,"") + "---";
-	responseText = responseText + "Okay to reach back out: " + ifnull(reachBackOk,"") + "---";
-	responseText = responseText + "Anything else on your mind: " + ifnull(anythingElse,"");
 	updateMap = Map();
 	updateMap.put("Response_Data",responseText);
 	updateMap.put("Status","Submitted");
@@ -158,12 +166,19 @@ map submitFeedbackResponse(string token, string ratingHeard, string reasonNotMov
 
 ## 4. The Response_Data contract
 
-`Milestone_Instances.Response_Data` is a single text field holding all five open
-answers concatenated with a `---` (triple-hyphen) delimiter, in this fixed order:
+**Corrected 2026-09-28 — see §15.** `Milestone_Instances.Response_Data` is a
+single text field holding the three open answers concatenated with a `---`
+(triple-hyphen) delimiter, in this fixed order, with a trailing `---` after the
+last field (kept deliberately — see §15 for why):
 
 ```
-How much did you feel heard and understood (1-5): {value}---Biggest factor in decision: {value}---Anything you would like to add: {value}---Okay to reach back out: {value}---Anything else on your mind: {value}
+How much did you feel heard and understood (1-5): {value}---Biggest factor in decision: {value}---Anything you would like to add: {value}---
 ```
+
+(Historical format, live 2026-09-06 through 2026-09-28, before the "Okay to
+reach back out" and "Anything else on your mind" fields were removed:
+`...Anything you would like to add: {value}---Okay to reach back out:
+{value}---Anything else on your mind: {value}`, no trailing delimiter.)
 
 **Why a blob instead of 5 separate CRM fields:** `Milestone_Instances` is a shared
 module across all six milestones, and Zoho CRM custom fields are capped; storing every
@@ -206,6 +221,11 @@ Retrieved via `getFields` on `Milestone_Instances`.
 
 ## 6. Zoho Analytics — formula columns (all on the "Milestone Instances" table)
 
+**2026-09-28: the "Okay to Reach Back Out" and "Anything Else" columns below
+were deleted from Analytics — see §15.** They're kept here, clearly marked, as
+a historical record of what they computed; only "Feeling Heard Score,"
+"Biggest Factor," and "Additional Comments" are current/live.
+
 All five verbatim, as saved in Analytics on 2026-09-06:
 
 **Feeling Heard Score**
@@ -223,12 +243,12 @@ substring_between("Milestone Instances"."Response Data", 'Biggest factor in deci
 substring_between("Milestone Instances"."Response Data", 'Anything you would like to add: ', '---', 1)
 ```
 
-**Okay to Reach Back Out**
+**[RETIRED 2026-09-28] Okay to Reach Back Out**
 ```
 substring_between("Milestone Instances"."Response Data", 'Okay to reach back out: ', '---', 1)
 ```
 
-**Anything Else** (last field — no trailing `---` to bound it, so this one can't use `substring_between`)
+**[RETIRED 2026-09-28] Anything Else** (last field — no trailing `---` to bound it, so this one can't use `substring_between`)
 ```
 SUBSTR("Milestone Instances"."Response Data", INSTR("Milestone Instances"."Response Data",'Anything else on your mind: ')+LENGTH('Anything else on your mind: '), LENGTH("Milestone Instances"."Response Data"))
 ```
@@ -250,32 +270,38 @@ SUBSTR("Milestone Instances"."Response Data", INSTR("Milestone Instances"."Respo
 
 ## 7. Zoho Analytics — reports and dashboard
 
-Workspace: `3251423000000083002`.
+**Corrected 2026-09-28 — see §15.** Workspace: `3251423000000083002`.
 
 | Report | Type | Purpose |
 |---|---|---|
 | M0 Status Breakdown | (pre-existing) | Issued/Submitted/Expired counts |
 | M0 Response Rate | (pre-existing) | Submitted ÷ Issued |
 | M0 Volume by Week | (pre-existing) | Issuance trend |
-| M0 Submitted Responses | Tabular | Submitted Date, Lead Reference, Biggest Factor, Additional Comments, Anything Else. Raw `Response Data` blob was removed from this view once the parsed columns existed — no reason to show clinicians/ops the raw delimited string. |
+| M0 Submitted Responses | Tabular | Submitted Date, Lead Reference, Biggest Factor, Additional Comments. Raw `Response Data` blob was removed from this view once the parsed columns existed — no reason to show clinicians/ops the raw delimited string. "Anything Else" was removed from this report's column list on 2026-09-28 (§15) when the underlying field was dropped from the survey. |
 | M0 Biggest Factor | Chart (bar) | X = Biggest Factor, Y = Count of Id |
 | M0 Feeling Heard Distribution | Chart (bar), view `3251423000000083576` | X = Feeling Heard Score, Y = Count of Id |
-| M0 % Reachable | Summary/KPI, view `3251423000000083587` | Aggregate formula: `count_if("Milestone Instances"."Okay to Reach Back Out"='Yes' OR "Milestone Instances"."Okay to Reach Back Out"='Maybe')*100/count_if("Milestone Instances"."Status"='Submitted')` |
+| ~~M0 % Reachable~~ | ~~Summary/KPI, view `3251423000000083587`~~ | **[RETIRED 2026-09-28, §15]** Deleted entirely (report/view, dashboard panel, and its underlying workspace Aggregate Formula "% Reachable") when "Okay to Reach Back Out" was dropped from the survey. Formula was: `count_if("Milestone Instances"."Okay to Reach Back Out"='Yes' OR "Milestone Instances"."Okay to Reach Back Out"='Maybe')*100/count_if("Milestone Instances"."Status"='Submitted')` |
 
 Dashboard **"M0 - Free Consult Non-Conversion Feedback"** (view `3251423000000083524`)
-currently has 7 panels: the three pre-existing status/rate/volume panels, the updated
-Submitted Responses table, and the three new panels above.
+now has **6 panels** (down from 7 as of 2026-09-28, §15): the three pre-existing
+status/rate/volume panels, the Submitted Responses table (now 4 columns), and the
+Biggest Factor / Feeling Heard Distribution charts. The "M0 % Reachable" KPI panel
+that used to sit alongside these was removed — see §15.
 
-**UX rationale for the three newer panels** (for context if revisiting the design):
+**UX rationale, as originally designed** (historical — kept for context; the
+second and third bullets describe panels/columns retired 2026-09-28, §15):
 - Feeling Heard Score (1-5 rating) → distribution bar chart, because a single average
   hides whether the practice is polarizing (lots of 1s and 5s) vs. consistently
-  mediocre (lots of 3s) — different variance profiles need different action.
-- Okay to Reach Back Out (Yes/Maybe/No) → a single "% Reachable" KPI tile
+  mediocre (lots of 3s) — different variance profiles need different action. **Still
+  current.**
+- ~~Okay to Reach Back Out (Yes/Maybe/No) → a single "% Reachable" KPI tile
   (Yes + Maybe, over Submitted), because the actionable question is "how many of
-  these people could we still follow up with," not the raw 3-way split.
-- Additional Comments / Anything Else (open text) → parsed into real columns on the
-  existing tabular report rather than a new visualization, since open text doesn't
+  these people could we still follow up with," not the raw 3-way split.~~ **Retired
+  — the field itself was dropped from the survey.**
+- Additional Comments (open text) → parsed into a real column on the existing
+  tabular report rather than a new visualization, since open text doesn't
   aggregate; the win was just making it readable instead of buried in a blob.
+  (Originally applied to "Anything Else" too; that field is retired.)
 
 ## 8. Test/sample data approach
 
@@ -563,3 +589,157 @@ Applied to the live flow via Zoho Flow's "Apply changes" on a Draft (M0 was
 already Live/ON going into this change); the "Apply Changes?" confirmation dialog
 showed exactly one item ("Configuration changed in Send email") before Apply was
 clicked, confirming nothing else in the flow was touched.
+
+## 15. Change (2026-09-28): survey simplified — "Okay to reach back out" and "Anything else on your mind" fields removed
+
+Per Costin's direct instruction, the M0 survey was trimmed from five open
+questions to three. No live form submissions had occurred yet (Costin
+confirmed any test data so far was discardable), so this was done as a direct
+edit to the live form/flow/Analytics objects rather than a staged migration.
+Both M0 flows ("M0 - Lost Lead Feedback Token" and "M0 - Feedback Survey
+Write-back") were confirmed OFF before this work and remain OFF afterward —
+consistent with the project's "still in testing" phase and the standing "no
+live/end-to-end tests without me" rule.
+
+### 15.1 Form content changes
+
+Made directly on the live "M0 - Free Consult Non-Conversion Survey" form
+(the post-§13 object, slug `M0FreeConsultNonConversionSurveyNEW`):
+
+- Form title changed to **"Your Feedback on Your Free Consultation."**
+- The form's intro paragraph (Description field above the questions) was
+  removed.
+- The "Biggest factor in decision" question was reworded to reference "your
+  free consultation" explicitly, rather than the more generic original
+  phrasing.
+- Field **`Radio1`** ("Would it be okay to reach back out to you in the
+  future? Yes/Maybe/No") was **deleted** from the form.
+- Field **`MultiLine1`** ("Is there anything else on your mind you'd like to
+  share?") was **deleted** from the form.
+- The thank-you page text had "and your story" removed from its closing
+  sentence.
+
+These six edits were made in the prior working segment (before the Analytics
+cleanup below) and are recorded here together for a single point-in-time
+reference. Costin noted the drag-and-drop gotcha where a newly added field can
+land mid-canvas applies to intro/description-field placement, not to field
+deletion, so it didn't come up in this change — no new field was added, only
+removed. (It's relevant for M3 and M5, where Costin is placing new
+Description/intro fields himself — see the M3 handoff note and M5's own
+notes file.)
+
+### 15.2 Write-back function: `submitFeedbackResponse` signature change
+
+Edited live inside "M0 - Feedback Survey Write-back" (function opened via the
+node's "⋮" menu → "View function" — not the pencil icon, which opens
+parameter mapping, and not clicking the node title, which enters inline
+rename mode).
+
+**Old signature** (6 params):
+```
+map submitFeedbackResponse(string token, string ratingHeard, string reasonNotMovingForward, string addAnything, string reachBackOk, string anythingElse)
+```
+
+**New signature** (4 params):
+```
+map submitFeedbackResponse(string token, string ratingHeard, string reasonNotMovingForward, string addAnything)
+```
+
+The two `responseText` concatenation lines building the `reachBackOk` and
+`anythingElse` segments were deleted outright, matching the precedent
+established in `m4-implementation-notes.md` §10.2 for
+`submitDischargeFeedbackResponse`. See §3.1 above for the full current
+function source (now the authoritative capture, superseding the 2026-09-06
+one) and §4 for the corrected `Response_Data` format string.
+
+**Deliberate decision — trailing delimiter kept, not stripped.** The old blob
+ended with `...Anything you would like to add: {value}---Okay to reach back
+out: {value}---Anything else on your mind: {value}` (no trailing `---`, since
+"Anything else..." was the true last field). After removing the last two
+fields, `addAnything` becomes the new last field. Rather than stripping its
+trailing `---` to match the old "no trailing delimiter on the last field"
+pattern, the `---` was **left in place** — the new body ends
+`...+ ifnull(addAnything,"") + "---"`. Reason: the "Additional Comments"
+Analytics formula column (§6) is a `substring_between(..., 'Anything you
+would like to add: ', '---', 1)` call that depends on finding a closing
+`---` after the value. Stripping the trailing delimiter would have broken
+that already-working formula and required editing it too, for no functional
+benefit — a blob with a harmless trailing delimiter is simpler to reason
+about than an exception to the "fields end in `---`" pattern. Worth
+remembering for M5's equivalent field removal (Task list item 11): check
+whether the same trade-off applies there before deciding whether to touch the
+trailing delimiter.
+
+**Flow builder gotcha reconfirmed**: saving this function triggered a
+"Configuration changed" confirmation dialog that cited an unrelated flow
+("TEST - Bookings to CRM PHI Field Mapping") — the same false-positive
+"spurious dependency" pattern already documented in
+`m4-implementation-notes.md` §10.2/§10.3. Confirmed through it; reopened the
+function afterward and verified the 4-parameter signature persisted.
+
+### 15.3 Analytics cleanup
+
+All changes made in workspace `3251423000000083002`, in this order (order
+matters — see the Unified Metrics discovery below):
+
+1. Removed the **"M0 % Reachable" KPI panel** from the "M0 - Free Consult
+   Non-Conversion Feedback" dashboard (Edit Design → hover panel → "⋮" →
+   Remove → Save).
+2. Removed the **"Anything Else" column** from the "M0 Submitted Responses"
+   report (Edit Design → "X" on the column chip → regenerate tabular view →
+   Save). "Okay to Reach Back Out" was never a column on this particular
+   report, so no action was needed there.
+3. Deleted the **"M0 % Reachable" report/view** itself (Explorer tile "⋮" →
+   Delete). This succeeded cleanly since its dashboard panel was already gone.
+4. Attempted to delete the **"Okay to Reach Back Out"** formula column from
+   the base "Milestone Instances" table — **blocked**: "Column 'Okay to
+   Reach Back Out' cannot be deleted due to the following reason: Used in
+   the formula column '% Reachable' in the view 'Milestone Instances'."
+   Deleting the report in step 3 did **not** resolve this — the identical
+   error recurred on retry.
+5. **Root-cause finding (new gotcha, worth flagging for M2/M3/M4/M5's own
+   Analytics work if a similar block ever recurs there):** "% Reachable" is
+   not the report deleted in step 3 — it's a separate, workspace-level
+   **Aggregate Formula** ("Metric") object. This object type is invisible to
+   the normal column-management surfaces: the base table's "Show/Hide/
+   Reorder Column(s)" dialog returned "No matches found" for "Reachable,"
+   and the column's own Dependency Details panel ("Child Views") also
+   returned "No view found" for "Reachable." The only place it's visible or
+   manageable is the **"Unified Metrics"** view, found under the Data
+   sidebar's tile labeled "An overview of all the metrics defined in your
+   workspace." Deleted the Aggregate Formula named "% Reachable" from there
+   (hover row → trash icon → confirm). Its formula, for the record:
+   ```
+   count_if("Milestone Instances"."Okay to Reach Back Out" = 'Yes' OR "Milestone Instances"."Okay to Reach Back Out" = 'Maybe')*100/count_if("Milestone Instances"."Status" = 'Submitted')
+   ```
+6. Retried deleting the **"Okay to Reach Back Out"** formula column from the
+   base table — succeeded, now that the Aggregate Formula was gone.
+7. Deleted the **"Anything Else"** formula column from the base table the
+   same way — succeeded on the first attempt (it had no Aggregate Formula
+   dependency).
+8. Reloaded the full "M0 - Free Consult Non-Conversion Feedback" dashboard
+   end-to-end and confirmed all 6 remaining panels render with no errors:
+   "M0 Status Breakdown," "M0 Response Rate," "M0 Submitted Responses" (now
+   4 columns), "M0 Volume by Week," "M0 Biggest Factor," "M0 Feeling Heard
+   Distribution."
+
+**General lesson for future Analytics cleanup on this project**: if a
+column-delete attempt is blocked citing "Used in the formula column 'X' in
+the view 'Y'" and neither a normal report/view search nor the column's
+Dependency Details panel can find that reference, check "Unified Metrics"
+next — it's a real, separate object type (Aggregate Formula / Metric), not a
+bug in the error message.
+
+### 15.4 Net result
+
+- M0's survey now asks 3 open questions (Feeling Heard, Biggest Factor,
+  Additional Comments) instead of 5.
+- `submitFeedbackResponse` takes 4 params instead of 6.
+- `Response_Data` is 3 fields instead of 5 (see corrected §4).
+- Analytics has 3 live formula columns on Milestone Instances for M0 instead
+  of 5 (see corrected §6); the dashboard has 6 panels instead of 7 (see
+  corrected §7).
+- Both M0 flows remain OFF, as they were going into this change.
+- No CRM schema change, no changes to M1-M5, and no changes to the
+  2026-09-28 email redesign documented in §14 (that work and this work were
+  independent changes made in the same session).

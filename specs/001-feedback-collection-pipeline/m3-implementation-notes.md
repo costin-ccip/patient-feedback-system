@@ -14,6 +14,10 @@
 > See §10 (and `m0-implementation-notes.md` §14 for the shared design rationale
 > across all five milestones).**
 >
+> **2026-09-28 (later same day): §11 is a handoff note, not a build log entry
+> — the new intro/Description field's copy and placement, for Costin to add
+> himself. No Zoho object was changed by this session as a result of §11.**
+>
 > Last updated: 2026-09-24 (see §1.1/§1.3 changelog notes — the Clinical
 > Safety Flag gate and the Flagged for Review report were both further
 > widened by the M4 build, per `m4-tasks.md` T017/T019; nothing else in
@@ -974,3 +978,36 @@ per Costin's explicit request. No em dash in the new copy (house style).
 Since this flow is OFF, there was no "Apply Changes?" live-flow confirmation
 dialog — Done alone commits the change; reopening the node after saving confirmed
 the new Subject and the rendered new Body persisted.
+
+## 11. Handoff note (2026-09-28): intro-paragraph Description field — Costin to place this one himself
+
+Per Costin's standing instruction, the new intro/Description field for M3 is
+**not** being added by this session — Costin is placing it himself via
+drag-and-drop in the Zoho Forms builder (same reason M5's own intro field is
+left to him — the builder's Description field placement doesn't lend itself
+to the SDK's browser-automation tooling as cleanly as text-field edits do).
+This section is the handoff: exact copy, and exactly where it goes.
+
+**Copy** (verbatim, no changes needed — already reviewed once as part of
+§10's email-body redesign, where the identical sentence appears):
+
+> We'd love to hear how the whole experience is holding up. Your feedback
+> helps us keep improving the care we provide.
+
+**Field type**: Description field (a free-text/rich-text block, not a
+question — same field type used for M0/M2/M4's intro copy elsewhere in this
+pipeline; no response is collected from it).
+
+**Placement**: top of the "Cape Clarity Periodic Check-In" form, above/before
+the first slider question — i.e. the very first thing a patient sees on the
+form, ahead of every scored/substantive field. §1's field table has the
+form's current field order for reference when placing it.
+
+**Nothing else needed from this session**: no Analytics, Flow, or write-back
+function changes are implicated by adding a Description field (it collects
+no data, so `submitPeriodicCheckInResponse` and the Response_Data blob are
+unaffected). Once Costin has placed it, a quick before/after screenshot
+comparison and a short changelog note appended to this file (a `## 12.
+Change (<date>): intro/Description field added by Costin` section, matching
+this file's usual per-change format) would close this out — flagging so a
+future session doesn't need to rediscover the convention.

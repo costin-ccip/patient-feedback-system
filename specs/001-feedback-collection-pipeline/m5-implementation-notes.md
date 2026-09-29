@@ -13,13 +13,26 @@
 > **2026-09-28: the patient-facing email's Subject and Body were redesigned to
 > match the real Zoho Bookings confirmation template, with new Tone-of-Voice copy.
 > Applied live. See §12 (and `m0-implementation-notes.md` §14 for the shared
-> design rationale across all five milestones). Same day, follow-up: the Body's
-> "Two quick questions, if you're willing:" line was changed to "A few quick
-> questions, if you're willing:" because Costin changed the survey's question
-> count and wants the copy to stay question-count-agnostic going forward. Also
-> applied live. See §13.**
+> design rationale across all five milestones).**
 >
-> Last updated: 2026-09-28
+> **2026-09-28 (later same day): survey simplified to a single question,
+> write-back function and Analytics updated to match. Form title changed to
+> "Your Feedback on Stepping Away From Sessions", the dropdown's first choice
+> reworded to first person, and the "Would it be okay to reach back out if
+> things change?" Radio field deleted outright (not just hidden). Both flows
+> turned OFF, `submitDiscontinuationFeedbackResponse` edited to drop the
+> `okayToReachBackOut` parameter and its Response_Data segment (trailing `---`
+> on the now-last "Reason For Leaving" segment kept unchanged). The
+> "Discontinuation: Okay To Reach Back Out" formula column, the "M5 Okay To
+> Reach Back Out Breakdown" report, and its dashboard panel were all deleted
+> from Analytics. See §13 for the full change, including a new gotcha:
+> `Show/Hide Column` on a Tabular View report is a display-only toggle and
+> does **not** clear a column dependency — the column has to be removed from
+> the report's actual column definition (Edit Design → the "×" on the column
+> chip → regenerate → save) before the underlying formula column can be
+> deleted.**
+>
+> Last updated: 2026-09-27
 > Status update (2026-09-27): both flows are still live/ON and Costin is
 > running live end-to-end tests himself. §9, §10 and §11 document three fixes
 > found during that live testing (a missing Field Alias on the hidden Token
@@ -71,9 +84,13 @@ the intended position on the first attempt — no reordering needed):
 
 | Order | Field type | Label (on-screen question text) | Choices | Mandatory | Visibility |
 |---|---|---|---|---|---|
-| 1 | Dropdown | What led to stepping away from sessions right now? | Felt better / reached their goals; Scheduling or timing conflict; Cost or insurance; Didn't feel like the right fit with their therapist; Life circumstances changed; Moved or relocated; Choosing to pause for now; Something else (8 total, source order preserved) | Yes | Show |
-| 2 | Radio | Would it be okay to reach back out if things change? | Yes / No / Maybe | Yes | Show |
+| 1 | Dropdown | What led to stepping away from sessions right now? | Felt better / reached their goals [Superseded 2026-09-28 — see §13, reworded to "Felt better / reached my goals"]; Scheduling or timing conflict; Cost or insurance; Didn't feel like the right fit with their therapist; Life circumstances changed; Moved or relocated; Choosing to pause for now; Something else (8 total, source order preserved) | Yes | Show |
+| 2 | ~~Radio~~ **[RETIRED 2026-09-28 — see §13, field deleted]** | ~~Would it be okay to reach back out if things change?~~ | ~~Yes / No / Maybe~~ | ~~Yes~~ | ~~Show~~ |
 | 3 | Single Line | Token | — | No | **Hide** |
+
+Form title as originally built: "Cape Clarity Discontinuation Feedback".
+**Superseded 2026-09-28 — see §13**: retitled to "Your Feedback on Stepping
+Away From Sessions".
 
 No name, email, or phone field (Principle I). No open-text field (per the
 source Confluence doc's own explicit "no open text" design note, recorded in
@@ -241,6 +258,10 @@ folder alongside the other flows.
    auto-expire structure as every prior write-back function), set via the
    CodeMirror instance's `setValue()` JS technique and visually verified
    (syntax-highlighted, correctly indented) before saving.
+
+   **Superseded 2026-09-28 — see §13**: the `okayToReachBackOut` parameter
+   and its Response_Data concatenation line were removed (now a two-
+   parameter function, one Response_Data segment).
 3. **Placing and wiring the function node**: dragged the saved function from
    the Built-ins sidebar list onto empty canvas space below the trigger —
    did not auto-wire (landed as a disconnected node, matching the "auto-wire
@@ -290,7 +311,8 @@ edit made.
   the raw table view header) and present via "Edit Formulas and Buckets" →
   search.
 
-- **"Discontinuation: Okay To Reach Back Out" formula column** — **named
+- **"Discontinuation: Okay To Reach Back Out" formula column**
+  **[RETIRED 2026-09-28 — see §13, column deleted]** — **named
   differently from `m5-data-model.md`'s literal spec ("Okay To Reach Back
   Out"), a deviation forced by a naming collision, not a content choice**:
   M0's own Analytics build (a prior milestone, not part of this file's
@@ -336,6 +358,11 @@ edit made.
   Verified in View Mode: correct headers, 0 rows (expected, no M5
   submissions exist yet).
 
+  **Column set updated 2026-09-28 — see §13**: the "Discontinuation: Okay To
+  Reach Back Out" column was removed from this report's own column
+  definition (not merely hidden) — now a 3-column report (Submitted Date
+  Time, Token, Reason For Leaving).
+
 - **"M5 Status Breakdown" report**: Save As off "M4 Status Breakdown"
   (`m4-implementation-notes.md` §5, view ID `3251423000000232098`), same bar
   chart config preserved (X-Axis `Status` Actual, Y-Axis `Id` Count). Only
@@ -356,7 +383,8 @@ edit made.
   Saved to "Zoho CRM Modules (Data)". View ID `3251423000000232265`.
   Regenerated graph shows "No Data Available" (expected).
 
-- **"M5 Okay To Reach Back Out Breakdown" report** (optional second
+- **"M5 Okay To Reach Back Out Breakdown" report** **[RETIRED 2026-09-28 —
+  see §13, report deleted along with its dashboard panel]** (optional second
   breakdown, per `m5-tasks.md`'s Phase 7 task text): Save As off "M5 Reason
   For Leaving Distribution" (this section), X-Axis column swapped to
   "Discontinuation: Okay To Reach Back Out", filter unchanged (already `"5B
@@ -381,6 +409,10 @@ edit made.
   the two tabular/breakdown panels (Submitted Responses, Okay To Reach Back
   Out Breakdown) show their correct column headers / "No Data Available"
   with 0 rows — all expected, since no real M5 submissions exist yet.
+
+  **Panel count updated 2026-09-28 — see §13**: the "M5 Okay To Reach Back
+  Out Breakdown" panel was removed (dashboard now has 3 panels: M5 Status
+  Breakdown, M5 Reason For Leaving Distribution, M5 Submitted Responses).
 
 ## 5. Remaining work (not yet built)
 
@@ -688,44 +720,163 @@ confirmation dialog showed exactly one item ("Configuration changed in Send
 email") before Apply was clicked, confirming nothing else in the flow was
 touched.
 
-## 13. Fix (2026-09-28): Body line made question-count-agnostic
+## 13. Change (2026-09-28): survey simplified to a single question, write-back function and Analytics updated to match
 
-Same-day follow-up to §12. Costin changed the number of questions in the
-Discontinuation survey and asked that the email copy not reference an exact
-count again, so a future survey change doesn't require another email edit.
+Three linked changes, all Costin's explicit direction, applied live in this
+order: (1) the form — title reworded, first dropdown choice reworded to
+first person, the "reach back out" Radio field deleted outright; (2) the
+write-back function — parameter and Response_Data segment for the deleted
+field removed, both flows left OFF throughout (they were already OFF at the
+end of §11/§12's live testing); (3) Analytics — the now-orphaned formula
+column, its dedicated breakdown report, and that report's dashboard panel
+all deleted, plus (an extra step this change surfaced, not originally
+anticipated) the column's reference in the separate "M5 Submitted Responses"
+report.
 
-**Old line** (from §12's new Body, live for a few hours before this fix):
-"Two quick questions, if you're willing:"
+### 13.1 Form: title, dropdown wording, field removal
 
-**New line** (now live): "A few quick questions, if you're willing:"
+All three changes made in the Zoho Forms builder on the live (rebuilt, §11)
+form object — `CapeClarityDiscontinuationFeedbackNEW`
+(`https://forms.zoho.com/lianapreudhommecapec1/form/CapeClarityDiscontinuationFeedbackNEW/builder`).
 
-No other part of the Subject or Body changed — same redesigned template as
-§12, only this one line's wording. Full new Body HTML is identical to §12's
-except for this phrase.
+- **Form Properties title**: `Cape Clarity Discontinuation Feedback` →
+  **`Your Feedback on Stepping Away From Sessions`** — matches the naming
+  pattern Costin set for M0/M4's retitle ("Your Feedback on ...", user-
+  centered rather than internal-process-named). Saved via Form Properties →
+  Save, then re-opened to confirm the canvas title persisted, per the
+  save-toast-doesn't-guarantee-persisted-render gotcha `m4-implementation-notes.md`
+  §12 documents.
+- **Dropdown field, first choice**: opened the "What led to stepping away
+  from sessions right now?" field's Properties panel → Choices → Edit
+  sub-panel. First choice text `Felt better / reached their goals` → **`Felt
+  better / reached my goals`** (third-person → first-person, matching the
+  survey's own first-person voice elsewhere). Edited via click → `End` →
+  `Shift+Home` → `Delete` → type replacement (the established technique for
+  this sub-panel, since `Ctrl+A` does not select-all inside an individual
+  choice text input — see the file's other milestones' notes on this same
+  Choice Field Properties quirk), verified via zoomed screenshot before
+  saving. All 7 other choices unchanged.
+- **Field deletion**: the "Would it be okay to reach back out if things
+  change?" Radio field was deleted outright (hover the field → trash icon →
+  confirm the deletion dialog), not merely hidden — the survey is now a
+  single substantive question (the dropdown) plus the hidden Token field.
+  Verified via screenshot: the field no longer appears in the builder canvas
+  or in the field list.
 
-**Builder gotcha (new, worth flagging for future edits to this same field)**:
-a first attempt to make this edit by setting the Body code-view textarea's
-`.value` directly via JavaScript (native property setter + dispatched
-`input`/`change` events), instead of clicking into the field and retyping via
-keyboard, silently failed — Zoho Flow's internal editor state did not pick up
-the DOM-level change. Reading `textarea.value` back immediately after the JS
-edit falsely showed the new text (a false positive), but toggling to the
-WYSIWYG view still rendered the old phrase, and toggling back to code view
-showed the textarea had reverted to the pre-edit content. The fix was to
-click into the field, select all (Cmd+A), and retype the complete corrected
-HTML via the keyboard, then verify via **both** (a) the code-view textarea's
-content (length, single `href`, token-marker count of 2, container div intact
-start-to-end, old phrase absent / new phrase present) and (b) the WYSIWYG
-round-trip (toggle to rendered view and confirm the visible text shows the
-new phrase, not the old one) before saving. Only doing (a) is not sufficient
-for this field — see the false positive above.
+The form's public formperma URL, Field Alias (`Token` → `token`), and Thank
+You Page text (§1.1) are all unaffected by these edits — no other field or
+setting was touched.
 
-Applied to the live flow the same way as §12: Done → Apply changes → the
-confirmation dialog showed exactly one item ("Configuration changed in Send
-email") → Apply. Reopened the node afterward and confirmed in code view that
-the new phrase is present, the old phrase is gone, and the rest of the Body
-(container class, background style, single href, two token-marker
-occurrences) is unchanged — Zoho reformats/reorders some inline style
-attributes on reload (e.g. `style` moving before `class`), which is cosmetic,
-not a content change, consistent with the same behavior noted for other
-milestones in `m0-implementation-notes.md` §14.
+### 13.2 Flows: confirmed OFF, then `submitDiscontinuationFeedbackResponse` edited
+
+Both "M5 - Discontinuation Trigger" and "M5 - Discontinuation Write-back"
+were already switched OFF at the end of Costin's 2026-09-27 live testing (per
+this file's header); confirmed still OFF before editing, and left OFF
+throughout this change — no live/end-to-end test was run.
+
+Edited `submitDiscontinuationFeedbackResponse` (open the Write-back flow →
+Builder → the function node's "⋮" menu → **View function** — not the pencil
+icon, which opens parameter mapping, and not the node title, which does
+nothing useful here):
+
+- **Signature**: `map submitDiscontinuationFeedbackResponse(string token,
+  string reasonForLeaving, string okayToReachBackOut)` → **`map
+  submitDiscontinuationFeedbackResponse(string token, string
+  reasonForLeaving)`** — the `okayToReachBackOut` parameter removed.
+- **Body**: the line `responseText = responseText + "Okay To Reach Back Out:
+  " + ifnull(okayToReachBackOut,"");` was deleted. The preceding line's
+  trailing `"---"` delimiter — `responseText = "Reason For Leaving: " +
+  ifnull(reasonForLeaving,"") + "---";` — was **deliberately left unchanged**
+  even though "Reason For Leaving" is now the last (only) Response_Data
+  segment. This follows the same "keep trailing delimiter on a new-last-
+  field" pattern `m0-implementation-notes.md` §15 documents: the existing
+  "Reason For Leaving" formula column (§4) is a *bounded*
+  `substring_between(..., 'Reason For Leaving: ', '---', 1)` extraction, and
+  changing the blob's terminator would have required editing that
+  already-working formula too. No Analytics formula column edits were
+  needed as a result.
+
+Text was selected and deleted using the established mouse-based technique
+(double-click to select a word, Shift+click/Shift+Arrow to extend the
+selection across the rest of the line, Delete) since CodeMirror doesn't
+support the SDK's direct text-manipulation tooling in this session. Saved
+through the now-familiar "spurious dependency" false-positive confirmation
+dialog (Confirm). Reopened the function afterward (View function again) to
+confirm both the new signature and body persisted correctly.
+
+**Parameter mapping auto-cleaned, no orphan reference**: reopened the
+function node's parameter-mapping panel (pencil icon) after saving — it now
+shows only `token` and `reasonForLeaving`, each still correctly mapped to
+their form fields (Token, "What led to stepping away from sessions right
+now?"); the removed `okayToReachBackOut` mapping was cleared automatically,
+with no leftover/broken chip to clean up manually.
+
+### 13.3 Analytics: formula column, report, and dashboard panel deleted
+
+Reached via `https://analytics.zoho.com/workspace/3251423000000083002`
+(already signed in). Order followed the established safe-deletion sequence
+(clear dependents first, delete the column last), since attempting the
+column delete first produces a blocking error naming every report that still
+references it.
+
+1. **Dashboard panel removed first**: opened the "M5 - Discontinuation
+   Feedback" dashboard (Dashboards → search) → Edit Design → selected the
+   "M5 Okay To Reach Back Out Breakdown" panel → its toolbar's trash icon →
+   confirmed "Are you sure you want to remove the selected views from this
+   dashboard?" → **Save**. This only unbundles the panel from the dashboard;
+   it does not delete the underlying report (that's step 3). Dashboard now
+   shows 3 panels (§4's panel list updated accordingly).
+2. **"M5 Okay To Reach Back Out Breakdown" report deleted**: Explorer →
+   searched "Okay To Reach Back Out" → the report's "⋮" menu → Delete →
+   confirmed "Are you sure you want to delete 'M5 Okay To Reach Back Out
+   Breakdown'?" — checked its **Dependency Details** panel first (Parent
+   Tables: Milestone Instances; Dashboards: M5 - Discontinuation Feedback,
+   1 reference) to confirm nothing else depended on it before deleting.
+3. **Attempted the formula column delete — blocked, revealing a new
+   gotcha**: Data → Milestone Instances table → right-click the
+   "Discontinuation: Okay To Reach Back Out" column header → **Delete
+   Column** → blocked with "Column 'Discontinuation: Okay To Reach Back Out'
+   cannot be deleted due to the following reason: Used in the Report 'M5
+   Submitted Responses'". This report (§4) directly embeds the column as one
+   of its 4 tabular columns — not the report just deleted in step 2.
+4. **First attempt at clearing it — did not work, worth flagging**: tried
+   the "M5 Submitted Responses" report's **More → Show/Hide Column** dialog
+   → unchecked "Discontinuation: Okay To Reach Back Out" → OK → the column
+   visually disappeared from the report and an explicit **Save** click
+   returned "Already saved. No modification found." (implying success).
+   Re-opening the report later in the same session showed the column back
+   again, still checked in Show/Hide Column, and the column delete attempt
+   still failed with the identical dependency error. **Lesson for future
+   sessions**: `Show/Hide Column` on a Tabular View report is a
+   session/display-level toggle only — it does not modify the report's
+   actual column definition and does not clear a formula-column dependency,
+   even though its own Save action reports success.
+5. **What actually worked**: opened the report → **Edit Design** (top
+   right) → its "Tabular" design panel shows the real column list as
+   removable chips (`Submitted ...`, `Token`, `Reason For ...`,
+   `Discontinua...`, each with an "×") → clicked the "×" on the
+   "Discontinua..." chip → this surfaces a **"Click Here to Generate
+   Tabular"** prompt (the design change doesn't take effect until the view
+   is regenerated) → clicked it → tabular preview updated to 3 columns → top
+   toolbar **Save** → confirmed via success toast ("Saved 'M5 Submitted
+   Responses' successfully"). This is the actual removal; §4's "M5 Submitted
+   Responses" entry is updated to reflect the new 3-column shape.
+6. **Formula column delete retried — succeeded**: back on the Milestone
+   Instances table, right-click the "Discontinuation: Okay To Reach Back
+   Out" column header → **Delete Column** → confirmation dialog (no
+   remaining-dependency error this time) → **Yes**. Verified by scrolling to
+   the end of the table's columns: "Reason For Leaving" is now the last
+   column; "Discontinuation: Okay To Reach Back Out" no longer appears
+   anywhere in the table.
+
+M0's Analytics build (its own similarly-named "Okay to Reach Back Out"
+column, lowercase "to" — §4's naming-collision note) was not touched by any
+of this — out of scope, unaffected.
+
+### 13.4 Verification
+
+All changes verified structurally (screenshots/zoomed inspection at each
+step, plus the Analytics dependency-checker's own errors/successes as a
+built-in verification signal), consistent with this session's no-live-test-
+without-Costin standing instruction — no form was actually submitted, and
+neither flow was turned back ON.

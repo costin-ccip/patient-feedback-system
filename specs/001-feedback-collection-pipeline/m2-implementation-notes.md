@@ -14,6 +14,9 @@
 > (including a new confidentiality/reassurance line). See §14 (and
 > `m0-implementation-notes.md` §14 for the shared design rationale across all five
 > milestones).**
+> **2026-09-28: the form's own Description ("Intro") field copy was updated to
+> match the email's new confidentiality/reassurance framing (§14's bolded line).
+> Applied live. See §15.**
 >
 > Last updated: 2026-09-24 (see §9.2/§9.6 changelog notes — the Clinical
 > Safety Flag gate and the Flagged for Review report were both touched by
@@ -58,7 +61,7 @@ correcting here:
 
 | Order | Field type | Internal name (DOM-verified) | Label | Notes |
 |---|---|---|---|---|
-| 0 | Description | n/a (not a data-bearing field) | "Intro" (admin-only label) | Free-tier workaround for the Welcome Page paywall — see §1.2. Renders as plain text above the first slider. |
+| 0 | Description | n/a (not a data-bearing field) | "Intro" (admin-only label) | Free-tier workaround for the Welcome Page paywall — see §1.2. Renders as plain text above the first slider. Copy updated 2026-09-28, see §15. |
 | 1 | Slider | `Slider` | "Overall, how comfortable have you felt being open and honest with your therapist so far?" | Domain: Connection. Instructions: "Domain: Connection. 0 = Not comfortable, 10 = Very comfortable." Range 0-10, Mandatory. |
 | 2 | Slider | `Slider1` | "Overall, how well do you feel your therapist has understood what matters to you so far?" | Domain: Understanding. Instructions: "Domain: Understanding. 0 = Not understood, 10 = Fully understood." Range 0-10, Mandatory. |
 | 3 | Slider | `Slider2` | "Overall, how much do you feel you and your therapist agree on what you're working toward?" | Domain: Shared direction. Instructions: "Domain: Shared direction. 0 = Not aligned, 10 = Fully aligned." Range 0-10, Mandatory. |
@@ -87,7 +90,8 @@ this Zoho Forms account's current plan:
   (confirmed via a follow-up "Changes... have not been saved" alert on
   navigating away). **Workaround**: added a free-tier **Description** field
   (found under Form Fields → Instructions → Description) as the form's first
-  field, containing the exact intro copy from `m2-research.md` verbatim:
+  field. **Superseded 2026-09-28 — see §15**; original copy, live from build
+  through 2026-09-28, kept here for history:
   > "You've been meeting with your therapist for a few sessions now, and
   > we'd love to hear how that's felt for you so far. There's no right or
   > wrong answer, just your honest sense of things. Thinking about your
@@ -1052,3 +1056,47 @@ Since this flow is OFF, there was no "Apply Changes?" live-flow confirmation
 dialog (Zoho Flow only shows that gate for a flow that's currently Live/ON) —
 Done alone commits the change; reopening the node after saving confirmed the new
 Subject and the rendered new Body persisted.
+
+## 15. Change (2026-09-28): form Description ("Intro") field copy updated to match the new email framing
+
+Per Costin's direct instruction, the form's own intro copy (§1.2's free-tier
+Description-field workaround) was replaced to align with the confidentiality/
+reassurance framing introduced in §14's email redesign, so a patient reads the
+same "this is reviewed by our practice team, not your therapist" message
+whether they're looking at the email or the form itself.
+
+**Old copy** (live from the original build through 2026-09-28 — kept in §1.2
+for history):
+> "You've been meeting with your therapist for a few sessions now, and we'd
+> love to hear how that's felt for you so far. There's no right or wrong
+> answer, just your honest sense of things. Thinking about your experience
+> with your therapist so far, not just today, mark where you'd place
+> yourself on each line."
+
+**New copy** (verbatim, now live):
+> "You're a few sessions in, and we want to make sure it's off to the right
+> start. This is reviewed by our practice team, not your therapist, so we
+> can keep improving the care we provide you and everyone we work with"
+
+Edited directly on the live "Cape Clarity Alliance Check-In" form (My Forms →
+row's **Edit** button, not clicking the form title itself — clicking the
+title from the My Forms list opens the signed-in respondent preview at
+`.../form/CapeClarityAllianceCheckIn`, not the builder; **Edit** opens
+`.../form/CapeClarityAllianceCheckIn/builder` directly). Clicking the intro
+text on the builder canvas opened the field's Description panel directly (no
+separate "settings" step needed, unlike some other field types). Selected the
+existing text with a triple-click (which reliably selected the whole
+paragraph, both wrapped visual lines, confirmed via the highlight in a
+screenshot before deleting — `ctrl+a` was tried first and had no visible
+effect, consistent with this being the same kind of same-origin iframe rich
+text editor documented in §1.2, where whole-document keyboard shortcuts don't
+reliably reach the iframe's own selection), deleted, typed the new copy, and
+verified character-for-character via a zoomed screenshot before clicking
+Save. Save produced a "Saved Successfully" toast and the builder canvas
+re-rendered with the new copy in place; re-confirmed after closing the
+field's edit panel.
+
+No CRM, Flow, or Analytics changes accompanied this — it's a Zoho Forms-only
+content edit. M2's two flows ("M2 - Session 3 Trigger" and the write-back
+flow) were already OFF going into this change (per this project's
+still-in-testing status) and remain OFF.
