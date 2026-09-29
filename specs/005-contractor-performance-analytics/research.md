@@ -11,65 +11,73 @@ now derived from `Assigned_Therapist` at issuance)
 **Note**: PROSPECTIVE, per the constitution's Rollout Workflow requirement, written
 before any Zoho Analytics configuration begins for this feature.
 
-## Decision 1: How to compute Story 2's "one vote per patient" weighting without syncing patient identity into Analytics
+## Decision 1: How to compute Story 2's "one vote per patient" weighting — RESOLVED 2026-09-29
 
-**The tension**: spec.md's Story 2 (resolved via clarifying question, 2026-09-29)
-requires averaging each patient's own Milestone 3 responses together first, then
-averaging those per-patient figures across a contractor's caseload. That requires
-*some* per-patient grouping key inside Analytics. But every milestone's Analytics
-work to date has deliberately excluded the `Milestone_Instances.Patient` lookup from
-the sync entirely (`m1-implementation-notes.md` §9.1) — not merely hidden it from
-reports, excluded it from the workspace — specifically so the reporting layer can
-never trace a score back to an individual patient. `Token` doesn't solve this either:
-it's per-response, not per-patient (a patient's session-8 and session-16 M3
-responses have two different tokens), so it can't serve as the grouping key.
+**The original tension**: spec.md's Story 2 requires averaging each patient's own
+Milestone 3 responses together first, then averaging those per-patient figures
+across a contractor's caseload. That requires *some* per-patient grouping key
+inside Analytics. Every milestone's Analytics work to date has deliberately
+excluded the `Milestone_Instances.Patient` lookup from the sync entirely
+(`m1-implementation-notes.md` §9.1), on the assumption that syncing it would carry
+the linked patient's identity (name) into Analytics. `Token` doesn't solve this
+either — it's per-response, not per-patient.
 
-**Options considered**:
+**Resolved by Costin, with live schema confirmation the same session**: `Patients1`
+turns out to have two separate name-shaped fields, not one, and the earlier
+assumption behind the exclusion above was based on an inaccurate read of them.
+Confirmed live via `getFields` (Zoho CRM MCP, schema-only — no records read, per
+the standing access constraint):
 
-1. **Sync a new internal grouping key** (this plan's recommendation) — add one new
-   column to the Analytics sync that carries something derived from
-   `Milestone_Instances.Patient` (e.g. the CRM record ID itself, or a one-way hash
-   of it) purely so formulas can group rows by "same patient," and never surface
-   that column in any report's visible column list or any dashboard panel. It
-   carries no name, email, phone, or other directly identifying value — a bare
-   record ID or hash means nothing to a dashboard viewer without separate CRM
-   access, and even then, dashboard access itself stays admin-only, not
-   contractor-facing (Principle IV, FR-009). This is a narrower exposure than
-   syncing `Patient` itself (which would also carry the patient's name via any
-   lookup display value), but it is still new information entering Analytics that
-   wasn't there before, so it's flagged for Costin's explicit confirmation rather
-   than built on this plan's own authority — same treatment every prior
-   milestone's own open schema/field questions got (e.g. M4/M5's trigger-field
-   mapping, M3's TTL question).
-2. **Compute the per-patient pre-aggregation in Deluge instead**, writing a
-   precomputed per-patient average back to CRM or the blob at submission time —
-   rejected per Principle VII's default (Analytics computes derived values, not
-   Deluge) and its own stated reasoning: a Deluge-computed figure freezes at
-   submission time and wouldn't recalculate if the weighting logic ever changed,
-   unlike an Analytics formula/aggregate column. The constitution's own exception
-   clause (a rule that compares across multiple records for one patient) is written
-   to still keep the *comparison* in Analytics where practical — it isn't a license
-   to move the whole computation to Deluge just because it's patient-scoped.
-3. **Skip patient-weighting and average every response equally**, i.e. quietly
-   under-deliver on the resolved clarifying answer — rejected outright; Costin was
-   asked this specific question and gave a specific answer, so silently reverting to
-   the simpler behavior isn't a real option.
-4. **Do the weighting outside Analytics entirely** (e.g. a periodic export/script
-   that recomputes contractor averages and re-imports them) — rejected as needless
-   extra infrastructure for a computation Analytics's own aggregate-formula/query-
-   table features are built to do, and it would reintroduce exactly the
-   "frozen until re-run" staleness problem option 2 has, without even Deluge's
-   excuse of running automatically on submission.
+| Field | api_name | Label | Content |
+|---|---|---|---|
+| `Patients1`'s standard/primary field | `Name` | "Patient Name" | A pseudonymous code (`P` + patient number) — by explicit practice design, this field is never populated with a real name |
+| `Patients1`'s custom field | `Full_Name_PHI` | "Full Name (PHI)" | The patient's actual identified name |
 
-**Recommendation**: Option 1, syncing a minimal internal grouping key (likely just
-the CRM record ID Analytics can already reference via `Milestone_Instances`' own
-row identity on the `Patient` lookup field — to be confirmed against what the Zoho
-Analytics sync configuration actually exposes when this is built) used only inside
-Story 2's aggregate formulas, never added to any report or dashboard's visible
-columns. **Flagged for Costin's explicit confirmation before this is built** — this
-is the one decision in this plan that changes what data leaves CRM for Analytics,
-even in a de-identified form, and every prior milestone's own precedent is to get
-that kind of change confirmed rather than assumed.
+`Milestone_Instances.Patient` (the existing lookup, `api_name = "Patient"`) already
+points at the same `Patients1` record and, by Zoho CRM's standard lookup display
+behavior, already surfaces that record's primary `Name` field — i.e. the P-code —
+wherever the lookup is shown, including on the Milestone Instance record layout
+Costin checked directly. `Full_Name_PHI` is a separate field the lookup does not
+surface and this feature never touches.
+
+**Correction to prior documentation**: `m5-data-model.md` (its "Field inventory"
+table) and `m5-research.md` (Decision 4) both characterized `Patients1.Name`
+("Patient Name") as holding the patient's full real name, on par with
+`Full_Name_PHI`, when reasoning about the M5 `[First Name]` email-personalization
+question. That characterization was inaccurate — confirmed now, not at the time —
+though it happens not to have mattered for M5's own outcome: a P-code wouldn't have
+worked as a friendly email greeting either, so M5's actual fallback (drop
+`[First Name]`, open with "Hi there,") remains the right call regardless. A short
+correction note has been added to `m5-implementation-notes.md` for the record, per
+CLAUDE.md's documentation-accuracy convention.
+
+**Decision**: sync `Patients1.Name` (via the existing `Milestone_Instances.Patient`
+lookup — no new CRM field, no hash, no new relationship) into the "Milestone
+Instances" Analytics table as a new column, used as the per-patient grouping key
+for Story 2's two-step aggregation (per-patient average, then per-contractor
+average of those). Because the field is a deliberately de-identified code rather
+than identity, it does not need the same never-displayed treatment a real
+identifier would — it can appear in a report column if that's ever useful for
+troubleshooting (the same way `Token`, an equally opaque per-response code, already
+appears on every existing milestone report) — but this feature's own reports
+(`data-model.md`) still don't surface it by default, since nothing in Stories 1-6
+needs to display it, only to group by it.
+
+**Options considered and rejected**, for the record:
+
+1. *Sync a new hashed/internal ID instead of reusing `Patients1.Name`* — superseded
+   by the above once it became clear a safe, already-existing field does the same
+   job with no new field and no ambiguity about what it contains.
+2. *Compute the per-patient pre-aggregation in Deluge instead* — still rejected,
+   same reasoning as before: Principle VII's default is Analytics, and a
+   Deluge-computed figure would freeze at submission time rather than recalculating
+   if the weighting logic ever changes.
+3. *Skip patient-weighting and average every response equally* — still rejected;
+   Costin was asked this specific question in the clarifying round and gave a
+   specific answer.
+4. *Do the weighting outside Analytics entirely* (periodic export/re-import) — still
+   rejected as needless infrastructure Analytics's own aggregate/query-table
+   features already handle.
 
 ## Decision 2: Combined vs. per-milestone Alliance reporting (Story 1)
 

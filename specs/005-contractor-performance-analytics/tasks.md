@@ -27,20 +27,20 @@ standing access constraint).
 **⚠️ Gates User Story 2 only** (T007-T010 below) — User Stories 1, 3, 4, 5, and 6 do
 not depend on this phase and can proceed as soon as Phase 1 is done.
 
-- [ ] T002 Get Costin's explicit go/no-go on `research.md` Decision 1 (sync a new,
-      non-name/email/phone internal grouping key into Analytics so Story 2 can
-      average per patient before averaging per contractor) before building anything
-      Story 2-specific. This is the single highest-risk/most consequential decision
-      in this feature — everything else proceeds directly from data that's already
-      in Analytics.
+- [x] T002 `research.md` Decision 1 is resolved (2026-09-29, Costin, confirmed live
+      via CRM schema introspection): Story 2's per-patient grouping key reuses the
+      existing `Patients1.Name` field (the practice's existing `P`+number
+      de-identified code, surfaced by the existing `Milestone_Instances.Patient`
+      lookup) — no new CRM field, no hash. Nothing further needed here before
+      Story 2-specific work; see T007.
 - [ ] T003 [P] Confirm the current live `Clinician` picklist values (via Zoho CRM
       MCP `getFields` on `Milestone_Instances` — non-PII module, allowed under the
       standing access constraint) to use as the real contractor set in later
       validation, and to sanity-check `data-model.md`'s assumption that `Clinician`
       is already populated on existing M0/M2/M3/M4/M5 rows.
 
-**Checkpoint**: Decision 1 resolved one way or the other; real `Clinician` values
-confirmed. User Story 1 work can start regardless of T002's outcome.
+**Checkpoint**: Decision 1 resolved (T002 done); real `Clinician` values confirmed.
+User Story 1 and User Story 2 work can both start once T003 is done.
 
 ## Phase 3: User Story 1 - Per-contractor Alliance score averages, combined and per-milestone (Priority: P1)
 
@@ -67,9 +67,8 @@ combined and per-milestone Alliance averages, correctly isolated per contractor.
 
 ## Phase 4: User Story 2 - Per-contractor Practice Experience and Therapist Professionalism averages (Priority: P2)
 
-**Depends on T002.** Do not start until Decision 1 is resolved — building this
-story against the wrong assumption (response-weighted instead of patient-weighted)
-would need to be redone.
+**Depends on T002 (done) and T003.** Decision 1 is resolved, so this story can
+proceed directly to T007.
 
 **Goal**: A practice owner can see each contractor's Professionalism, Scheduling/
 Communication, and Billing averages, weighted one-vote-per-patient.
@@ -79,14 +78,16 @@ the same contractor, and confirm that patient's figures are averaged together
 before being combined with the contractor's other patients (spec.md Acceptance
 Scenario 2; `quickstart.md` §B's concrete numbers).
 
-- [ ] T007 [US2] If T002 confirmed syncing a grouping key: add it to the Analytics
-      sync per `research.md` Decision 1 / `data-model.md`. Confirm it does not
-      appear in any report's column list or any dashboard panel anywhere in the
-      workspace before proceeding.
+- [ ] T007 [US2] Add the `Patients1.Name` grouping key to the Analytics sync per
+      `research.md` Decision 1 / `data-model.md` (via the existing
+      `Milestone_Instances.Patient` lookup — no new CRM field, no hash). Confirm it
+      does not appear in any report's column list or any dashboard panel anywhere
+      in the workspace before proceeding (it's safe enough to appear, per
+      research.md, but no story needs it displayed).
 - [ ] T008 [US2] Build the per-patient sub-aggregate (likely a query table, per
       `data-model.md`): average Therapist Professionalism / Scheduling-
-      Communication / Billing per (grouping key, `Milestone = '3 - Periodic
-      Consolidated'`).
+      Communication / Billing per (`Patients1.Name` grouping key, `Milestone = '3 -
+      Periodic Consolidated'`).
 - [ ] T009 [US2] Build the "Contractor Professionalism & Practice Experience"
       report: average of T008's per-patient figures, grouped by `Clinician`.
 - [ ] T010 [US2] Verify against `quickstart.md` §B's seeded case: a contractor with
@@ -202,10 +203,10 @@ own contractor roster, no per-contractor rebuild required.
 
 - [ ] T022 Write `specs/005-contractor-performance-analytics/implementation-notes.md`
       (as-built reference, mirroring the shape of `m0`-`m5-implementation-notes.md`:
-      component inventory, exact formula/aggregate definitions, whether Decision 1's
-      grouping key was built and exactly what it carries, dashboard/report names,
-      test-data approach) once this feature is actually built — per CLAUDE.md's
-      convention, in the same session as the change.
+      component inventory, exact formula/aggregate definitions, confirmation that
+      Decision 1's `Patients1.Name` grouping key was built as planned, dashboard/
+      report names, test-data approach) once this feature is actually built — per
+      CLAUDE.md's convention, in the same session as the change.
 - [ ] T023 Update `CLAUDE.md` if this build establishes a new cross-milestone
       convention worth capturing — likely candidates: this being the first
       Analytics-only feature (no Deluge/Flow/Forms touched) in the pipeline, and,
@@ -219,11 +220,10 @@ own contractor roster, no per-contractor rebuild required.
 
 ## Notes for whoever implements this
 
-- T002/Decision 1 is this feature's one real open question and its highest-risk
-  item — everything else (Stories 1, 3, 4, 5, 6) proceeds directly from data
-  already in Analytics with no new sync or schema question at all. Get this
-  resolved before starting Phase 4; don't let it block Phases 3, 5, 6, 7 or 8,
-  none of which depend on it.
+- T002/Decision 1 is resolved (see Phase 2) — Story 2 reuses the existing
+  `Patients1.Name` de-identified code via the existing lookup, no new field. Every
+  other story (1, 3, 4, 5, 6) proceeds directly from data already in Analytics
+  with no sync or schema question at all.
 - This is the first feature in the pipeline that touches zero Deluge, zero Zoho
   Flow, and zero Zoho Forms — the entire build surface is the Zoho Analytics
   workspace. Don't reach for a write-back function or a trigger flow here; if a

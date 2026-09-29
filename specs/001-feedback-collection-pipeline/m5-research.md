@@ -192,9 +192,15 @@ copy is sourced rather than drafted):
 `[First Name]` merge personalization was not used by any prior milestone's
 email (M0–M4 all use a generic salutation-free body) — confirm during build
 whether `Patients1` exposes a first-name field the Send Email step's Insert
-Variable panel can map (the module's own `Name` field is "Patient Name," full
-name, not first-name-only; `Full_Name_PHI` likewise). If no clean
-first-name-only field/formula is available without new PII-handling work,
+Variable panel can map (the module's own `Name` field, "Patient Name," is not
+a name at all — it's a deliberately de-identified `P`+number pseudonym code,
+by explicit practice design; the patient's actual real name lives in a
+separate field, `Full_Name_PHI`. **Correction, 2026-09-29** (feature 005's
+`research.md` Decision 1): this section originally described `Name` as the
+full real name, on par with `Full_Name_PHI`; that was inaccurate, though it
+didn't change M5's own outcome below, since a pseudonym code wouldn't have
+worked as a friendly first-name greeting any more than a full name would).
+If no clean first-name-only field/formula is available without new PII-handling work,
 drop `[First Name]` from both the subject and body opening rather than
 splitting or guessing at a name field — flag this substitution to
 Costin/Liana rather than silently deviating from the sourced copy. The

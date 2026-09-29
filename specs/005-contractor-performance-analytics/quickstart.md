@@ -28,9 +28,8 @@ For each of the five new reports and the "Contractor Performance" dashboard:
    has 2+ Milestone 3 responses produces a different (patient-weighted) figure than
    a naive row-level average of all that contractor's M3 responses would — see the
    sample-data test in section B for the concrete numbers to check this against.
-6. Confirm the (possible) internal grouping key from research.md Decision 1, if
-   built, appears in no report's column list and no dashboard panel anywhere in the
-   workspace.
+6. Confirm the `Patients1.Name` grouping key from research.md Decision 1 appears
+   in no report's column list and no dashboard panel anywhere in the workspace.
 7. For User Story 5: click through each panel's drill-down and confirm it lands on
    the correct existing M2/M3/M4/M5 report, filtered to the contractor that panel
    represents.

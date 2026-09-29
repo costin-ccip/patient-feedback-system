@@ -8,9 +8,11 @@
 
 Unlike every milestone (M0-M5), this feature makes no change to
 `Milestone_Instances` or any other CRM module's fields or picklists. `Clinician`
-already exists and is already populated on every M0/M2/M3/M4/M5 row. The only
-possible new data movement is research.md Decision 1's flagged internal grouping
-key, which is an Analytics *sync* question, not a CRM schema change.
+already exists and is already populated on every M0/M2/M3/M4/M5 row. The one new
+data movement is research.md Decision 1's confirmed sync of the existing
+`Patients1.Name` field (via the existing `Milestone_Instances.Patient` lookup)
+into Analytics — an Analytics *sync* question, not a CRM schema change; no CRM
+field, picklist, or relationship is added or modified.
 
 ## Analytics workspace changes
 
@@ -18,17 +20,22 @@ All new objects live on or alongside the existing "Milestone Instances" table in
 the same Analytics workspace every milestone's reporting already uses (workspace
 `3251423000000083002`, per `m0-implementation-notes.md` §7).
 
-### New/possible sync: internal patient-grouping key
+### New sync: per-patient grouping key
 
-**Flagged, not yet confirmed (research.md Decision 1).** If confirmed: one new
-column on the "Milestone Instances" Analytics table, sourced from
-`Milestone_Instances.Patient` (the existing CRM lookup), carrying the underlying
-CRM record ID (or a one-way hash of it — to be decided at build time based on
-what the Analytics sync configuration supports) rather than the lookup's display
-name. Used exclusively inside Story 2's aggregate formulas (below); **never added
-to any report's column list or any dashboard panel**. This is the one object in
-this data model that is not simply grouping/aggregating data Analytics already
-has — everything else below reads only columns that already exist.
+**Resolved 2026-09-29 (research.md Decision 1).** One new column on the
+"Milestone Instances" Analytics table, sourced from `Milestone_Instances.Patient`
+(the existing CRM lookup) — specifically its linked `Patients1.Name` value, the
+`P`+number pseudonym code the practice already uses in place of the patient's
+real name (`Full_Name_PHI`, a separate field, is never touched). No new CRM
+field, no hash, no new relationship — the lookup already surfaces this value.
+Used inside Story 2's aggregate formulas (below) as the per-patient grouping
+key; not needed by any other story. Because the value is already de-identified
+by design, it doesn't require the same never-displayed treatment a real
+identifier would (see research.md for the full reasoning), but this feature's
+own reports still don't surface it by default — nothing in Stories 1-6 needs to
+display it, only to group by it. This is the one object in this data model that
+is not simply grouping/aggregating data Analytics already has — everything else
+below reads only columns that already exist.
 
 ### New formula/aggregate columns
 
@@ -51,13 +58,13 @@ per-milestone breakdown applies.
 **User Story 2 — Professionalism / Practice Experience (patient-weighted)**:
 - Requires the two-step aggregation research.md Decision 1 describes: (a) a
   per-patient sub-aggregate — average Therapist Professionalism / Scheduling-
-  Communication / Billing per (patient-grouping-key, `Milestone = '3 - Periodic
-  Consolidated'`) — then (b) a per-contractor aggregate of those per-patient
-  figures, grouped by `Clinician`. Likely built as a query table (Analytics'
-  saved-query mechanism) for step (a), feeding a standard aggregate report for
-  step (b) — exact mechanism to confirm against the live workspace's available
-  features at build time.
-- Depends on the internal grouping key above; cannot be built structurally correct
+  Communication / Billing per (`Patients1.Name` grouping key, `Milestone = '3 -
+  Periodic Consolidated'`) — then (b) a per-contractor aggregate of those
+  per-patient figures, grouped by `Clinician`. Likely built as a query table
+  (Analytics' saved-query mechanism) for step (a), feeding a standard aggregate
+  report for step (b) — exact mechanism to confirm against the live workspace's
+  available features at build time.
+- Depends on the grouping key above; cannot be built structurally correct
   without it (a plain `AVG()` grouped only by `Clinician` would silently be
   response-weighted, not patient-weighted, which is the behavior Costin explicitly
   asked this feature NOT to have).
@@ -114,7 +121,7 @@ per-milestone breakdown applies.
 - **Contractor Performance View**: not a stored entity — a set of Analytics
   reports/dashboard panels computed at query time from existing
   `Milestone_Instances` rows, grouped by `Clinician` (and, for Story 2, by the
-  flagged internal patient-grouping key). Nothing about a contractor's
+  synced `Patients1.Name` patient-grouping key). Nothing about a contractor's
   performance is persisted anywhere new; it's recomputed from the same rows
   every existing milestone report already reads.
 

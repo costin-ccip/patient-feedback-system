@@ -45,7 +45,7 @@ holds for M5 exactly as it does for M0/M2/M4.
 | `Assigned_Therapist` | picklist | `-None-`, `Liana Preudhomme`, `Deborah Webster`, `Shana Lacastro` — not read by M5's trigger/functions, same as every prior milestone (Principle II: attribution happens only inside CRM, after the fact, and is not needed for issuance) |
 | `Email` | email | `${trigger.Email}`, same as every prior milestone |
 | `Created_Time` | datetime | `${trigger.Created_Time}`, mapped to `isCreatedAfterCutoff`'s `createdTime` parameter |
-| `Name` ("Patient Name") | text | Full name only — no first-name-only field exists; see the email-personalization note below |
+| `Name` ("Patient Name") | text | **Correction (2026-09-29, feature 005 research):** not the patient's real name — a deliberately de-identified `P`+number pseudonym code, by explicit practice design; the real name lives in a separate custom field, `Full_Name_PHI`, which M5 never reads either. Not usable as a first-name greeting regardless; see the email-personalization note below |
 
 **`Milestone_Instances`** (26 fields total, unchanged): `Milestone` picklist
 confirmed to already include `"5B - Discontinuation, Email Fallback"`;
@@ -175,11 +175,17 @@ build-first-verify-later convention.
 **`[First Name]` email personalization**: the Confluence source's subject
 ("Just checking in, [First Name]") and body opening ("Hi [First Name],")
 are the first milestone copy in this pipeline to use a merge field beyond
-the token link. `Patients1` has no first-name-only field (`Name` is full
-"Patient Name"; `Full_Name_PHI` is likewise full name) — confirm at build
-time whether the Send Email step's Insert Variable panel exposes a
+the token link. `Patients1` has no first-name-only field — `Name` ("Patient
+Name") is not a name at all but a deliberately de-identified `P`+number
+pseudonym code (correction, 2026-09-29: see feature 005's `research.md`
+Decision 1; the earlier characterization here, that `Name` held the full
+real name on par with `Full_Name_PHI`, was inaccurate), and `Full_Name_PHI`
+(the actual real name) is a separate field this milestone doesn't read from.
+Neither would have worked as a first-name greeting regardless — confirm at
+build time whether the Send Email step's Insert Variable panel exposes a
 first-name-only token derived from `Name` (some Zoho Mail send-email nodes
-offer basic string functions on merge fields). If not, per `m5-research.md`
+offer basic string functions on merge fields), though given `Name` is a
+pseudonym code, this is now expected to be a no-op. If not, per `m5-research.md`
 Decision 4's fallback, drop `[First Name]` from both the subject and body
 opening rather than inventing new PII-handling — resulting text: Subject
 `Just checking in`; Body opens `Hi, We noticed it's been a little while...`

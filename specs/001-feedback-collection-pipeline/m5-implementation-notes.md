@@ -880,3 +880,31 @@ step, plus the Analytics dependency-checker's own errors/successes as a
 built-in verification signal), consistent with this session's no-live-test-
 without-Costin standing instruction — no form was actually submitted, and
 neither flow was turned back ON.
+
+## 14. Correction (2026-09-29, during feature 005 scoping): `Patients1.Name`
+("Patient Name") is a de-identified code, not the patient's real name
+
+§2.1 and `m5-data-model.md`/`m5-research.md` reasoned about `[First Name]`
+email personalization on the assumption that `Patients1.Name` ("Patient
+Name") held the patient's full real name, the same as the separate custom
+field `Full_Name_PHI`. While scoping feature 005 (Contractor Performance
+Analytics), Costin clarified this was wrong: `Name` is, by explicit practice
+design, never populated with a real name — it holds a deliberately
+de-identified pseudonym code (`P` + patient number). `Full_Name_PHI` is a
+distinct field that does hold the real name, and M5 never reads it.
+Confirmed live the same session via `Zoho_CRM getFields` (schema-only, no
+records) on `Patients1`: `Name` (not custom, `json_type: string`, length
+120, label "Patient Name") vs. `Full_Name_PHI` (custom, length 255, label
+"Full Name (PHI)") — two distinct fields.
+
+This does not change M5's actual built behavior: a `P`+number code wouldn't
+have worked as a friendly `[First Name]` greeting any more than a full name
+would have, so the fallback documented in §2.1 (drop `[First Name]`, open
+with "Hi there,") remains correct either way. The only thing that changes is
+the *reasoning* recorded in the docs — corrected in `m5-data-model.md`
+(field inventory table and the `[First Name]` personalization note) and
+`m5-research.md` (Decision 4) in the same session as this note, per
+CLAUDE.md's documentation-accuracy convention. Full context: feature 005's
+`research.md` Decision 1, which needed this clarification to resolve a
+different question (a safe per-patient grouping key for Analytics) and
+surfaced this correction as a side effect.
