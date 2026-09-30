@@ -1,9 +1,29 @@
 # Contractor Performance Analytics — Implementation Notes
 
-**Status as of 2026-09-29: mostly built, partially verified.** Every report and
-the dashboard exist and are saved in the live "Zoho CRM Analytics" workspace.
-Drill-down (User Story 5) and real-data verification (Phase 10) are **not**
-done — both are blocked on items only Costin can resolve; see §6 and §7.
+**Status as of 2026-09-30: built, partially verified, drill-down descoped.**
+Every report and the dashboard exist and are saved in the live "Zoho CRM
+Analytics" workspace. Drill-down (User Story 5) is explicitly descoped per
+Costin's 2026-09-30 decision — not built, not planned for this pass (see §6).
+Real-data verification (Phase 10) is partially done: 5 of 7 quickstart.md §B
+test rows are seeded; the 3 patient-weighting rows (T010) are still blocked
+on a real `Patients1` record ID (see §7).
+
+**2026-09-30 update — Patient linkage confirmed** (answers a question Costin
+asked directly): for M2/M3/M4/M5, the shared `issueFeedbackToken` function
+*does* populate `Milestone_Instances.Patient` automatically —
+`createMap.put("Patient",patientId)`, where `patientId` is wired from each
+milestone's own trigger flow as `${trigger.id}` (the Patients1 record's own
+CRM ID — see `specs/002-remove-subflow-dependency/implementation-notes.md`
+line 92 and each milestone's own flow wiring). **M0 is the one exception** —
+its trigger fires on a Lead, before the person is a Patient record, so it
+passes `patientId` empty by design; that's why all 4 pre-existing production
+records (all M0) show `Patient: null` — expected, not a gap. This also
+resolves the "Numeric vs Text" open nuance from §3 below: the value that
+syncs to Analytics is the raw Patients1 record ID (a number), not the
+`P`-code display string — still a perfectly valid unique-per-patient
+grouping key for T008's aggregation, just not literally
+"`Patients1.Name`" as research.md's Decision 1 phrased it. Worth a small
+research.md correction later; doesn't affect T008/T009's correctness.
 
 ## 1. What this feature does
 
@@ -122,7 +142,12 @@ Passes — a new `Clinician` picklist value with qualifying data should appear
 in every relevant view with zero edits (Story 6), though this has not been
 empirically exercised against real data (see §6).
 
-## 6. T013/T014 — drill-down: unresolved, deferred to Costin
+## 6. T013/T014 — drill-down: descoped 2026-09-30
+
+**Costin's explicit decision: "let's descope drill down for now."** User
+Story 5 is not built and not currently planned. The 2026-09-29 investigation
+below is kept as a reference in case this gets picked back up later — none of
+it is being acted on further right now.
 
 Investigated extensively in this session; no fully satisfactory native
 mechanism was found in this Basic Edition workspace for a Pivot-type
@@ -167,50 +192,56 @@ uncertainty, (b) which report the combined Alliance Summary panel should
 target, and (c) whether a higher Analytics edition would offer a cleaner
 native mechanism.
 
-## 7. Phase 10 — test data: not done, two independent blockers
+## 7. Phase 10 — test data: partially seeded 2026-09-30
 
-**Current live production state** (confirmed via CRM MCP `getRecords`,
-non-PII module): `Milestone_Instances` has exactly 4 records, all
-`Milestone = '0 - No Conversion'`, all `Clinician = 'Liana Preudhomme'`, all
-`Patient` null. **No M2/M3/M4/M5 response exists yet in production**, so
-every one of this feature's 5 reports and the dashboard currently show "no
-data" — expected, not a bug (consistent with FR-006's explicit no-data
-requirement, T006), but it also means nothing about this build has been
-verified against real numbers yet.
+**Original production state** (confirmed 2026-09-29 via CRM MCP
+`getRecords`, non-PII module): `Milestone_Instances` had exactly 4 records,
+all `Milestone = '0 - No Conversion'`, all `Clinician = 'Liana Preudhomme'`,
+all `Patient` null — no M2/M3/M4/M5 response existed yet.
 
-Two separate blockers prevented Phase 10 (T018-T021) from being run this
-session:
+**2026-09-29 finding**: a `createRecords` call was denied outright by this
+session's auto-mode write classifier ("External System Writes"). **2026-
+09-30**: with Costin's explicit go-ahead in chat ("I need you to create some
+test milestone instances"), the identical kind of call succeeded — the
+classifier appears to gate on there being a live, explicit human request in
+the turn, not just on the data/module being written to. Created 5 of
+quickstart.md §B's 7 rows via `createRecords` against `Milestone_Instances`
+(non-PII fields only: `Milestone`, `Clinician`, `Status`,
+`Submitted_Date_Time`, `Response_Data` built per §7's format reference
+below):
 
-1. **This session's auto-mode write classifier blocks Zoho CRM MCP writes
-   entirely.** A `createRecords` call against `Milestone_Instances` (test
-   data only, non-PII fields) was denied outright with "External System
-   Writes" — this is an auto-mode-level restriction, not a judgment call
-   this session can route around, and the tool's own guidance is explicit
-   about not attempting to work around it. **This means an unattended/auto
-   session cannot self-serve CRM test-data seeding at all**, regardless of
-   which module — a materially different situation from every prior
-   milestone's Phase-10-equivalent step, which ran under a session where
-   such writes were apparently permitted. Future sessions attempting this
-   same kind of MCP-based test-data seeding should expect the same denial
-   under auto mode, and should flag it early rather than assume it'll work
-   because a prior milestone's notes describe the same MCP calls succeeding.
-2. **Even without the classifier block, Story 2's patient-weighting test
-   (T010) specifically needs a real `Patients1` record ID to set on two test
-   `Milestone_Instances` rows** (so they group as "the same patient" in
-   T008's per-patient sub-aggregate) — and the standing access constraint
-   forbids looking one up, via CRM query or browser, without Costin's
-   permission. This is the exact same blocker `m2-implementation-notes.md`
-   §5 hit and left for Costin under its own T020 ("blocked pending human
-   input — needs a test Patient record ID from Costin"). Nothing here
-   resolves that precedent; it's simply confirmed to recur.
+| CRM record ID | Milestone | Clinician | Purpose |
+|---|---|---|---|
+| `6825601000004591002` | 2 - Early Alliance Check | Liana Preudhomme | Story 1 |
+| `6825601000004591003` | 4 - Discharge | Liana Preudhomme | Story 1 + 3 |
+| `6825601000004591004` | 2 - Early Alliance Check | Deborah Webster | Story 1 (isolation check) |
+| `6825601000004591005` | 5B - Discontinuation, Email Fallback | Deborah Webster | Story 4 |
+| `6825601000004591006` | 2 - Early Alliance Check | Shana Lacastro | Story 6 (new contractor) |
 
-**What was still confirmed without writing any data** (Phase 8/T003, done
-via read-only `getFields`): the live `Clinician` picklist is
+All named `TEST-005 <milestone> <clinician> <hex>` for easy identification
+at cleanup time (T021). A manual "Sync Now" was triggered on the workspace's
+Zoho CRM data source (Data Sources panel) right after creating these — as of
+this note, the sync was still showing "Sync In Progress" after about 45
+seconds of polling from the browser, so the dashboard/reports may not show
+this data immediately. It should appear once that sync completes (the
+source also has a daily scheduled sync, so it will catch up on its own even
+if the manual one stalls); nothing further needs to be done to make it
+show up.
+
+**Still missing — blocked on the same thing `m2-implementation-notes.md` §5
+hit for its own T020**: the 2 remaining quickstart.md §B rows (Story 2's
+patient-weighting test — one patient with 2 M3 responses, a second patient
+with 1) need a real `Patients1` record ID set on the `Patient` lookup field,
+and the standing access constraint still forbids looking one up via CRM
+query or browser without Costin's permission. **Asked Costin for a test
+Patient record ID** (or two) to complete this specific row set; everything
+else in Phase 10 that doesn't need a Patient link is now seeded.
+
+**Confirmed without writing any data** (T003, read-only `getFields`): the
+live `Clinician` picklist is
 `{-None-, Liana Preudhomme, Deborah Webster, Shana Lacastro}` —
-**`Shana Lacastro` already exists as a picklist value**, so T016's premise
-("add a new picklist value") needs no schema change at all if/when Costin
-runs it; only a qualifying test response needs to be seeded for her, same
-blocker as above.
+`Shana Lacastro` already existed as a picklist value before this session, so
+T016 needed no schema change, only the one seeded response above (now done).
 
 **Response_Data format reference** (for whoever seeds real test data,
 Costin or a future permitted session — copied from each milestone's own
@@ -258,15 +289,19 @@ no PII. No live/end-to-end test ran; Costin's own pass remains
 
 - **T006**: structurally consistent by design (an empty `Clinician` group
   simply doesn't appear in a Pivot's Rows rather than showing as a
-  zero/blank row), not verified against real data yet — needs Phase 10.
-- **T010**: blocked on a real `Patients1` record ID (§7.2).
-- **T013/T014**: blocked on a product decision (§6) — drill-down mechanism
-  viability, and the combined-panel destination question.
-- **T016**: no schema change needed (Shana Lacastro already exists as a
-  picklist value); needs one seeded test response once Phase 10 is
-  unblocked.
-- **T018-T021**: blocked on auto-mode's write classifier (§7.1) — this
-  needs either Costin running the seed/verify/cleanup pass himself (via the
-  same CRM MCP calls, from a session where writes aren't denied), or an
-  explicitly-approved interactive session to do it.
-- **T019/T020**: depend on T018.
+  zero/blank row) — can now be checked against the seeded data in §7 once
+  the CRM→Analytics sync completes.
+- **T010**: still needs a real `Patients1` record ID from Costin (§7) — the
+  one open ask from this session.
+- **T013/T014**: descoped, not blocked — see §6. Revisit only if Costin
+  wants drill-down back on the roadmap later.
+- **T016**: done — Shana Lacastro's seeded response is in §7's table; needs
+  only the sync (and later, T019/T020 verification) to confirm it surfaces
+  correctly.
+- **T018**: mostly done (5/7 rows seeded, §7); the last 2 need the Patient
+  record ID above.
+- **T019/T020**: can run once the sync completes — check the dashboard
+  against quickstart.md §A/§B, noting Story 2 will stay unverifiable until
+  T010's rows are in.
+- **T021**: cleanup — delete the 5 (soon 7) `TEST-005 ...` records via CRM
+  MCP `deleteRecords` once verification is done; their IDs are listed in §7.

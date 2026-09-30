@@ -150,14 +150,15 @@ responses with no patient-identifying column (spec.md Acceptance Scenarios 1-2).
       in this Basic Edition workspace; "Format Column → Associate URL" is the
       only lead, unbuilt/unverified. Deferred to Costin — see
       `implementation-notes.md` §6.**
-- [ ] T014 [US5] Wire drill-down from each of the four Contractor Performance
+- [~] T014 [US5] ~~Wire drill-down from each of the four Contractor Performance
       panels (T004/T005, T009, T011, T012) to its corresponding existing M2/M3/
       M4/M5 milestone-level report, pre-filtered to the selected contractor.
       Confirm no drill-down destination adds a `Patient`/identity column that
-      wasn't already on that existing report.
+      wasn't already on that existing report.~~ **Descoped 2026-09-30, Costin's
+      explicit decision ("let's descope drill down for now"). User Story 5 is
+      not built. No panel links anywhere; revisit later if wanted.**
 
-**Checkpoint**: User Story 5 fully functional — every contractor panel reaches the
-right existing detail, still de-identified.
+**Checkpoint**: User Story 5 descoped — not part of this build.
 
 ## Phase 8: User Story 6 - New contractors appear without rebuilding the dashboard (Priority: P5)
 
@@ -193,15 +194,18 @@ own contractor roster, no per-contractor rebuild required.
 
 ## Phase 10: Test data & validation
 
-- [ ] T018 Seed the sample `Milestone_Instances` test records from `quickstart.md`
+- [~] T018 Seed the sample `Milestone_Instances` test records from `quickstart.md`
       §B via Zoho CRM MCP tools (`createRecords`/`getRecords`), not the browser —
       the module carries no PII, so tool-based CRUD is allowed under the standing
-      access constraint. **Blocked 2026-09-29: a `createRecords` attempt was
-      denied by this session's auto-mode write classifier ("External System
-      Writes"), and separately T010's specific patient-weighting rows need a
-      real `Patients1` record ID Costin hasn't provided (same blocker
-      `m2-implementation-notes.md` §5 hit for its own T020). See
-      `implementation-notes.md` §7.**
+      access constraint. **Partially done 2026-09-30**: with Costin's explicit
+      go-ahead in chat, the write classifier that blocked this 2026-09-29 did
+      not block it this time — 5 of the 7 quickstart.md §B rows were created
+      (M2 Liana, M4 Liana, M2 Deborah, M5B Deborah, M2 Shana Lacastro — the
+      three rows that don't need a real Patient link). **Still missing**: the
+      3 M3 rows that test Story 2's patient-weighting (T010), which need a real
+      `Patients1` record ID — still can't be looked up under the standing
+      access constraint; asked Costin for one. See `implementation-notes.md`
+      §7.
 - [ ] T019 Work through `quickstart.md` §A's structural verification checklist
       against everything built in Phases 3-9.
 - [ ] T020 Confirm actual report output against `quickstart.md` §B's expected
