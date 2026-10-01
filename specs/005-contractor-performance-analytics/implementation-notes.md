@@ -237,6 +237,30 @@ query or browser without Costin's permission. **Asked Costin for a test
 Patient record ID** (or two) to complete this specific row set; everything
 else in Phase 10 that doesn't need a Patient link is now seeded.
 
+**2026-10-01 update: the 3 M3 rows are now seeded** (Costin supplied test patient PT000,
+`Patients1` record ID `6825601000004448028`; see `CLAUDE.md`). Created via `createRecords`:
+
+| CRM record ID | Name suffix | Patient | Prof / Sched-Comm / Billing | Purpose |
+|---|---|---|---|---|
+| `6825601000004616001` | `PT000-s8 p1q2r3` | PT000 | 9 / 8 / 9 | Patient A, session 8 |
+| `6825601000004616002` | `PT000-s16 s4t5u6` | PT000 | 5 / 4 / 5 | Patient A, session 16 |
+| `6825601000004616003` | `patientB v7w8x9` | none (null) | 10 / 10 / 10 | Patient B stand-in |
+
+Only one test patient exists, so Patient B is a row with no `Patient` link. That works as a
+second grouping bucket only if the Query Table groups nulls together; if the report treats
+null differently, ask Costin for a second test patient. Alliance domains: 8/8/8/8, 6/6/6/6,
+9/9/9/9. All three are Liana Preudhomme, Status Submitted.
+
+Expected Liana M3 figures (patient-weighted vs naive row average):
+Professionalism 8.5 vs 8.0; Scheduling/Communication 8.0 vs 7.33; Billing 8.5 vs 8.0.
+If the report shows 8.0 / 7.33 / 8.0, patient-weighting is NOT working.
+
+**Verification status:** the CRM-to-Analytics manual sync triggered 2026-10-01 9:30 AM EDT
+sat at "Sync In Progress" for 12+ minutes (the same stall as 2026-09-30), so the new rows had
+not reached the dashboard yet (Liana's combined figures still showed only M2 + M4). Verify
+after the sync completes or after the daily 5:00 PM EDT scheduled sync. While a sync is in
+progress, "Edit Setup" on the data source is blocked ("Sync process is in-progress").
+
 **Confirmed without writing any data** (T003, read-only `getFields`): the
 live `Clinician` picklist is
 `{-None-, Liana Preudhomme, Deborah Webster, Shana Lacastro}` —
