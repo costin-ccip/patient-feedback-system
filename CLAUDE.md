@@ -304,6 +304,16 @@ never query the Patients/Patients1 module via MCP either (not even for bare
 record IDs) without explicit permission — the constraint is about not touching
 patient PII at all, not just about the browser specifically.
 
+## Designated test patient — added 2026-10-01
+
+Costin's explicit permission (2026-10-01): use test patient **PT000**, `Patients1`
+record ID **6825601000004448028**, for all live/end-to-end tests and test-data seeding across every
+milestone and feature 005 (e.g. as the `Patient` on seeded `Milestone_Instances`).
+It is a dummy record. This does NOT lift the general rule above: never look up,
+list, or read any other Patients/Patients1 record. Live tests themselves (status
+changes, session-count changes that fire flows) are still run or explicitly approved
+by Costin, per the standing rule.
+
 ## Milestone_Instances score/domain fields are Analytics formula columns, not CRM fields — added 2026-09-29
 
 Every per-domain score (Alliance Check-In domains, Therapist Professionalism,

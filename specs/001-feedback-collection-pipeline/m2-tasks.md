@@ -194,10 +194,11 @@ established pattern for what "clearing the bar" looks like in this project.*
 
 ## Phase 7: Test data & validation
 
-- [ ] T020 Get a test Patient record ID from Costin (per the standing
+- [x] T020 Get a test Patient record ID from Costin (per the standing
       Patients-module access restriction — do not look one up via CRM query
       or browser).
       *Reconciled 2026-09-30: open: blocked on a test Patient record ID from Costin.*
+      *Resolved 2026-10-01: Costin designated test patient PT000 (Patients1 record ID 6825601000004448028) for all live tests; see `CLAUDE.md`.*
 - [ ] T021 Using Zoho CRM MCP tools (not browser), exercise the full path:
       set/simulate `Session_Count` reaching 3 for the test patient (or create
       a `Milestone_Instances` record by hand to test the write-back half

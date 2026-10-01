@@ -96,7 +96,7 @@ Scenario 2; `quickstart.md` §B's concrete numbers).
       one 2-response patient and one 1-response patient produces a figure where
       the 2-response patient's average counts once, not twice, relative to the
       1-response patient.
-      *Reconciled 2026-09-30: open: needs a real `Patients1` record ID for the 3 M3 rows.*
+      *Reconciled 2026-10-01: ID now available: test patient PT000, Patients1 record ID 6825601000004448028 (see `CLAUDE.md`). The 3 M3 rows can be seeded against it.*
 
 **Checkpoint**: User Story 2 fully functional — patient-weighted, not
 response-weighted, and isolated per contractor.

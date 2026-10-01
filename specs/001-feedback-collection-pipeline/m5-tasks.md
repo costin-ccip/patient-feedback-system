@@ -260,10 +260,11 @@ involvement regardless per the standing no-live-test rule.**
 
 ## Phase 8: Test data & validation
 
-- [ ] T022 Get a test Patient record ID from Costin (per the standing
+- [x] T022 Get a test Patient record ID from Costin (per the standing
       Patients-module access restriction — do not look one up via CRM query
       or browser).
       *Reconciled 2026-09-30: open: blocked on a test Patient record ID from Costin.*
+      *Resolved 2026-10-01: Costin designated test patient PT000 (Patients1 record ID 6825601000004448028) for all live tests; see `CLAUDE.md`.*
 - [ ] T023 Using Zoho CRM MCP tools (not browser), exercise the
       discontinuation path: simulate `Patient_Status` transitioning to
       `"Discontinued (Patient Choice)"` for the test patient (confirm an M5

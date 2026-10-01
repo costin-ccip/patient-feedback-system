@@ -207,10 +207,11 @@ established pattern.*
 > (`specs/002-remove-subflow-dependency`). T020-T023 below now test that path; in the
 > run, confirm the execution shows those two steps, not "Call a subflow".
 
-- [ ] T020 Get a test Patient record ID from Costin (per the standing
+- [x] T020 Get a test Patient record ID from Costin (per the standing
       Patients-module access restriction — do not look one up via CRM
       query or browser).
       *Reconciled 2026-09-30: open: blocked on a test Patient record ID from Costin.*
+      *Resolved 2026-10-01: Costin designated test patient PT000 (Patients1 record ID 6825601000004448028) for all live tests; see `CLAUDE.md`.*
 - [ ] T021 Using Zoho CRM MCP tools (not browser), exercise the recurring
       path specifically: simulate `Session_Count` reaching 8 for the test
       patient (confirm an M3 instance is created), then simulate it

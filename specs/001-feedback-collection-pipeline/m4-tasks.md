@@ -221,10 +221,11 @@ per `m1-implementation-notes.md` §13 / `m2-implementation-notes.md` §9 /
 
 ## Phase 7: Test data & validation
 
-- [ ] T023 Get a test Patient record ID from Costin (per the standing
+- [x] T023 Get a test Patient record ID from Costin (per the standing
       Patients-module access restriction — do not look one up via CRM query
       or browser).
       *Reconciled 2026-09-30: open: blocked on a test Patient record ID from Costin.*
+      *Resolved 2026-10-01: Costin designated test patient PT000 (Patients1 record ID 6825601000004448028) for all live tests; see `CLAUDE.md`.*
 - [ ] T024 Using Zoho CRM MCP tools (not browser), exercise the discharge
       path: simulate `Patient_Status` transitioning to `Completed Treatment`
       for the test patient (confirm an M4 instance is created and the
