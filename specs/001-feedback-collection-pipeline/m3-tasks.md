@@ -94,7 +94,7 @@ Milestones table, row 3; Acceptance Scenario 1).
       specifically: confirm a SECOND M3 instance is correctly created once
       a test patient's session count later reaches 16, not blocked by the
       idempotency check the way a repeat at the SAME count is.
-      *Reconciled 2026-09-30: open: live verification of checkpoints 8/16/24/32/40. Note the fixed list stops at 40 (decision pending, see `m3-research.md` Decision 2).*
+      *Reconciled 2026-09-30: open: live verification of checkpoints 8/16/24/32/40. The fixed list stops at 40 by decision (Costin, 2026-10-01); spec.md reworded to "fixed checkpoints".*
 - [ ] T008 [US1] Confirm no duplicate Periodic Check-In invitation is ever
       sent for the same 8-session checkpoint (T003's recurring-checkpoint
       idempotency check) — satisfies spec.md FR-002 / Acceptance Scenario 2,
@@ -123,7 +123,7 @@ trigger.
       not silently accept this gap a fourth time without at least
       confirming with Costin it's still being deferred deliberately — see
       `data-retention-purge.md`.
-      *Reconciled 2026-09-30: still open, go-live blocker. See `data-retention-purge.md`.*
+      *Reconciled 2026-09-30: decision made 2026-10-01: manual periodic deletion by Costin (`data-retention-purge.md`). Stays open until the cadence is set and the click-path is documented.*
 
 **Checkpoint**: Core de-identified rejoin works end-to-end for M3; retention
 purge remains a known, tracked, cross-milestone gap.

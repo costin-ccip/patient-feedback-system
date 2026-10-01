@@ -114,6 +114,14 @@ leaving care) needs its own exit-reason capture, delivered by email."
   milestone-scoped stand-in for the unified dashboard; the Milestones section gained a
   flagged note on two as-built divergences (M5 cancellation-only, M3 fixed checkpoints)
   that still need an operations-lead decision.
+
+  Revised 2026-10-01 (eighth pass), per operations-lead decisions: (1) Milestone 5's
+  trigger is cancellation-only (status Discontinued (Patient Choice)); the no-show leg
+  is dropped from this version; (2) Milestone 3 is fixed checkpoints at sessions 8, 16,
+  24, 32, 40 rather than open-ended recurrence; (3) FR-013 is satisfied, for now, by the
+  shared "Flagged for Review" report, and the unified Admin Dashboard stays deferred
+  until real data exists; (4) the FR-006 raw-submission purge is a manual periodic
+  deletion by the operations lead (see `data-retention-purge.md`).
 -->
 
 ## User Scenarios & Testing *(mandatory)*
@@ -366,7 +374,7 @@ document) and its number is deliberately left unused rather than reassigned, so
 existing CRM `Milestone` picklist values and FR-### cross-references built for later
 milestones don't need to change. All five trigger off events/data recorded in Zoho
 CRM — the practice's EHR is not part of this pipeline's trigger loop. Trigger
-thresholds below (day windows, session counts, no-show counts) are the practice's
+thresholds below (session counts and checkpoints) are the practice's
 current starting policy and are configurable, not fixed values defined by this
 specification (see Assumptions).
 
@@ -375,18 +383,9 @@ specification (see Assumptions).
 | 0 | Free consult, no conversion | A Lead is marked Lost Lead in CRM AND the Lead's Consult Call Date is populated (i.e. a free consult actually took place) | Applies to a prospect, not yet a patient. Leads marked Lost Lead with an empty Consult Call Date (no free consult happened) do NOT receive the survey. Revised 2026-09-30; previously every Lost Lead fired it. |
 | 1 | *(retired)* | — | Was Baseline Intake (Wellbeing Check-In); eliminated, no replacement. See the fifth-pass revision note. |
 | 2 | Early alliance check | Patient's session count reaches 3 | First alliance-only reading; no prior alliance data yet, so its flag rule (below) uses a fixed threshold rather than a trend |
-| 3 | Periodic consolidated | Every 8th session, recurring for the duration of treatment | An alliance reading plus operational/contractor items (practice experience, therapist professionalism) in one request; no wellbeing reading. Cadence changed from every 4th to every 8th session, and a "likelihood to continue/refer" question was removed (already captured at Milestone 4), in the fifth-pass revision |
+| 3 | Periodic consolidated | Fixed checkpoints at sessions 8, 16, 24, 32 and 40 (decided 2026-10-01; no check-ins after session 40) | An alliance reading plus operational/contractor items (practice experience, therapist professionalism) in one request; no wellbeing reading. Cadence changed from every 4th to every 8th session, and a "likelihood to continue/refer" question was removed (already captured at Milestone 4), in the fifth-pass revision |
 | 4 | Discharge | Discharge is marked in the system of record | An alliance reading (final reading) plus a "looking ahead" exit section; no wellbeing reading, so this milestone no longer closes any pre/post wellbeing comparison |
-| 5 | Discontinuation | Cancellation with no rebooking within 14 days, OR 2 consecutive no-shows with no reschedule in between | Captures exit reason; delivered by email (User Story 5) — see Assumptions for why no live-call path exists in this version |
-
-> **As-built divergences (flagged 2026-09-30, awaiting operations-lead decision):**
-> (a) Milestone 5 is built for the cancellation leg only: it fires on
-> `Patient_Status = "Discontinued (Patient Choice)"`. The "2 consecutive no-shows"
-> leg in the row above was dropped from the build by Costin's 2026-09-24 scope
-> decision (`m5-research.md` Decision 1) and has not been built; this table has
-> not been amended to match. (b) Milestone 3 is built as a fixed checkpoint list
-> (sessions 8, 16, 24, 32, 40), not open-ended recurrence; patients past session 40
-> stop receiving check-ins (`m3-research.md` Decision 2).
+| 5 | Discontinuation | Patient's status is set to Discontinued (Patient Choice) in CRM (decided 2026-10-01: cancellation leg only; the no-show pattern is not a trigger in this version) | Captures exit reason; delivered by email (User Story 5) — see Assumptions for why no live-call path exists in this version |
 
 ### Clinical Safety Flag Rules
 
@@ -445,6 +444,8 @@ configurable (see Assumptions).
   contractor MUST remain a manual decision made by a practice admin.
 - **FR-013**: The system MUST make an active clinical safety flag, and the rule that
   triggered it, visible to admins within that patient's dashboard view (FR-007).
+  Until the unified Admin Dashboard exists, this is satisfied by the shared milestone-scoped
+  "Flagged for Review" report, which identifies the patient only by token (decided 2026-10-01).
 - **FR-014**: The system MUST detect a patient's discontinuation status change and
   automatically send an exit-reason feedback request by email, using the same
   token-based, de-identified mechanism as other milestones.
@@ -528,8 +529,8 @@ configurable (see Assumptions).
 - "Contractor" and "clinician" are used interchangeably to mean the care-providing
   professional associated with a patient's sessions.
 - The five active milestones (0, 2-5) and their trigger conditions (Milestones subsection above) come from
-  the practice's Confluence design pages; trigger thresholds (14-day windows, specific
-  session counts, no-show counts) and the Clinical Safety Flag Rules' thresholds are the
+  the practice's Confluence design pages; trigger thresholds (specific
+  session counts and checkpoints) and the Clinical Safety Flag Rules' thresholds are the
   practice's current starting policy, explicitly called out in that source as not yet
   validated, and may be tuned once real data exists. Neither is a fixed value defined by
   this specification.
@@ -537,13 +538,13 @@ configurable (see Assumptions).
   primary collection path, with email only as a fallback triggered after a documented
   failed contact attempt. Per the operations lead's explicit, more recent product
   decision (2026-09-05), this version uses email only: the emailed request fires
-  directly on Milestone 5's trigger conditions (cancellation with no rebooking, or a
-  no-show pattern), with no live-call step and no call-attempt gate of any kind.
+  directly on Milestone 5's trigger condition (patient status set to Discontinued
+  (Patient Choice)), with no live-call step and no call-attempt gate of any kind.
   Confirmed against the live build: the practice's Zoho CRM `Milestone_Instances` module
   does contain leftover picklist values for a live-capture path (`5A - Discontinuation,
   Live Capture`, a `Staff Live Entry` capture method, and a `Captured Live` status). Per
   the operations lead, this was built before the decision to drop live calls and is dead,
-  unused configuration — it should be disregarded (and ideally cleaned up in CRM) rather
+  unused configuration — it should be disregarded (decided 2026-10-01: to be deleted from CRM, pending) rather
   than treated as part of the current design.
 - The source Confluence doc describes Milestones 1–4 as triggering off the practice's
   EHR (SimplePractice). Per explicit operations-lead correction (2026-09-05), this is
@@ -569,8 +570,13 @@ configurable (see Assumptions).
   FR-009 / Principle IV.
 - Milestone-scoped admin reporting stands in for the unified Admin Dashboard
   (User Story 3, FR-007-008) for now: each milestone has its own dashboard (FR-018),
-  and FR-013 is currently met through the shared "Flagged for Review" report rather
-  than a patient-level view. The unified dashboard is not built.
+  and FR-013 is met (decided 2026-10-01) through the shared "Flagged for Review" report
+  rather than a patient-level view. The unified dashboard is deferred until real data exists.
+- FR-006 purge (decided 2026-10-01): the raw Zoho Forms submission is purged by a manual,
+  periodic deletion performed by the operations lead, not an automated mechanism, because
+  no supported delete API or plan-tier option fits (`data-retention-purge.md`). The
+  deletion cadence/window is still to be set and ratified in the constitution. Product BAA
+  coverage (FR-016) is still being confirmed with Zoho and stays open.
 - Milestone 1 (Baseline Intake) was eliminated per an operations-lead decision
   (2026-09-11), following a review of clinical/EHR overlap: the practice's clinicians
   are 1099 contractors who own their own clinical methods and document them in their

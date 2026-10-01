@@ -61,7 +61,7 @@ starting Phase 2.**
       picklist recorded in `m5-data-model.md`) — no CRM change needed for
       this task, per `m5-research.md` Decision 5.
       *Reconciled 2026-09-30: value exists (confirmed 2026-09-24).*
-- [ ] T002a **Flag for Costin/Liana, do not silently assume**: confirm
+- [x] T002a **Flag for Costin/Liana, do not silently assume**: confirm
       `Patient_Status = "Discontinued (Patient Choice)"` is what staff select
       for the cancellation-with-no-rebooking case this milestone targets
       (`m5-research.md` Decision 1) — the single highest-risk assumption in
@@ -70,7 +70,7 @@ starting Phase 2.**
       question that doesn't prevent building); this task tracks getting an
       explicit yes/no before the trigger flow is ever switched on, the same
       treatment M4's Decision 1 got.
-      *Reconciled 2026-09-30: open: no explicit yes/no from Costin/Liana is recorded. Costin's 9/26 live test used `Discontinued (Patient Choice)` and received the email, which implies it works, but get an explicit confirmation.*
+      *Reconciled 2026-10-01: confirmed by Costin: `Discontinued (Patient Choice)` is the status staff use for this case.*
 - [x] T003 Build "M5 - Discontinuation Trigger" flow: watch
       `Patients1.Patient_Status` for `equals "Discontinued (Patient Choice)"`
       — a single trigger-level filter condition, same shape as M4's trigger.
@@ -178,7 +178,7 @@ trigger, legacy-patient-safe, for the cancellation leg.
       silently accept this gap a sixth time without at least confirming with
       Costin it's still being deferred deliberately — see
       `data-retention-purge.md`.
-      *Reconciled 2026-09-30: still open, go-live blocker. See `data-retention-purge.md`.*
+      *Reconciled 2026-09-30: decision made 2026-10-01: manual periodic deletion by Costin (`data-retention-purge.md`). Stays open until the cadence is set and the click-path is documented.*
 
 **Checkpoint**: Core de-identified rejoin works end-to-end for M5; retention
 purge remains a known, tracked, cross-milestone gap.
@@ -307,12 +307,17 @@ involvement regardless per the standing no-live-test rule.**
       corrections discovered during implementation, in the same session as
       the change, per the existing convention.
       *Reconciled 2026-09-30: committed (see git history).*
-- [ ] T030 Once M5 ships, note that four of spec.md's five active milestones
+- [x] T030 Once M5 ships, note that four of spec.md's five active milestones
       (0, 2, 3, 4) are fully built and M5 is built for its cancellation leg;
       the no-show leg remains open per `m5-research.md`'s "Open item for
       spec.md" — surface this to Costin rather than treating User Story 1 as
       fully closed pipeline-wide.
-      *Reconciled 2026-09-30: open: depends on the no-show-leg decision.*
+      *Reconciled 2026-10-01: decided: cancellation-only; spec.md Milestones row 5 amended (eighth pass). The no-show leg is not part of this version.*
+
+- [ ] T031 Delete the dead `5A - Discontinuation, Live Capture` picklist value (and the
+      `Staff Live Entry` capture method / `Captured Live` status leftovers) from
+      `Milestone_Instances` in CRM. Decided 2026-10-01 (Costin). Needs CRM Setup (UI);
+      first check no existing record uses these values.
 
 ## Notes for whoever implements this
 

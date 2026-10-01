@@ -96,9 +96,9 @@ T025-T026 are Costin's.
 - [ ] T025 Costin runs `quickstart.md` §B (live test across M0/M2/M3), folded into
       the existing coordinated M0/M2/M3 live test.
       *Reconciled 2026-09-30: open: Costin's live test (folded into the coordinated test).*
-- [ ] T026 Costin decides on the two out-of-scope findings in research.md §5
+- [x] T026 Costin decides on the two out-of-scope findings in research.md §5
       (email in record Name/Analytics; orphan record on mail failure).
-      *Reconciled 2026-09-30: open: decision needed (see decisions list).*
+      *Resolved: finding 1 (email in record Name/Analytics) and finding 2 (orphan record on mail failure) were both addressed by feature 003 (T002-T004 and the Send Failed On Error branches). Leads-side email sync decided 2026-10-01, see 003 T012/T013.*
 
 ## Dependencies
 

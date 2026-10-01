@@ -116,7 +116,7 @@ table, row 2; Acceptance Scenario 1).
       silently accept this gap a third time without at least confirming with
       Costin that it's still being deferred deliberately — see
       `data-retention-purge.md`.
-      *Reconciled 2026-09-30: still open, go-live blocker. See `data-retention-purge.md`.*
+      *Reconciled 2026-09-30: decision made 2026-10-01: manual periodic deletion by Costin (`data-retention-purge.md`). Stays open until the cadence is set and the click-path is documented.*
 
 **Checkpoint**: Core de-identified rejoin works end-to-end for M2; retention
 purge remains a known, tracked, cross-milestone gap.

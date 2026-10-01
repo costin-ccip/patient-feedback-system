@@ -815,6 +815,9 @@ changes" prompt, and apply it if it does, so the live version carries the new fi
   off the field being populated. If the practice ever fills it in for a scheduled but
   not-yet-held or no-show consult, those leads would qualify. Worth keeping in mind for
   how the team uses the field.
+  **Accepted risk (Costin, 2026-10-01):** the team fills Consult Call Date *before* the
+  consult is held, so some leads (e.g. a consult that is scheduled but no-shows) can receive
+  the survey without having had one. Costin is fine with this.
 
 ### 16.4 Also updated in this session
 

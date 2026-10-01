@@ -58,6 +58,17 @@ it. Options on the table when we do revisit:
    or contact Zoho support for an undocumented or admin-tier deletion
    endpoint before concluding automation isn't possible at all.
 
-No option has been chosen yet. This remains an open go-live blocker alongside
-the still-open `TODO(BAA_SCHEDULE)` (Principle V) — both should be resolved
-before any milestone handles real (non-test) patient data.
+## Decision (Costin, 2026-10-01): manual periodic deletion
+
+Option 2 is chosen. Costin deletes raw Zoho Forms submissions by hand from the Zoho
+Forms UI on a recurring schedule. Still to do before real patient data flows:
+
+1. Set the cadence (suggestion: fold it into the existing weekly Monday admin routine,
+   so the longest a raw submission can sit is about 7 days) and record it here.
+2. Ratify that number as the constitution's retention window (the constitution still
+   lists the window as open; there is no TODO entry for it, so add one or amend).
+3. Document the exact click-path for the deletion in this file.
+
+Option 1 (Premium plus Auto-Trash) can be revisited later and would replace the manual
+step. The `TODO(BAA_SCHEDULE)` item (Principle V) is a separate go-live blocker, still
+in progress with Zoho; this decision does not affect it.

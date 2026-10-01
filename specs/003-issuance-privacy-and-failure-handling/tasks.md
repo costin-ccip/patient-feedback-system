@@ -48,6 +48,10 @@ description: "Task list for 003 - Issuance Privacy and Send-Failure Handling, ge
 
 - [ ] T011 Live test per quickstart §B, including a forced email failure.
       *Reconciled 2026-09-30: open: live test incl. forced email failure (Costin).*
-- [ ] T012 Decide whether to stop syncing the Leads module's Last Name/Email into
+- [x] T012 Decide whether to stop syncing the Leads module's Last Name/Email into
       Analytics (flagged in spec Assumptions; out of scope here).
-      *Reconciled 2026-09-30: open: decision needed (see decisions list).*
+      *Decided 2026-10-01 (Costin): yes, stop syncing Leads Last Name/Email into Analytics.*
+- [ ] T013 Remove the Leads module's Last Name and Email columns from the Zoho Analytics
+      CRM sync (Analytics: data source / sync settings), then confirm no existing
+      report or dashboard depends on them (check Dependency Details first, see
+      `CLAUDE.md` Analytics-deletion order).

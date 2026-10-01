@@ -138,7 +138,7 @@ trigger, legacy-patient-safe.
       silently accept this gap a fifth time without at least confirming with
       Costin it's still being deferred deliberately — see
       `data-retention-purge.md`.
-      *Reconciled 2026-09-30: still open, go-live blocker. See `data-retention-purge.md`.*
+      *Reconciled 2026-09-30: decision made 2026-10-01: manual periodic deletion by Costin (`data-retention-purge.md`). Stays open until the cadence is set and the click-path is documented.*
 
 **Checkpoint**: Core de-identified rejoin works end-to-end for M4; retention
 purge remains a known, tracked, cross-milestone gap.

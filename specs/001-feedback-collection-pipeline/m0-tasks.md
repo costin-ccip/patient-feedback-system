@@ -87,7 +87,7 @@ convert M0 to a fully automatic trigger without new CRM signal design.
       Investigated a generic fix and hit real technical blockers — see
       `data-retention-purge.md`. Treat as a go-live blocker, not a
       nice-to-have.
-      *Reconciled 2026-09-30: still open, go-live blocker. See `data-retention-purge.md`; decision pending.*
+      *Reconciled 2026-09-30: decision made 2026-10-01: manual periodic deletion by Costin (`data-retention-purge.md`). Stays open until the cadence is set and the click-path is documented.*
 
 **Checkpoint**: Core de-identified rejoin works end-to-end; retention purge is
 a known, tracked gap.
