@@ -315,10 +315,11 @@ involvement regardless per the standing no-live-test rule.**
       fully closed pipeline-wide.
       *Reconciled 2026-10-01: decided: cancellation-only; spec.md Milestones row 5 amended (eighth pass). The no-show leg is not part of this version.*
 
-- [ ] T031 Delete the dead `5A - Discontinuation, Live Capture` picklist value (and the
+- [x] T031 Delete the dead `5A - Discontinuation, Live Capture` picklist value (and the
       `Staff Live Entry` capture method / `Captured Live` status leftovers) from
       `Milestone_Instances` in CRM. Decided 2026-10-01 (Costin). Needs CRM Setup (UI);
       first check no existing record uses these values.
+      *Done 2026-10-01 by Costin in CRM Setup (confirmed in chat). Pre-check: no `Milestone_Instances` record used the `5A` Milestone or `Captured Live` Status values.*
 
 ## Notes for whoever implements this
 

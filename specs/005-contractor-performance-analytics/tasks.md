@@ -198,7 +198,7 @@ own contractor roster, no per-contractor rebuild required.
 
 ## Phase 10: Test data & validation
 
-- [~] T018 Seed the sample `Milestone_Instances` test records from `quickstart.md`
+- [x] T018 Seed the sample `Milestone_Instances` test records from `quickstart.md`
       §B via Zoho CRM MCP tools (`createRecords`/`getRecords`), not the browser —
       the module carries no PII, so tool-based CRUD is allowed under the standing
       access constraint. **Partially done 2026-09-30**: with Costin's explicit
@@ -210,6 +210,7 @@ own contractor roster, no per-contractor rebuild required.
       `Patients1` record ID — still can't be looked up under the standing
       access constraint; asked Costin for one. See `implementation-notes.md`
       §7.
+      *Completed 2026-10-01: the 3 M3 rows were seeded (§7). Report verification (T010, T020) still waits on the Analytics sync.*
 - [ ] T019 Work through `quickstart.md` §A's structural verification checklist
       against everything built in Phases 3-9.
 - [ ] T020 Confirm actual report output against `quickstart.md` §B's expected

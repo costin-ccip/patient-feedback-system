@@ -544,7 +544,7 @@ configurable (see Assumptions).
   does contain leftover picklist values for a live-capture path (`5A - Discontinuation,
   Live Capture`, a `Staff Live Entry` capture method, and a `Captured Live` status). Per
   the operations lead, this was built before the decision to drop live calls and is dead,
-  unused configuration — it should be disregarded (decided 2026-10-01: to be deleted from CRM, pending) rather
+  unused configuration — it should be disregarded (deleted from CRM by the operations lead, 2026-10-01) rather
   than treated as part of the current design.
 - The source Confluence doc describes Milestones 1–4 as triggering off the practice's
   EHR (SimplePractice). Per explicit operations-lead correction (2026-09-05), this is

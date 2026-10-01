@@ -50,8 +50,12 @@ description: "Task list for 003 - Issuance Privacy and Send-Failure Handling, ge
       *Reconciled 2026-09-30: open: live test incl. forced email failure (Costin).*
 - [x] T012 Decide whether to stop syncing the Leads module's Last Name/Email into
       Analytics (flagged in spec Assumptions; out of scope here).
-      *Decided 2026-10-01 (Costin): yes, stop syncing Leads Last Name/Email into Analytics.*
-- [ ] T013 Remove the Leads module's Last Name and Email columns from the Zoho Analytics
-      CRM sync (Analytics: data source / sync settings), then confirm no existing
-      report or dashboard depends on them (check Dependency Details first, see
-      `CLAUDE.md` Analytics-deletion order).
+      *Decided 2026-10-01 (Costin): stop syncing Leads Email into Analytics. Last Name is a de-identified code and stays.*
+- [ ] T013 Remove the Leads module's **Email** column from the Zoho Analytics CRM sync
+      (Analytics: Data Sources > Zoho CRM > Edit Setup), after checking no report or
+      dashboard depends on it (see `CLAUDE.md` Analytics-deletion order). Narrowed
+      2026-10-01 per Costin: Leads' Name/Last Name already holds a de-identified code
+      (e.g. L192), so it is fine in Analytics; only the Email must not be synced.
+      Blocked 2026-10-01: Edit Setup is refused while a sync is "In Progress", and the
+      manual sync started 9:30 AM EDT hung; retry once it clears (or after the 5:00 PM
+      scheduled sync).
