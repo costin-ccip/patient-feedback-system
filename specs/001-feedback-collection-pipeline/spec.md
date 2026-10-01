@@ -568,6 +568,9 @@ configurable (see Assumptions).
   `specs/005-contractor-performance-analytics/`) is an admin-only Analytics view built
   on this pipeline's data; it is not a contractor-facing view and does not change
   FR-009 / Principle IV.
+- Feedback email opt-out (feature 006, `specs/006-feedback-email-opt-out/`) lets a person
+  stop all feedback emails; every milestone's send path checks it before issuing a token.
+  It is a CRM-owned operational preference, separate from marketing opt-out.
 - Milestone-scoped admin reporting stands in for the unified Admin Dashboard
   (User Story 3, FR-007-008) for now: each milestone has its own dashboard (FR-018),
   and FR-013 is met (decided 2026-10-01) through the shared "Flagged for Review" report
