@@ -51,7 +51,7 @@ description: "Task list for 003 - Issuance Privacy and Send-Failure Handling, ge
 - [x] T012 Decide whether to stop syncing the Leads module's Last Name/Email into
       Analytics (flagged in spec Assumptions; out of scope here).
       *Decided 2026-10-01 (Costin): stop syncing Leads Email into Analytics. Last Name is a de-identified code and stays.*
-- [ ] T013 Remove the Leads module's **Email** column from the Zoho Analytics CRM sync
+- [x] T013 Remove the Leads module's **Email** column from the Zoho Analytics CRM sync
       (Analytics: Data Sources > Zoho CRM > Edit Setup), after checking no report or
       dashboard depends on it (see `CLAUDE.md` Analytics-deletion order). Narrowed
       2026-10-01 per Costin: Leads' Name/Last Name already holds a de-identified code
@@ -59,3 +59,9 @@ description: "Task list for 003 - Issuance Privacy and Send-Failure Handling, ge
       Blocked 2026-10-01: Edit Setup is refused while a sync is "In Progress", and the
       manual sync started 9:30 AM EDT hung; retry once it clears (or after the 5:00 PM
       scheduled sync).
+      *Closed 2026-10-01 (Costin): not removable and not needed. The sync finished; in Edit Setup
+      the Leads Email (PHI) checkbox is greyed out and cannot be unticked (also Lead Owner,
+      Company, Last Name), and the same after trying CRM-side and re-authenticate fixes. Verified
+      in Analytics instead that the synced Leads table holds no addresses: the Email (PHI) column
+      is blank, and a search of every column for "@" returns no rows (190 rows). The Lead Emails
+      table has zero rows. Re-check both if the sync setup is ever changed.*

@@ -71,3 +71,12 @@ the value **Send Failed** exactly (capital S, capital F). Takes a minute; then
    supersedeOpenInstances). Count is right; names aren't.
 6. Zoom out (−) to 60% before adding branches; the canvas doesn't scroll with the
    mouse wheel.
+
+## 2026-10-01: Leads email in the Analytics sync (T013)
+
+Edit Setup > Leads locks Email (PHI) (greyed, cannot be unticked), so the column cannot be
+dropped from the sync. Checked the synced data instead: the Leads table's Email (PHI) column is
+empty on all rows, searching the table for "@" matches nothing (190 rows), and the Lead Emails
+table is empty. No lead email address reaches Analytics today. Removing and re-adding the CRM data
+source was rejected as too risky (it would delete every dependent report, formula column and
+dashboard). Re-run the "@" search on Leads and Lead Emails after any change to the CRM sync.
