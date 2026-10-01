@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-01
 
-**Status**: Draft
+**Status**: Draft (open questions answered 2026-10-01)
 
 **Input**: User description: "Currently our feedback system works, but there's no way for
 patients to unsubscribe if they wish to stop receiving these emails. I'd like to create
@@ -165,7 +165,9 @@ do not.
   and vice versa. Neither system learns from the other who has opted out of what.
 - **An email scanner or preview tool opens the link**: opening the link must never opt
   anyone out; only the explicit confirmation does (Story 1, scenario 2).
-- **A prospect (Milestone 0) later becomes a patient**: see [NEEDS CLARIFICATION: Q1].
+- **A prospect (Milestone 0) later becomes a patient**: the prospect's opt-out does not carry
+  over automatically. The patient is asked again at intake, and that answer takes priority
+  (FR-018). Until intake is completed, the patient record has no opt-out recorded.
 - **Two records share one email address**: an opt-out recorded through the link applies to
   the record the link belongs to. When staff record a stop request for an address, they
   apply it to every record that uses that address.
@@ -244,6 +246,12 @@ do not.
 - **FR-017**: This feature MUST NOT require Zoho Campaigns, and MUST NOT put any
   patient or prospect into Zoho Campaigns.
 
+- **FR-018**: When a prospect becomes a patient, the feedback opt-out status on the patient
+  record MUST be set from the patient's own answer at intake, and that answer takes priority
+  over any opt-out recorded earlier on the Lead. The Lead's earlier opt-out MUST NOT be
+  copied to the patient record automatically. (Dependency: the intake process needs a
+  "feedback emails" question; confirm in planning whether one already exists.)
+
 ### Key Entities
 
 - **Feedback Opt-Out**: A recorded decision, held on the person's CRM record (patient or
@@ -313,14 +321,10 @@ do not.
   opt-out page may be added later as a pointer, without carrying any person's status.
 - A combined preferences page covering both feedback and marketing.
 
-### Open questions
+### Resolved questions
 
-- **[NEEDS CLARIFICATION: Q1]** When a prospect (Milestone 0, a Lead) who opted out later
-  becomes a patient, should the opt-out carry over to their patient record so they do not
-  receive Milestone 2-5 emails? Default if unanswered: yes, carry it over, because someone
-  who asked to stop feedback emails as a prospect would not expect them to resume; the
-  alternative is to treat the patient record as a fresh start.
-- **[NEEDS CLARIFICATION: Q2]** The Campaigns project plans a CRM "Do Not Contact" flag
-  (its FR-013) that suppresses all marketing email to a person. Should that flag also
-  suppress feedback emails? Default if unanswered: no, they stay independent, and staff
-  set the feedback opt-out separately when a person wants all email stopped.
+- **Q1 (lead to patient)**: decided 2026-10-01. A Lead's opt-out does not carry over. The
+  person is asked again during intake and the intake answer is authoritative, whether it
+  opts them in or out.
+- **Q2 (Campaigns "Do Not Contact")**: decided 2026-10-01. No. The marketing flag does not
+  suppress feedback emails; the two stay independent.

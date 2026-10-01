@@ -13,7 +13,7 @@
 
 ## Requirement Completeness
 
-- [ ] No [NEEDS CLARIFICATION] markers remain (2 open: Q1 lead-to-patient carry-over, Q2 Campaigns Do_Not_Contact; both have a stated default)
+- [x] No [NEEDS CLARIFICATION] markers remain (Q1 and Q2 resolved 2026-10-01)
 - [x] Requirements are testable and unambiguous
 - [x] Success criteria are measurable
 - [x] Success criteria are technology-agnostic
@@ -39,4 +39,4 @@
 
 ## Notes
 
-- Q1 and Q2 should be answered by the operations lead before /speckit-plan.
+- Q1/Q2 answered 2026-10-01. Open item for planning: whether intake already asks about feedback emails (FR-018).
