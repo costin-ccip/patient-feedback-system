@@ -6,7 +6,7 @@
 > future session (human or AI) understand exactly what was built, why, and where the
 > sharp edges are, without having to reverse-engineer it from Zoho.
 >
-> Last updated: 2026-09-08
+> Last updated: 2026-09-30
 > Status: M0 is built end-to-end (trigger → form → CRM write-back → Analytics
 > reporting). As of this update, both "M0 - Lost Lead Feedback Token" and "M0 -
 > Feedback Survey Write-back" are deliberately toggled OFF in Zoho Flow — per
@@ -30,13 +30,19 @@
 > turned OFF before this edit. See §15 — §4, §6 and §7 below are corrected in place
 > to reflect the new as-built state; read §15 first if anything below looks
 > inconsistent with it.**
+> **2026-09-30: the trigger condition was narrowed. M0 now fires only when a Lead is
+> marked Lost Lead AND its Consult Call Date is populated (a free consult actually
+> happened); previously every Lost Lead fired it. See §16; §1 and §2 are corrected
+> in place.**
 
 ## 1. What M0 does
 
 M0 fires when a lead has a free consultation and does not convert to a paying client.
 Token issuance is automatic: when someone on the team sets that Lead's `Lead_Status`
 field to `Lost Lead` in CRM — a normal part of working the lead, not a separate
-"start feedback" action — a realtime trigger flow fires and issues the token. (An
+"start feedback" action — **and the Lead's `Consult_Call_Date` is populated (§16;
+before 2026-09-30 every Lost Lead qualified, including leads who never had a free
+consult)** — a realtime trigger flow fires and issues the token. (An
 earlier version of this doc described this as a step the clinician triggered by
 hand; §11 corrects that.) The lead receives a link to a public Zoho Form. When they submit it, a Zoho Flow captures
 the response, matches it back to the correct `Milestone_Instances` CRM record by
@@ -54,7 +60,7 @@ this flow (see §5, `Patient` field note).
 | Component | Name | Where |
 |---|---|---|
 | Public form | M0 feedback survey (Zoho Forms) | Linked from the token issuance email/flow |
-| Trigger flow | "M0 - Lost Lead Feedback Token" | Zoho Flow, folder "Customer Feedback System" — realtime "Updated module entry" on `Leads`, fires when `Lead_Status` (picklist field, confirmed via CRM `getFields`; label "Lead Status") transitions to `Lost Lead`. Calls the shared subflow below. See §11. |
+| Trigger flow | "M0 - Lost Lead Feedback Token" | Zoho Flow, folder "Customer Feedback System" — realtime "Updated module entry" on `Leads`, fires when `Lead_Status` (picklist field, confirmed via CRM `getFields`; label "Lead Status") equals `Lost Lead` AND `Consult_Call_Date` is populated (trigger filter, §16). Calls the shared subflow below. See §11. |
 | Token issuance (shared) | "Subflow - Issue Feedback Token" | Zoho Flow, folder "Customer Feedback System" — called by the trigger flow above; also reused by M1 |
 | Write-back flow | "M0 - Feedback Survey Write-back" | Zoho Flow, folder "Customer Feedback System" |
 | Write-back logic | Custom Deluge function `submitFeedbackResponse` | Inside the write-back flow |
@@ -743,3 +749,78 @@ bug in the error message.
 - No CRM schema change, no changes to M1-M5, and no changes to the
   2026-09-28 email redesign documented in §14 (that work and this work were
   independent changes made in the same session).
+
+## 16. Change (2026-09-30): trigger narrowed to Lost Leads who had a free consult
+
+Per Costin's decision: M0's survey asks about the free consultation, so it should go
+only to leads who actually had one. Before this change, "M0 - Lost Lead Feedback Token"
+fired for every Lead whose `Lead_Status` became `Lost Lead`, including leads who were
+lost before any consult happened. The CRM signal for "a free consult happened" is the
+Lead's **Consult Call Date** field: populated means a consult took place, empty means
+it did not.
+
+### 16.1 Field
+
+Confirmed via CRM `getFields` on `Leads` (schema only; no Lead records were read or
+opened): API name `Consult_Call_Date`, label "Consult Call Date", `data_type` `date`,
+custom field, not system-mandatory (so empty is a normal, expected state).
+
+### 16.2 As-built trigger filter
+
+Edited in Zoho Flow on "M0 - Lost Lead Feedback Token", on the trigger node ("Updated
+module entry", Zoho CRM, module `Leads`) under **Filter criteria**. It was one row; it
+is now three rows joined with AND:
+
+| # | Field | Operator | Value |
+|---|---|---|---|
+| 1 | Lead Status | equals | Lost Lead (unchanged) |
+| 2 | Consult Call Date | is not null | (none) |
+| 3 | Consult Call Date | is not empty | (none) |
+
+Why two rows for one idea: Zoho Flow's operator list for this field offers `is blank`,
+`is empty`, `is not empty`, `is null`, `is not null`. It was not verified (doing so
+would have meant opening a Lead or running a live test, both off-limits) whether an
+unset CRM date reaches Flow as null or as an empty string. A populated date satisfies
+both rows; an unset date fails at least one under either representation. Row 3 or row
+2 can be dropped later if a coordinated test shows which representation Flow actually
+uses; keeping both is harmless.
+
+This was done as a trigger filter, not an If-else node, so non-qualifying leads show
+as **Filtered** in execution history (same as non-Lost-Lead updates already do) rather
+than as completed runs with a dead branch. Nothing else in the flow changed:
+`issueFeedbackToken` parameters, the Send email step, the On Error branches, the email
+copy (§14) and the form link (§13) are all untouched.
+
+State at the end of this session: the change is saved in the flow's builder (verified
+by reloading the builder and reopening the trigger: all rows persisted), the flow
+shows a **Draft** badge, and the flow is still **OFF**. Not run, not live-tested (per
+the standing "no live/end-to-end tests without Costin" rule). When M0 is next switched
+ON for the coordinated test, check that the builder shows no pending Draft/"Apply
+changes" prompt, and apply it if it does, so the live version carries the new filter.
+
+### 16.3 Behavior and edge cases
+
+- **Lost, no consult**: filtered out, no `Milestone_Instances` record, no email.
+- **Lost, consult held**: unchanged from before (token issued, email sent).
+- **Consult date added later**: "Updated module entry" re-evaluates on every update to
+  a Lead. If a Lead is set to Lost Lead while Consult Call Date is empty (filtered),
+  and someone later fills in Consult Call Date while the status is still Lost Lead,
+  that update now passes the filter and issues a token. This is the correct outcome
+  (a consult did happen), but it means the survey can go out at the moment the date is
+  back-filled rather than the moment the lead was marked lost.
+- **Consult date present but later edited, status still Lost Lead**: any further
+  update to that Lead re-fires the flow. Same as before this change, `issueFeedbackToken`
+  supersedes any earlier Issued record, so the recipient only ever has one live link.
+- **Consult Call Date means "had a consult", not "attended"**: the filter keys purely
+  off the field being populated. If the practice ever fills it in for a scheduled but
+  not-yet-held or no-show consult, those leads would qualify. Worth keeping in mind for
+  how the team uses the field.
+
+### 16.4 Also updated in this session
+
+- `spec.md`: Milestones table row 0 and a sixth-pass revision note.
+- `coordinated-live-test-plan.md` Step A: a prerequisite (test Leads need a Consult
+  Call Date) and a new Scenario 7 (Lost Lead with no consult date: expect Filtered,
+  nothing created).
+- `CLAUDE.md`: no change needed (its M0 references are about the cutoff gate, which M0
+  still does not use).

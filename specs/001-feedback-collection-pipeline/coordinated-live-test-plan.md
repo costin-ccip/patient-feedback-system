@@ -236,9 +236,15 @@ Dashboard: **"M0 - Free Consult Non-Conversion Feedback"** (view `32514230000000
 — panels: M0 Submitted Responses, M0 Biggest Factor, M0 Feeling Heard Distribution,
 M0 % Reachable, plus the pre-existing Status Breakdown/Response Rate/Volume-by-Week.
 
+**Prerequisite (changed 2026-09-30, `m0-implementation-notes.md` §16)**: M0 now fires
+only for a Lead whose `Consult_Call_Date` is populated. Every test Lead used in
+Scenarios 1-6 below must have a Consult Call Date set BEFORE its `Lead_Status` is
+set to `Lost Lead`, or the flow will (correctly) filter it out. Scenario 7 covers the
+negative case.
+
 **Scenario 1 — Happy path `[Full journey]`**
 1. Turn ON "M0 - Lost Lead Feedback Token" and "M0 - Feedback Survey Write-back".
-2. Set the test Lead's `Lead_Status` to `Lost Lead`.
+2. On a test Lead with `Consult_Call_Date` populated, set `Lead_Status` to `Lost Lead`.
    **Expect**: 1 new `Milestone_Instances` record (`0 - No Conversion`, Issued,
    `Lead_Reference` = lead ID, token + expiry set, `Name` = `Milestone 0 - No Conversion - <8 hex>`
    with no email in it per feature 003), 1 email from `info@capeclarity.com` with the
@@ -284,6 +290,14 @@ M0 % Reachable, plus the pre-existing Status Breakdown/Response Rate/Volume-by-W
    `CLAUDE.md`) — confirming it once here is representative; no need to repeat it
    identically on M2-M5 unless something about a specific milestone's wiring is in
    doubt.
+
+**Scenario 7 — No free consult (M0 only; added 2026-09-30)**
+10. On a test Lead with `Consult_Call_Date` EMPTY, set `Lead_Status` to `Lost Lead`.
+    **Expect**: the flow run shows as **Filtered** in Zoho Flow's execution history,
+    no `Milestone_Instances` record is created, no email is sent. (Optionally also:
+    populate `Consult_Call_Date` on that same Lead while it is still `Lost Lead`;
+    because any update to a Lost Lead re-evaluates the trigger filter, this should now
+    issue a token. That is intended behavior, see `m0-implementation-notes.md` §16.)
 
 **Standard scenario set, referenced from Steps B-E below**: Scenarios 2-6 above
 (re-trigger/supersede, non-response, duplicate submission, expired token,

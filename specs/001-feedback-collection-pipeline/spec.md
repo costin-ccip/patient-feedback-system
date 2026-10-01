@@ -100,6 +100,13 @@ leaving care) needs its own exit-reason capture, delivered by email."
   (already built into M2) keep citing the same numbers. Source: Confluence "Customer
   Feedback Collection" and its milestone detail pages, updated by the operations
   lead ahead of this revision; Milestone 2's own page is explicitly unchanged.
+
+  Revised 2026-09-30 (sixth pass), per operations-lead decision: Milestone 0's trigger
+  is narrowed. It previously fired for every Lead marked Lost Lead; it now fires only
+  when the Lead's Consult Call Date field is populated, since a populated Consult Call
+  Date is the CRM signal that a free consult actually happened. Lost leads who never
+  had a free consult no longer get the survey. As-built details:
+  `m0-implementation-notes.md` §16.
 -->
 
 ## User Scenarios & Testing *(mandatory)*
@@ -358,7 +365,7 @@ specification (see Assumptions).
 
 | # | Name | Trigger | Notes |
 |---|------|---------|-------|
-| 0 | Free consult, no conversion | A free consult is completed and no first appointment is booked within 14 days | Applies to a prospect, not yet a patient |
+| 0 | Free consult, no conversion | A Lead is marked Lost Lead in CRM AND the Lead's Consult Call Date is populated (i.e. a free consult actually took place) | Applies to a prospect, not yet a patient. Leads marked Lost Lead with an empty Consult Call Date (no free consult happened) do NOT receive the survey. Revised 2026-09-30; previously every Lost Lead fired it. |
 | 1 | *(retired)* | — | Was Baseline Intake (Wellbeing Check-In); eliminated, no replacement. See the fifth-pass revision note. |
 | 2 | Early alliance check | Patient's session count reaches 3 | First alliance-only reading; no prior alliance data yet, so its flag rule (below) uses a fixed threshold rather than a trend |
 | 3 | Periodic consolidated | Every 8th session, recurring for the duration of treatment | An alliance reading plus operational/contractor items (practice experience, therapist professionalism) in one request; no wellbeing reading. Cadence changed from every 4th to every 8th session, and a "likelihood to continue/refer" question was removed (already captured at Milestone 4), in the fifth-pass revision |
