@@ -1,8 +1,8 @@
 # Working in this repo
 
 This repo tracks the patient feedback system for Cape Clarity, built with GitHub
-Spec Kit (see `.specify/memory/constitution.md` and `README.md`). It covers six
-milestones (M0-M5); requirements for all of them live in one spec:
+Spec Kit (see `.specify/memory/constitution.md` and `README.md`). It covers five active
+milestones (M0, M2-M5; M1 was retired); requirements for all of them live in one spec:
 `specs/001-feedback-collection-pipeline/spec.md`.
 
 ## Milestone implementation notes
@@ -82,9 +82,10 @@ the existing `If else`.
 
 **M0 does NOT use this gate** (Costin's explicit decision: M0 fires on a Lead
 status change, which has no equivalent "already past a threshold at switch-on
-time" backlog problem). Whether a future M4/M5 needs it is undecided; reuse this
-same function object if their own planning concludes they do, rather than
-creating a new one (same reuse pattern `issueFeedbackToken` established).
+time" backlog problem). **M4 and M5 DO use it** (resolved; both reuse this same
+function object unmodified, see `m4-implementation-notes.md` §2 and
+`m5-implementation-notes.md` §2). Any future milestone should reuse it too rather
+than creating a new one (same reuse pattern `issueFeedbackToken` established).
 
 Full function source, per-flow wiring, and builder gotchas (the Insert Variable
 panel's search box stealing an insertion if it still has focus, and the usual

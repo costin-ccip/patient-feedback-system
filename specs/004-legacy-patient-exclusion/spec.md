@@ -182,9 +182,9 @@ records the explicit decision not to add this gate.
 - M0 does not need this gate. Costin's explicit decision (see Edge Cases): M0 fires
   on a Lead status change, which has no equivalent backlog-of-already-qualifying
   records problem the way a session-count threshold does.
-- Whether M4/M5 (not yet built) will need the same gate is not decided here; the
-  shared function is available to them if their own planning concludes they do,
-  following the same reuse pattern feature 002 established for `issueFeedbackToken`.
+- M4 and M5 (built after this feature) both reuse the same gate unmodified, following
+  the reuse pattern feature 002 established for `issueFeedbackToken` (updated
+  2026-09-30; this was originally left undecided).
 - Live end-to-end testing is run by Costin, per his standing instruction; this
   feature's own verification is structural only (already completed, see
   `implementation-notes.md`).

@@ -4,6 +4,8 @@ description: "Task list for M4 - Discharge, generated prospectively before imple
 
 # Tasks: M4 - Discharge (Milestone 4)
 
+> **Reconciled 2026-09-30** against the milestone's implementation-notes file and git history. T001-T009 and T017-T022 are built; remaining open items are live verification (T010-T013, T023-T027) and the retention-purge gap (T016). Notes §10 supersedes the original field list (freeform field removed).
+
 **Input**: `m4-plan.md`, `spec.md` (User Stories 1, 2 & 4, Clinical Safety
 Flag Rules, User Story 6 / FR-018), `m4-research.md`, `m4-data-model.md`
 
@@ -13,7 +15,7 @@ off as they're actually done, not in advance.
 
 ## Phase 1: Setup
 
-- [ ] T001 Build the public "Cape Clarity Discharge Feedback" Zoho Form: 4
+- [x] T001 Build the public "Cape Clarity Discharge Feedback" Zoho Form: 4
       sliders reusing M2/M3's exact Alliance Check-In prompts/instructions/
       range verbatim (Connection, Understanding, Shared direction, Fit of
       approach), plus 1 new "Likelihood to recommend" slider (0-10) and 1
@@ -21,46 +23,52 @@ off as they're actually done, not in advance.
       hidden/single-line `Token` field (same prefill-URL pattern as every
       prior form). On-screen section order: Alliance Check-In (1), Looking
       Ahead (2). No name, email, or phone field, per Principle I.
+      *Reconciled 2026-09-30: built (`m4-implementation-notes.md` §1). NOTE: the form was later corrected against Confluence (§10.1): the freeform 'Anything else looking ahead' field was removed. §10 supersedes the field list above.*
 
 ## Phase 2: Foundational
 
-- [ ] T002 Confirm/add the `"4 - Discharge"` picklist value on
+- [x] T002 Confirm/add the `"4 - Discharge"` picklist value on
       `Milestone_Instances.Milestone` via Zoho CRM MCP `getFields` (not
       browser — allowed under the standing access constraint since this
       module carries no PII). **Confirmed 2026-09-23: the value already
       exists** (full picklist recorded in `m4-data-model.md`) — no CRM
       change needed for this task.
+      *Reconciled 2026-09-30: value exists (confirmed 2026-09-23, per this task's own text).*
 - [x] T002a Confirm the `Patients1.Patient_Status` picklist and flag
       `"Completed Treatment"` for Costin/Liana review as the field/value this
       milestone watches (`m4-research.md` Decision 1) — **confirmed live
       2026-09-23** via Zoho CRM MCP `getFields`; **confirmed correct by
       Costin 2026-09-24** — this is in fact the right discharge marker, no
       filter-value change needed.
-- [ ] T003 Build "M4 - Discharge Trigger" flow: watch
+- [x] T003 Build "M4 - Discharge Trigger" flow: watch
       `Patients1.Patient_Status` with an `equals "Completed Treatment"`
       trigger-level filter. Build fresh (do not clone M2's/M3's flow and
       edit its function nodes in place — `m2-implementation-notes.md` §3.2's
       shared-custom-function gotcha).
-- [ ] T004 Implement `checkDischargeExists(patientId)` per
+      *Reconciled 2026-09-30: built (§2).*
+- [x] T004 Implement `checkDischargeExists(patientId)` per
       `m4-data-model.md`: plain existence check over `Milestone_Instances`
       at `Milestone = "4 - Discharge"` for this patient (same shape as
       `checkAllianceCheckExists`, per `m4-research.md` Decision 2). Confirm
       exact `zoho.crm.getRecords` pagination/list-indexing syntax against the
       live Deluge editor.
-- [ ] T005 Wire the shared `isCreatedAfterCutoff` function (feature 004,
+      *Reconciled 2026-09-30: built (§2).*
+- [x] T005 Wire the shared `isCreatedAfterCutoff` function (feature 004,
       unmodified) into the trigger flow: `createdTime` = `${trigger.Created_Time}`,
       output variable `isCreatedAfterCutoff_1`, per `m4-research.md` Decision
       3. Confirm all links are genuinely connected via the
       `jsplumb-connected` check (`m3-implementation-notes.md` §6's
       correction to the plain connector-count check, and 002's
       implementation notes §5.1) before attempting to switch the flow on.
-- [ ] T006 If else — condition `checkDischargeExists_1 is false` AND
+      *Reconciled 2026-09-30: built (§2); `isCreatedAfterCutoff` wired.*
+- [x] T006 If else — condition `checkDischargeExists_1 is false` AND
       `isCreatedAfterCutoff_1 is true`. True branch → the shared
       `issueFeedbackToken` function (unmodified) → a native Zoho Mail "Send
       email" step, per CLAUDE.md's no-subflow token-issuance convention —
       confirm the `milestone` parameter value is exactly `"4 - Discharge"`
       and matches the real CRM picklist value (T002). False branch: empty.
-- [ ] T007 Add both On Error branches per CLAUDE.md's feature-003 convention,
+      *Reconciled 2026-09-30: built (§2).*
+- [x] T007 Add both On Error branches per CLAUDE.md's feature-003 convention,
       from the start (this is the first milestone built after that
       convention already existed — see `m4-research.md` Decision 8): On
       Error of `issueFeedbackToken` → Zoho Mail alert to
@@ -69,12 +77,14 @@ off as they're actually done, not in advance.
       picklist value — T002a's `getFields` check also confirmed this) →
       Zoho Mail alert. Alerts must not include any `${trigger.*}` identity
       fields.
-- [ ] T008 Build "M4 - Discharge Write-back" flow: realtime Form-submission
+      *Reconciled 2026-09-30: built, both On Error branches (§2, §2.1).*
+- [x] T008 Build "M4 - Discharge Write-back" flow: realtime Form-submission
       trigger on T001's form → write-back custom function. Build as a
       brand-new flow (not cloned), same reasoning M2's §3.4/M3's §1.6 give
       for avoiding the shared-custom-function gotcha entirely on write-back
       flows.
-- [ ] T009 Implement the write-back function
+      *Reconciled 2026-09-30: built (§3).*
+- [x] T009 Implement the write-back function
       `submitDischargeFeedbackResponse`: token lookup, `Status != "Issued"`
       rejection, expiry check + auto-expire, then concatenate the 6 answers
       into `Response_Data` **in the field order specified in
@@ -82,6 +92,7 @@ off as they're actually done, not in advance.
       last — NOT the form's on-screen order) — pure string concatenation, no
       numeric parsing or conditional logic, per Constitution Principle VII.
       No new CRM field targets in the update map.
+      *Reconciled 2026-09-30: built (§3). NOTE: corrected in §10.2 after the freeform field was removed; §10.2 is current.*
 
 **Checkpoint**: Core pipeline (auto-trigger -> issue -> collect -> rejoin)
 functional and idempotent, with zero CRM schema changes, and both On Error
@@ -99,6 +110,7 @@ table, row 4; Acceptance Scenario 1).
       blocks it) and does NOT re-issue a feedback request for a
       pre-cutoff-date patient touched incidentally (`isCreatedAfterCutoff`
       blocks it) — the specific risk `m4-research.md` Decision 3 documents.
+      *Reconciled 2026-09-30: open: needs live verification (Costin).*
 - [ ] T011 [US1] Confirm no duplicate Discharge Feedback invitation is ever
       sent for the same patient (T004's idempotency check) — satisfies
       spec.md FR-002 / Acceptance Scenario 2.
@@ -113,10 +125,12 @@ trigger, legacy-patient-safe.
 - [ ] T013 [US2] Confirm no patient identifier appears in the Discharge
       Feedback Form, the flow's parameters, or `Response_Data` (6 segments
       only, all scored/categorical or optional freeform) — Principle I.
-- [ ] T014 [US2] Token match + rejoin implemented (T009) — response lands
+- [x] T014 [US2] Token match + rejoin implemented (T009) — response lands
       only on the matched `Patient`'s CRM record, never anywhere else.
-- [ ] T015 [US2] Reuse rejection implemented via `Status != "Issued"` check
+      *Reconciled 2026-09-30: implemented in `submitDischargeFeedbackResponse` (§3, §10.2).*
+- [x] T015 [US2] Reuse rejection implemented via `Status != "Issued"` check
       (satisfies spec.md Acceptance Scenario 3 for User Story 2).
+      *Reconciled 2026-09-30: implemented via the `Status != "Issued"` check (§3).*
 - [ ] T016 [US2] **Compliance gap, carried from M0/M1/M2/M3, not resolved
       here**: purge of the raw Zoho Forms submission entry within "a short,
       defined retention window" (spec.md FR-006) is not implemented by this
@@ -124,6 +138,7 @@ trigger, legacy-patient-safe.
       silently accept this gap a fifth time without at least confirming with
       Costin it's still being deferred deliberately — see
       `data-retention-purge.md`.
+      *Reconciled 2026-09-30: still open, go-live blocker. See `data-retention-purge.md`.*
 
 **Checkpoint**: Core de-identified rejoin works end-to-end for M4; retention
 purge remains a known, tracked, cross-milestone gap.
@@ -135,7 +150,7 @@ M2/M3 already built (total ≤20, or any domain ≤4) to M4's reused alliance
 domains — by widening the existing formula columns a second time, not
 forking a new pair (`m4-research.md` Decision 6).
 
-- [ ] T017 [US4] Widen the existing "Clinical Safety Flag" formula column's
+- [x] T017 [US4] Widen the existing "Clinical Safety Flag" formula column's
       `Milestone` gate to `'2 - Early Alliance Check' OR '3 - Periodic
       Consolidated' OR '4 - Discharge'` per `m4-data-model.md`. Confirm it
       still fires correctly on every documented M2/M3 test case (re-verify
@@ -146,13 +161,15 @@ forking a new pair (`m4-research.md` Decision 6).
       §9.2 AND `m3-implementation-notes.md` §1.1 in the same session**, per
       CLAUDE.md's convention — this changes how both milestones' shipped
       Analytics builds work, not just M4's.
-- [ ] T018 [US4] Confirm no automated notification, email, or CRM action of
+      *Reconciled 2026-09-30: built (§4); `m2`/`m3` notes updated in the same session.*
+- [x] T018 [US4] Confirm no automated notification, email, or CRM action of
       any kind reaches a contractor when an M4 reading fires the flag —
       satisfies FR-012 / Acceptance Scenario 3. Confirm-absence task: review
       T009's function, the flow (including both On Error branches, which
       only ever address `costin@capeclarity.com`), and the widened Analytics
       formula columns for any contractor-facing action.
-- [ ] T019 [US4] Rename/widen the existing "M2 & M3 Flagged for Review"
+      *Reconciled 2026-09-30: confirm-absence recorded in §4.*
+- [x] T019 [US4] Rename/widen the existing "M2 & M3 Flagged for Review"
       report to "M2, M3 & M4 Flagged for Review" per `m4-data-model.md`
       (Milestone filter widened to Wildcard `"2 - Early Alliance Check"` OR
       `"3 - Periodic Consolidated"` OR `"4 - Discharge"`), confirm a flagged
@@ -163,6 +180,7 @@ forking a new pair (`m4-research.md` Decision 6).
       `m2-implementation-notes.md` §9.6 AND `m3-implementation-notes.md`
       §1.3 in the same session** — this renames/widens a report both earlier
       milestones' notes already describe.
+      *Reconciled 2026-09-30: built (§4).*
 
 **Checkpoint**: Alliance-rule clinical safety flagging works end-to-end for
 M4, sharing (not duplicating) M2/M3's infrastructure, admin-visible,
@@ -176,18 +194,20 @@ the Rollout Workflow reminder — not just a raw submitted-responses table,
 per `m1-implementation-notes.md` §13 / `m2-implementation-notes.md` §9 /
 `m3-implementation-notes.md` §1.7–1.8's established pattern.*
 
-- [ ] T020 Build the 2 new M4-only Analytics formula columns on "Milestone
+- [x] T020 Build the 2 new M4-only Analytics formula columns on "Milestone
       Instances" per `m4-data-model.md`: Looking Ahead: Likelihood To
       Recommend, Looking Ahead: Anything Else (both bounded
       `substring_between`). Confirm the 4 reused alliance-domain columns and
       Alliance Check-In Total parse M4 rows correctly with no edits, per the
       field-order design in `m4-data-model.md` — a confirmation step, verify
       against a real test submission (Phase 7) before assuming it.
-- [ ] T021 Build a minimal "M4 Submitted Responses" report (all 6 parsed
+      *Reconciled 2026-09-30: built (§5). NOTE: 'Looking Ahead: Anything Else' column was later removed (§10.3); only Likelihood To Recommend remains.*
+- [x] T021 Build a minimal "M4 Submitted Responses" report (all 6 parsed
       columns + Alliance Check-In Total + the 2 shared flag columns, raw
       blob hidden, no `Patient`/identity column) — same pattern as
       M0/M1/M2/M3's, scoped to `Milestone = "4 - Discharge"`.
-- [ ] T022 [Spec.md User Story 6 / FR-018] Build, at minimum: a status/
+      *Reconciled 2026-09-30: built (§5).*
+- [x] T022 [Spec.md User Story 6 / FR-018] Build, at minimum: a status/
       volume view ("M4 Status Breakdown" — Issued/Submitted/Expired counts,
       "Save As" pattern off M2's or M3's equivalent) and at least one
       distribution/summary view of M4's *own new* scored data ("M4 Looking
@@ -197,12 +217,14 @@ per `m1-implementation-notes.md` §13 / `m2-implementation-notes.md` §9 /
       M3 & M4 Flagged for Review" into a new "M4 - Discharge Feedback"
       dashboard (built via "Create New Dashboards", not "Save As" off a
       mismatched-panel dashboard).
+      *Reconciled 2026-09-30: built (§5): status/volume + distribution + dashboard, so M4 clears FR-018.*
 
 ## Phase 7: Test data & validation
 
 - [ ] T023 Get a test Patient record ID from Costin (per the standing
       Patients-module access restriction — do not look one up via CRM query
       or browser).
+      *Reconciled 2026-09-30: open: blocked on a test Patient record ID from Costin.*
 - [ ] T024 Using Zoho CRM MCP tools (not browser), exercise the discharge
       path: simulate `Patient_Status` transitioning to `Completed Treatment`
       for the test patient (confirm an M4 instance is created and the
@@ -228,7 +250,7 @@ per `m1-implementation-notes.md` §13 / `m2-implementation-notes.md` §9 /
 
 ## Phase 8: Polish & documentation
 
-- [ ] T028 Write `m4-implementation-notes.md` (as-built reference, mirroring
+- [x] T028 Write `m4-implementation-notes.md` (as-built reference, mirroring
       `m3-implementation-notes.md`'s structure: component inventory,
       verbatim Deluge source for `checkDischargeExists` and
       `submitDischargeFeedbackResponse`, the confirmed 6-segment blob format
@@ -236,12 +258,14 @@ per `m1-implementation-notes.md` §13 / `m2-implementation-notes.md` §9 /
       field/picklist reference, test-data approach, access constraints) once
       M4 is actually built — per CLAUDE.md's convention, in the same session
       as the change.
-- [ ] T029 Update `m2-implementation-notes.md` AND `m3-implementation-notes.md`
+      *Reconciled 2026-09-30: `m4-implementation-notes.md` exists and is current through §12.*
+- [x] T029 Update `m2-implementation-notes.md` AND `m3-implementation-notes.md`
       for every change T017/T019 made to their shared Analytics objects (the
       widened Clinical Safety Flag gate; the renamed/widened Flagged for
       Review report) — **in the same session as those changes**, not
       deferred to T028's M4-only notes file.
-- [ ] T030 Update `CLAUDE.md` if this build reveals a new cross-milestone
+      *Reconciled 2026-09-30: done in the same session as T017/T019 (§4).*
+- [x] T030 Update `CLAUDE.md` if this build reveals a new cross-milestone
       convention worth capturing. Likely candidates: confirming the "one
       shared function, reused by every subsequent milestone" pattern
       (`issueFeedbackToken`, `isCreatedAfterCutoff`) continues to hold with
@@ -249,10 +273,12 @@ per `m1-implementation-notes.md` §13 / `m2-implementation-notes.md` §9 /
       objects; and whether "widen the shared flag/report a second time"
       needs its own named convention section now that it's happened twice
       (M3 then M4).
-- [ ] T031 Commit `m4-implementation-notes.md`, the `m2-implementation-notes.md`
+      *Reconciled 2026-09-30: assessed: no new M4-specific convention needed in `CLAUDE.md`.*
+- [x] T031 Commit `m4-implementation-notes.md`, the `m2-implementation-notes.md`
       and `m3-implementation-notes.md` updates, and any plan/data-model
       corrections discovered during implementation, in the same session as
       the change, per the existing convention.
+      *Reconciled 2026-09-30: committed (see git history).*
 
 ## Notes for whoever implements this
 

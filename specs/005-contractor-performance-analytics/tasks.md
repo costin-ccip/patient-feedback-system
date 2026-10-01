@@ -4,6 +4,8 @@ description: "Task list for Contractor Performance Analytics, generated prospect
 
 # Tasks: Contractor Performance Analytics
 
+> **Reconciled 2026-09-30** against the milestone's implementation-notes file and git history. 
+
 **Input**: `plan.md`, `spec.md` (User Stories 1-6), `research.md`, `data-model.md`,
 `quickstart.md`
 
@@ -94,6 +96,7 @@ Scenario 2; `quickstart.md` §B's concrete numbers).
       one 2-response patient and one 1-response patient produces a figure where
       the 2-response patient's average counts once, not twice, relative to the
       1-response patient.
+      *Reconciled 2026-09-30: open: needs a real `Patients1` record ID for the 3 M3 rows.*
 
 **Checkpoint**: User Story 2 fully functional — patient-weighted, not
 response-weighted, and isolated per contractor.
@@ -180,6 +183,7 @@ unedited (spec.md Acceptance Scenarios 1-2).
       practice's real third contractor, `Shana Lacastro`, per `quickstart.md` §B,
       is fine), seed one qualifying response, and confirm it surfaces in the
       relevant view(s) with zero report/dashboard edits.
+      *Reconciled 2026-09-30: open: live verification.*
 
 **Checkpoint**: User Story 6 verified — the dashboard scales with the practice's
 own contractor roster, no per-contractor rebuild required.
@@ -216,22 +220,25 @@ own contractor roster, no per-contractor rebuild required.
 
 ## Phase 11: Polish & documentation
 
-- [ ] T022 Write `specs/005-contractor-performance-analytics/implementation-notes.md`
+- [x] T022 Write `specs/005-contractor-performance-analytics/implementation-notes.md`
       (as-built reference, mirroring the shape of `m0`-`m5-implementation-notes.md`:
       component inventory, exact formula/aggregate definitions, confirmation that
       Decision 1's `Patients1.Name` grouping key was built as planned, dashboard/
       report names, test-data approach) once this feature is actually built — per
       CLAUDE.md's convention, in the same session as the change.
-- [ ] T023 Update `CLAUDE.md` if this build establishes a new cross-milestone
+      *Reconciled 2026-09-30: `implementation-notes.md` exists.*
+- [x] T023 Update `CLAUDE.md` if this build establishes a new cross-milestone
       convention worth capturing — likely candidates: this being the first
       Analytics-only feature (no Deluge/Flow/Forms touched) in the pipeline, and,
       if built, the internal-grouping-key pattern as a reusable precedent for any
       future feature that needs per-patient cross-record aggregation without
       syncing patient identity.
-- [ ] T024 Commit `implementation-notes.md`, the `CLAUDE.md` update (if any), and
+      *Reconciled 2026-09-30: done: `CLAUDE.md` gained two sections (Milestone_Instances formula columns; auto-mode CRM writes), 2026-09-29.*
+- [x] T024 Commit `implementation-notes.md`, the `CLAUDE.md` update (if any), and
       any plan/research/data-model corrections discovered during implementation,
       in the same session as the change, following CLAUDE.md's "Pushing to GitHub"
       process appropriate to whichever environment the build session is running in.
+      *Reconciled 2026-09-30: committed (git history: 53c1cfb, 6c72fdd).*
 
 ## Notes for whoever implements this
 

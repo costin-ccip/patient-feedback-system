@@ -4,6 +4,8 @@ description: "Task list for M3 - Periodic Consolidated Check-In (every 8th sessi
 
 # Tasks: M3 - Periodic Consolidated Check-In (Milestone 3)
 
+> **Reconciled 2026-09-30** against the milestone's implementation-notes file and git history. T001-T006, T014, T016-T019 are built; remaining open items are live verification and the retention-purge gap.
+
 **Input**: `m3-plan.md`, `spec.md` (User Stories 1, 2 & 4, Clinical Safety
 Flag Rules, User Story 6 / FR-018), `m3-research.md`, `m3-data-model.md`
 
@@ -92,6 +94,7 @@ Milestones table, row 3; Acceptance Scenario 1).
       specifically: confirm a SECOND M3 instance is correctly created once
       a test patient's session count later reaches 16, not blocked by the
       idempotency check the way a repeat at the SAME count is.
+      *Reconciled 2026-09-30: open: live verification of checkpoints 8/16/24/32/40. Note the fixed list stops at 40 (decision pending, see `m3-research.md` Decision 2).*
 - [ ] T008 [US1] Confirm no duplicate Periodic Check-In invitation is ever
       sent for the same 8-session checkpoint (T003's recurring-checkpoint
       idempotency check) — satisfies spec.md FR-002 / Acceptance Scenario 2,
@@ -107,10 +110,12 @@ trigger.
 - [ ] T010 [US2] Confirm no patient identifier appears in the Periodic
       Check-In Form, the flow's parameters, or `Response_Data` (7 segments
       only, all scored/categorical) — Principle I.
-- [ ] T011 [US2] Token match + rejoin implemented (T006) — response lands
+- [x] T011 [US2] Token match + rejoin implemented (T006) — response lands
       only on the matched `Patient`'s CRM record, never anywhere else.
-- [ ] T012 [US2] Reuse rejection implemented via `Status != "Issued"` check
+      *Reconciled 2026-09-30: implemented in `submitPeriodicCheckInResponse` (`m3-implementation-notes.md` §1.6).*
+- [x] T012 [US2] Reuse rejection implemented via `Status != "Issued"` check
       (satisfies spec.md Acceptance Scenario 3 for User Story 2).
+      *Reconciled 2026-09-30: implemented via the `Status != "Issued"` check (§1.6).*
 - [ ] T013 [US2] **Compliance gap, carried from M0/M1/M2, not resolved
       here**: purge of the raw Zoho Forms submission entry within "a short,
       defined retention window" (spec.md FR-006) is not implemented by this
@@ -118,6 +123,7 @@ trigger.
       not silently accept this gap a fourth time without at least
       confirming with Costin it's still being deferred deliberately — see
       `data-retention-purge.md`.
+      *Reconciled 2026-09-30: still open, go-live blocker. See `data-retention-purge.md`.*
 
 **Checkpoint**: Core de-identified rejoin works end-to-end for M3; retention
 purge remains a known, tracked, cross-milestone gap.
@@ -145,6 +151,7 @@ domains — by widening M2's existing formula columns, not forking a new pair
       satisfies FR-012 / Acceptance Scenario 3. Confirm-absence task, not a
       build task — review T006's function, the flow, and the widened
       Analytics formula columns for any contractor-facing action.
+      *Reconciled 2026-09-30: open: not yet reviewed. Both flows now exist, so this confirm-absence review can be done any time.*
 - [x] T016 [US4] Rename/widen the existing "M2 Flagged for Review" report to
       "M2 & M3 Flagged for Review" per `m3-data-model.md` (Milestone filter
       widened to Wildcard `"2 - Early Alliance Check"` OR `"3 - Periodic
@@ -203,6 +210,7 @@ established pattern.*
 - [ ] T020 Get a test Patient record ID from Costin (per the standing
       Patients-module access restriction — do not look one up via CRM
       query or browser).
+      *Reconciled 2026-09-30: open: blocked on a test Patient record ID from Costin.*
 - [ ] T021 Using Zoho CRM MCP tools (not browser), exercise the recurring
       path specifically: simulate `Session_Count` reaching 8 for the test
       patient (confirm an M3 instance is created), then simulate it
@@ -222,7 +230,7 @@ established pattern.*
 
 ## Phase 8: Polish & documentation
 
-- [ ] T024 Write `m3-implementation-notes.md` (as-built reference, mirroring
+- [x] T024 Write `m3-implementation-notes.md` (as-built reference, mirroring
       `m2-implementation-notes.md`'s structure: component inventory,
       verbatim Deluge source for `checkPeriodicCheckInDue` and
       `submitPeriodicCheckInResponse`, the confirmed 7-segment blob format
@@ -230,24 +238,28 @@ established pattern.*
       field/picklist reference, test-data approach, access constraints)
       once M3 is actually built — per CLAUDE.md's convention, in the same
       session as the change.
-- [ ] T025 Update `m2-implementation-notes.md` for every change T014/T016
+      *Reconciled 2026-09-30: `m3-implementation-notes.md` exists and is current through §10.*
+- [x] T025 Update `m2-implementation-notes.md` for every change T014/T016
       made to M2-owned Analytics objects (the widened Clinical Safety Flag
       gate; the renamed/widened Flagged for Review report) — **in the same
       session as those changes**, not deferred to T024's M3-only notes
       file. This is the same convention CLAUDE.md already states, applied
       to a case where a later milestone's build changes an earlier
       milestone's documented behavior.
-- [ ] T026 Update `CLAUDE.md` if this build reveals a new cross-milestone
+      *Reconciled 2026-09-30: done: `m2-implementation-notes.md` §9.2/§9.6 updated for the widened flag gate and renamed report.*
+- [x] T026 Update `CLAUDE.md` if this build reveals a new cross-milestone
       convention worth capturing (the recurring-checkpoint idempotency
       pattern in `m3-research.md` Decision 2 seems the most likely
       candidate for a future recurring milestone to need — consider
       promoting it, and the "shared vs. per-milestone Analytics columns"
       decision framework in Decision 5, once this build confirms both work
       as designed).
-- [ ] T027 Commit `m3-implementation-notes.md`, the `m2-implementation-notes.md`
+      *Reconciled 2026-09-30: assessed: no new M3-specific convention needed in `CLAUDE.md`; the recurring-checkpoint pattern was not promoted (only M3 uses it).*
+- [x] T027 Commit `m3-implementation-notes.md`, the `m2-implementation-notes.md`
       updates, and any plan/data-model corrections discovered during
       implementation, in the same session as the change, per the existing
       convention.
+      *Reconciled 2026-09-30: committed (see git history).*
 
 ## Notes for whoever implements this
 

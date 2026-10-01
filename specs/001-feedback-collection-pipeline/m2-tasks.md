@@ -4,6 +4,8 @@ description: "Task list for M2 - Early Alliance Check (Session 3), generated pro
 
 # Tasks: M2 - Early Alliance Check (Milestone 2)
 
+> **Reconciled 2026-09-30** against the milestone's implementation-notes file and git history. T001-T006, T016-T019 are built; remaining open items are live verification (blocked on Costin) and the retention-purge gap.
+
 **Input**: `m2-plan.md`, `spec.md` (User Stories 1, 2 & 4, plus the Clinical
 Safety Flag Rules and User Story 6 / FR-018), `m2-research.md`,
 `m2-data-model.md`
@@ -85,6 +87,7 @@ table, row 2; Acceptance Scenario 1).
 - [ ] T007 [US1] Verify `Session_Count == 3` reliably fires exactly once per
       patient in practice — same real-world test M1's T008 called for
       (`m1-tasks.md`), now against the count-3 transition instead of count-1.
+      *Reconciled 2026-09-30: open: needs live verification. Costin began live-testing M2 on 9/25 and hit the Field Alias bug (§13, fixed). The result of the resubmission is not recorded in the repo.*
 - [ ] T008 [US1] Confirm no duplicate Alliance Check-In invitation is ever
       sent for the same patient's Milestone 2 occurrence (T003's idempotency
       check) — satisfies spec.md FR-002 / Acceptance Scenario 2.
@@ -100,10 +103,12 @@ table, row 2; Acceptance Scenario 1).
       segments only, same shape as M1's blob — no flag segments, per
       Revision 2) — Principle I — same field-by-field review approach as
       `m0-implementation-notes.md` §5 / `m1-tasks.md` T011.
-- [ ] T011 [US2] Token match + rejoin implemented (T006) — response lands
+- [x] T011 [US2] Token match + rejoin implemented (T006) — response lands
       only on the matched `Patient`'s CRM record, never anywhere else.
-- [ ] T012 [US2] Reuse rejection implemented via `Status != "Issued"` check
+      *Reconciled 2026-09-30: implemented in `submitAllianceCheckInResponse` (`m2-implementation-notes.md` §3.4.1); live behavior confirmed by the §13 diagnosis (function's guard clause fired correctly).*
+- [x] T012 [US2] Reuse rejection implemented via `Status != "Issued"` check
       (satisfies spec.md Acceptance Scenario 3 for User Story 2).
+      *Reconciled 2026-09-30: implemented via the `Status != "Issued"` check (§3.4.1).*
 - [ ] T013 [US2] **Compliance gap, carried from M0/M1, not resolved here**:
       purge of the raw Zoho Forms submission entry within "a short, defined
       retention window" (spec.md FR-006) is not implemented by this
@@ -111,6 +116,7 @@ table, row 2; Acceptance Scenario 1).
       silently accept this gap a third time without at least confirming with
       Costin that it's still being deferred deliberately — see
       `data-retention-purge.md`.
+      *Reconciled 2026-09-30: still open, go-live blocker. See `data-retention-purge.md`.*
 
 **Checkpoint**: Core de-identified rejoin works end-to-end for M2; retention
 purge remains a known, tracked, cross-milestone gap.
@@ -129,13 +135,15 @@ wellbeing half (FR-010) is out of scope until M3, per `m2-research.md`.
       that fired, not just the first match), and confirm it does **not** fire
       for a reading that clears both thresholds — satisfies FR-011 /
       Acceptance Scenario 2.
-- [ ] T015 [US4] Confirm no automated notification, email, or CRM action of
+      *Reconciled 2026-09-30: open: formulas reviewed structurally only; needs real submissions (T020-T022).*
+- [x] T015 [US4] Confirm no automated notification, email, or CRM action of
       any kind reaches a contractor when a flag fires — satisfies FR-012 /
       Acceptance Scenario 3. This is a "confirm absence," not a build task:
       review T006's function, the flow, and T017's Analytics formula columns
       for any contractor-facing action and verify there is none, per
       `m2-research.md`'s reconciliation of the source Confluence page's stale
       "routes to the treating clinician" language.
+      *Reconciled 2026-09-30: structurally reviewed: no contractor-facing action in either flow or any formula column (§5, §9.6). Both On Error branches alert costin@ only.*
 - [x] T016 [US4] Build the "M2 Flagged for Review" Analytics report (per
       `m2-data-model.md`, filtered on the new `Clinical Safety Flag` formula
       column `= "true"`) and confirm a flagged record is visible there with
@@ -189,6 +197,7 @@ established pattern for what "clearing the bar" looks like in this project.*
 - [ ] T020 Get a test Patient record ID from Costin (per the standing
       Patients-module access restriction — do not look one up via CRM query
       or browser).
+      *Reconciled 2026-09-30: open: blocked on a test Patient record ID from Costin.*
 - [ ] T021 Using Zoho CRM MCP tools (not browser), exercise the full path:
       set/simulate `Session_Count` reaching 3 for the test patient (or create
       a `Milestone_Instances` record by hand to test the write-back half
@@ -204,7 +213,7 @@ established pattern for what "clearing the bar" looks like in this project.*
 
 ## Phase 8: Polish & documentation
 
-- [ ] T024 Write `m2-implementation-notes.md` (as-built reference, mirroring
+- [x] T024 Write `m2-implementation-notes.md` (as-built reference, mirroring
       `m1-implementation-notes.md`'s structure: component inventory, verbatim
       Deluge source for the new write-back function (plain string
       concatenation, no flag logic — that's Analytics-only, per Revision 2),
@@ -213,13 +222,16 @@ established pattern for what "clearing the bar" looks like in this project.*
       approach, access constraints) once M2 is actually built — per
       CLAUDE.md's convention, in the same session as the change, not a
       follow-up task.
-- [ ] T025 Update `CLAUDE.md` if anything about the cross-milestone
+      *Reconciled 2026-09-30: `m2-implementation-notes.md` exists and is current through §15.*
+- [x] T025 Update `CLAUDE.md` if anything about the cross-milestone
       conventions (blob format, idempotency pattern, the now-established
       "flag data goes in the blob, not new fields" pattern for M3/M4) needs
       amending based on what M2's build actually reveals.
-- [ ] T026 Commit `m2-implementation-notes.md` and any plan/data-model
+      *Reconciled 2026-09-30: no M2-specific amendment outstanding; later features added the cross-milestone conventions to `CLAUDE.md` (token issuance, cutoff gate, Milestone_Instances formula columns).*
+- [x] T026 Commit `m2-implementation-notes.md` and any plan/data-model
       corrections discovered during implementation, in the same session as
       the change, per the existing convention.
+      *Reconciled 2026-09-30: committed (see git history).*
 
 ## Notes for whoever implements this
 

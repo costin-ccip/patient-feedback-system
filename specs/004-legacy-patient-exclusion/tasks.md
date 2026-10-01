@@ -4,6 +4,8 @@ description: "Task list for 004 - Legacy Patient Exclusion (Cutoff Gate), writte
 
 # Tasks: Legacy Patient Exclusion (Cutoff Gate)
 
+> **Reconciled 2026-09-30** against the milestone's implementation-notes file and git history. 
+
 **Input**: `plan.md`, `spec.md`, `research.md`, `data-model.md`, `quickstart.md`
 
 **Note**: RETROACTIVE. Unlike 001/002's task lists (written before the work, then
@@ -80,9 +82,11 @@ switched ON.
 
 - [ ] T014 Costin runs quickstart.md §C (folded into the existing M2/M3 live
       test), when he runs that test.
-- [ ] T015 If M4/M5 planning concludes they need the same gate, reuse
+      *Reconciled 2026-09-30: open: Costin's live test.*
+- [x] T015 If M4/M5 planning concludes they need the same gate, reuse
       `isCreatedAfterCutoff` following this feature's pattern rather than writing
       a new function (see research.md §3).
+      *Reconciled 2026-09-30: resolved: M4 and M5 both reuse `isCreatedAfterCutoff` unmodified (`m4-implementation-notes.md` §2, `m5-implementation-notes.md` §2). The spec Assumption saying this was undecided is stale; see the spec/CLAUDE.md edits.*
 
 ## Dependencies
 

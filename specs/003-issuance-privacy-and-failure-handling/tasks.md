@@ -4,6 +4,8 @@ description: "Task list for 003 - Issuance Privacy and Send-Failure Handling, ge
 
 # Tasks: Issuance Privacy and Send-Failure Handling
 
+> **Reconciled 2026-09-30** against the milestone's implementation-notes file and git history. 
+
 **Input**: `plan.md`, `spec.md`, `research.md`, `data-model.md`, `quickstart.md`
 
 **Note**: PROSPECTIVE; check off only when done. No flow ON, no live test.
@@ -12,8 +14,9 @@ description: "Task list for 003 - Issuance Privacy and Send-Failure Handling, ge
 
 ## Phase 1: Foundational
 
-- [ ] T001 **(Costin — CRM Setup wouldn't load for automation; see implementation-notes §3)** Add "Send Failed" to `Milestone_Instances.Status` in CRM Setup; confirm
+- [x] T001 **(Costin — CRM Setup wouldn't load for automation; see implementation-notes §3)** Add "Send Failed" to `Milestone_Instances.Status` in CRM Setup; confirm
       via `getFields`.
+      *Reconciled 2026-09-30: done: `Send Failed` confirmed present on `Milestone_Instances.Status` via CRM `getFields` in the 2026-09-25 structural pass (`coordinated-live-test-plan.md` §0.1).*
 
 ## Phase 2: User Story 1 - No emails in record names (P1)
 
@@ -44,5 +47,7 @@ description: "Task list for 003 - Issuance Privacy and Send-Failure Handling, ge
 ## Phase 5: Validation (Costin)
 
 - [ ] T011 Live test per quickstart §B, including a forced email failure.
+      *Reconciled 2026-09-30: open: live test incl. forced email failure (Costin).*
 - [ ] T012 Decide whether to stop syncing the Leads module's Last Name/Email into
       Analytics (flagged in spec Assumptions; out of scope here).
+      *Reconciled 2026-09-30: open: decision needed (see decisions list).*

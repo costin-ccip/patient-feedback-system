@@ -107,6 +107,13 @@ leaving care) needs its own exit-reason capture, delivered by email."
   Date is the CRM signal that a free consult actually happened. Lost leads who never
   had a free consult no longer get the survey. As-built details:
   `m0-implementation-notes.md` §16.
+
+  Revised 2026-09-30 (seventh pass, reconciliation only, no requirement changed):
+  "six milestones" wording in the body corrected to "five active milestones"; Assumptions
+  gained entries for the legacy-patient cutoff (feature 004), feature 005, and the
+  milestone-scoped stand-in for the unified dashboard; the Milestones section gained a
+  flagged note on two as-built divergences (M5 cancellation-only, M3 fixed checkpoints)
+  that still need an operations-lead decision.
 -->
 
 ## User Scenarios & Testing *(mandatory)*
@@ -128,13 +135,13 @@ unreliable and biased toward whoever opts in. This is the foundation everything 
 built on.
 
 **Independent Test**: Can be fully tested by advancing a test patient (or prospect, for
-Milestone 0) record through each of the six defined milestone conditions and confirming a
+Milestone 0) record through each of the five active milestone conditions and confirming a
 feedback request is generated and sent for each one, with zero manual action from a
 contractor at any point.
 
 **Acceptance Scenarios**:
 
-1. **Given** a patient's (or prospect's) record crosses one of the six defined milestone
+1. **Given** a patient's (or prospect's) record crosses one of the five active milestone
    conditions, **When** the system next evaluates that record, **Then** a feedback
    request for that milestone is generated and sent automatically, with no clinician
    action required.
@@ -372,6 +379,15 @@ specification (see Assumptions).
 | 4 | Discharge | Discharge is marked in the system of record | An alliance reading (final reading) plus a "looking ahead" exit section; no wellbeing reading, so this milestone no longer closes any pre/post wellbeing comparison |
 | 5 | Discontinuation | Cancellation with no rebooking within 14 days, OR 2 consecutive no-shows with no reschedule in between | Captures exit reason; delivered by email (User Story 5) — see Assumptions for why no live-call path exists in this version |
 
+> **As-built divergences (flagged 2026-09-30, awaiting operations-lead decision):**
+> (a) Milestone 5 is built for the cancellation leg only: it fires on
+> `Patient_Status = "Discontinued (Patient Choice)"`. The "2 consecutive no-shows"
+> leg in the row above was dropped from the build by Costin's 2026-09-24 scope
+> decision (`m5-research.md` Decision 1) and has not been built; this table has
+> not been amended to match. (b) Milestone 3 is built as a fixed checkpoint list
+> (sessions 8, 16, 24, 32, 40), not open-ended recurrence; patients past session 40
+> stop receiving check-ins (`m3-research.md` Decision 2).
+
 ### Clinical Safety Flag Rules
 
 These rules apply to alliance readings (Milestones 2, 3, 4), and drive User Story 4.
@@ -391,7 +407,7 @@ configurable (see Assumptions).
 ### Functional Requirements
 
 - **FR-001**: The system MUST detect, without contractor action, when a patient or
-  prospect record crosses one of the six milestone conditions defined above, and MUST
+  prospect record crosses one of the five active milestone conditions defined above, and MUST
   generate a feedback request for that milestone instance automatically.
 - **FR-002**: The system MUST NOT send more than one feedback request for the same
   milestone instance for the same patient or prospect.
@@ -486,7 +502,7 @@ configurable (see Assumptions).
 
 ### Measurable Outcomes
 
-- **SC-001**: 100% of patients/prospects who cross one of the six defined milestone
+- **SC-001**: 100% of patients/prospects who cross one of the five active milestone
   conditions receive a feedback request without any manual/contractor-initiated step.
 - **SC-002**: 0 feedback submissions ever contain an identifying field visible to or
   stored by the collection tool.
@@ -511,7 +527,7 @@ configurable (see Assumptions).
   dashboard access in this version.
 - "Contractor" and "clinician" are used interchangeably to mean the care-providing
   professional associated with a patient's sessions.
-- The six milestones and their trigger conditions (Milestones subsection above) come from
+- The five active milestones (0, 2-5) and their trigger conditions (Milestones subsection above) come from
   the practice's Confluence design pages; trigger thresholds (14-day windows, specific
   session counts, no-show counts) and the Clinical Safety Flag Rules' thresholds are the
   practice's current starting policy, explicitly called out in that source as not yet
@@ -531,7 +547,7 @@ configurable (see Assumptions).
   than treated as part of the current design.
 - The source Confluence doc describes Milestones 1–4 as triggering off the practice's
   EHR (SimplePractice). Per explicit operations-lead correction (2026-09-05), this is
-  not accurate: all six milestones (0–5) trigger off events/data recorded in Zoho CRM,
+  not accurate: all five active milestones (0, 2-5) trigger off events/data recorded in Zoho CRM,
   and the EHR is not part of this pipeline's trigger loop at all. Treat the source doc's
   EHR references as stale on this point; this specification's Milestones table above is
   the current source of truth.
@@ -542,6 +558,19 @@ configurable (see Assumptions).
 - The exact wording/content of each milestone's survey questions (e.g. specific slider
   labels, intro/closing copy) is instrument-design content tracked in the source
   Confluence pages, not a functional requirement of this specification.
+- Legacy-patient cutoff (feature 004): Milestones 2-5 only fire for Patient records
+  created on or after 2026-09-23 (`isCreatedAfterCutoff`), so patients already in CRM
+  before the pipeline existed do not get a request the moment their existing session
+  count or status crosses a threshold. SC-001's "100%" therefore applies to patients
+  created after that cutoff. Milestone 0 (Lead-based) does not use the gate.
+- Per-contractor performance analytics (feature 005,
+  `specs/005-contractor-performance-analytics/`) is an admin-only Analytics view built
+  on this pipeline's data; it is not a contractor-facing view and does not change
+  FR-009 / Principle IV.
+- Milestone-scoped admin reporting stands in for the unified Admin Dashboard
+  (User Story 3, FR-007-008) for now: each milestone has its own dashboard (FR-018),
+  and FR-013 is currently met through the shared "Flagged for Review" report rather
+  than a patient-level view. The unified dashboard is not built.
 - Milestone 1 (Baseline Intake) was eliminated per an operations-lead decision
   (2026-09-11), following a review of clinical/EHR overlap: the practice's clinicians
   are 1099 contractors who own their own clinical methods and document them in their

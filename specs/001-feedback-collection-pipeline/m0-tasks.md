@@ -4,6 +4,8 @@ description: "Task list for M0 - Free Consult / No-Conversion Feedback (backfill
 
 # Tasks: M0 - Free Consult / No-Conversion Feedback
 
+> **Reconciled 2026-09-30** against the milestone's implementation-notes file and git history. M0's trigger was narrowed on 2026-09-30 (`m0-implementation-notes.md` §16); that change was made outside this task list.
+
 **Input**: `m0-plan.md`, `spec.md` (User Stories 1 & 2), `m0-implementation-notes.md`
 
 **Note**: RETROACTIVE. M0 was already built when this task list was written
@@ -85,6 +87,7 @@ convert M0 to a fully automatic trigger without new CRM signal design.
       Investigated a generic fix and hit real technical blockers — see
       `data-retention-purge.md`. Treat as a go-live blocker, not a
       nice-to-have.
+      *Reconciled 2026-09-30: still open, go-live blocker. See `data-retention-purge.md`; decision pending.*
 
 **Checkpoint**: Core de-identified rejoin works end-to-end; retention purge is
 a known, tracked gap.
@@ -108,12 +111,13 @@ only needed to prove out its own reporting slice.*
       treatment): T016's distribution/KPI panels plus this dashboard already
       give M0 a baseline beyond a raw submitted-responses table. No further
       action needed for M0 specifically.
-- [ ] T018 Not applicable as previously framed: the authoritative spec.md
+- [x] T018 Not applicable as previously framed: the authoritative spec.md
       does not call for any per-contractor dashboard — Principle IV
       (Contractor Blindness to Own Raw Feedback) and FR-009 require zero
       contractor-facing dashboard/feedback-data access in this version, not a
       scoped view to build later. Nothing to do here for M0 or any future
       milestone unless that principle is itself amended.
+      *Reconciled 2026-09-30: closed as N/A, as the task itself already states (Principle IV / FR-009: no contractor-facing dashboard in v1).*
 
 ## Phase 6: Test data & validation
 
@@ -125,6 +129,7 @@ only needed to prove out its own reporting slice.*
 - [ ] T021 Not yet re-verified: confirm the dashboard panels render correctly
       against the new sample data once CRM-to-Analytics sync catches up (this
       was offered during the build but not followed up on).
+      *Reconciled 2026-09-30: still open. The dashboard has changed since (survey simplified 9/28, `m0-implementation-notes.md` §15; trigger narrowed 9/30, §16), so re-verify against current panels during the coordinated live test.*
 
 ## Phase 7: Polish & documentation
 

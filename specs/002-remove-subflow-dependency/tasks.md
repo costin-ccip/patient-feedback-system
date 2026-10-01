@@ -4,6 +4,8 @@ description: "Task list for 002 - Remove Subflow Dependency from Token Issuance,
 
 # Tasks: Remove Subflow Dependency from Token Issuance
 
+> **Reconciled 2026-09-30** against the milestone's implementation-notes file and git history. T001-T024 done.
+
 **Input**: `plan.md`, `spec.md`, `research.md`, `data-model.md`,
 `contracts/issue-feedback-token.md`, `quickstart.md`
 
@@ -93,8 +95,10 @@ T025-T026 are Costin's.
 
 - [ ] T025 Costin runs `quickstart.md` §B (live test across M0/M2/M3), folded into
       the existing coordinated M0/M2/M3 live test.
+      *Reconciled 2026-09-30: open: Costin's live test (folded into the coordinated test).*
 - [ ] T026 Costin decides on the two out-of-scope findings in research.md §5
       (email in record Name/Analytics; orphan record on mail failure).
+      *Reconciled 2026-09-30: open: decision needed (see decisions list).*
 
 ## Dependencies
 
