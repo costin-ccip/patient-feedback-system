@@ -72,8 +72,9 @@ persistence confirmed.
       (the alias must match the URL parameter, `m2-implementation-notes.md` §13). Record the
       form permalink in implementation-notes.md.
       **Done 2026-10-02**: Prefill alias `token` on the Token field saved and checked (opening the permalink with ?token=TESTONLY fills the hidden field; nothing submitted). Permalink in implementation-notes.md.
-- [ ] T015 [US1] [Claude] Build the flow "Feedback Opt-Out - Form Submitted" (data-model.md §6),
+- [x] T015 [US1] [Claude] Build the flow "Feedback Opt-Out - Form Submitted" (data-model.md §6),
       including the no-match alert and an On Error branch, both free of `${trigger.*}` values.
+      **Built 2026-10-02, flow left OFF** (see implementation-notes.md, "Handler flow").
 - [x] T016 [US1] [Costin] Get Liana's approval of the page explanation, button label and
       thank-you message (research.md §4), then enter the final text in the form.
       **Done 2026-10-02**: Liana approved the page text, button and thank-you message (2026-10-02); final text entered in the form (thank-you set as Rich Text, since Plain Text caps at 100 characters).

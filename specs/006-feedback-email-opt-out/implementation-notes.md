@@ -79,3 +79,26 @@ both emptied on clear. No M0 workflow webhook fired. Left unticked.
   two rows even minutes later, so back-to-back runs for the same person and milestone can write
   a duplicate skip row. Harmless: existence checks only test for any row, and a duplicate only
   inflates skip counts for rapid re-fires. Not worth a workaround.
+
+
+## Handler flow "Feedback Opt-Out - Form Submitted" (T015, built 2026-10-02, OFF)
+
+Folder "Customer Feedback System". Steps:
+
+1. Trigger: Zoho Forms, "Form entry submitted", form "Feedback Email Opt-Out" (connection "Connection to Cape Clarity Zoho Forms").
+2. Custom function `recordFeedbackOptOut`, output variable `recordFeedbackOptOut_1`, `token` mapped to
+   `Form entry submitted -> Token`.
+3. If else: `Status` (key of `recordFeedbackOptOut_1`) equals `no_match`.
+   - True: Zoho Mail "Send email" (connection info@capeclarity.com, From info@capeclarity.com) to
+     costin@capeclarity.com, subject "Feedback opt-out link did not match a record", body says only that a
+     submission arrived with no matching link and nothing was changed. No token, no identity.
+   - False: ends.
+4. On Error on the function step: Zoho Mail "Send email" to costin@capeclarity.com, subject
+   "Feedback opt-out flow hit an error", body says the opt-out may not have been recorded and to
+   check the flow's History. No `${trigger.*}` values.
+
+Builder notes: the If else only offers the `Status` key after the function step has been executed once in
+the step panel and "Use this test data" clicked (a bogus token was used, so nothing was written; before that
+the dropdown only offers the whole map). A node dropped from the palette is not wired: draw the connector by
+dragging from the previous node's bottom circle (or, for On Error, its red circle at the right) to the new node.
+Not yet tested end to end (T017, needs Costin's go-ahead); flow is OFF.
