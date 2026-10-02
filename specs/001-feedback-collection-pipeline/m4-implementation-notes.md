@@ -833,3 +833,28 @@ No CRM, Flow, or Analytics changes accompanied this — Zoho Forms content only.
 Both M4 flows ("M4 - Discharge Trigger" and "M4 - Discharge Write-back") were
 already OFF going into this change (per this project's still-in-testing
 status, per Costin) and remain OFF.
+
+## Feature 006: opt-out gate added to "M4 - Discharge Trigger" (T019)
+
+Edited in the Zoho Flow builder; the flow stayed OFF throughout (status "Draft",
+as before).
+
+Structure after the edit: Updated module entry -> checkDischargeExists ->
+isCreatedAfterCutoff -> If else (existing, True branch) -> **skipIfOptedOut** ->
+**If else (`skipIfOptedOut_1` is false)** -> issueFeedbackToken -> Send email.
+Existing feature 003 error handling (Update module entry marking Send Failed,
+then the "email send failed" alert) is untouched. skipIfOptedOut inputs:
+milestone literal `4 - Discharge` (same literal issueFeedbackToken gets),
+patientId = Updated module entry -> Entry ID, leadId blank, clinician = Updated
+module entry -> Assigned Therapist. Its On Error branch goes to a new Zoho Mail
+alert (cloned from the existing send-failed alert, variable
+`alertOptOutCheckFailed`, subject "opt-out check failed (4 - Discharge)"). The
+clone's body was fully rewritten: it names only the flow and milestone, with no
+patient or trigger identity and no reference to issueFeedbackToken (the original
+body references `issueFeedbackToken_1.recordId`, which does not exist on the skip
+path).
+
+Builder notes: dropping a node from the palette near an existing branch
+connector auto-wires it to that connector (here the first If else's False
+branch); detach with the scissors icon and re-wire by hand. Nodes in rename mode
+(yellow) cannot be dragged: click empty canvas first, then drag by the icon.
