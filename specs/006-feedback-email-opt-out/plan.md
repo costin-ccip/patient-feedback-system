@@ -10,9 +10,9 @@ Give every person who receives a feedback email a way to stop all of them, and m
 milestone honor that. The design reuses the pipeline's own pieces and adds no new Zoho
 product:
 
-1. **Record**: three small fields on both the Lead and Patient records in CRM (opt-out
-   flag, date, an "opted out via email link" checkbox) plus a resubscribe date, and one new `Milestone_Instances.Status`
-   value, `Skipped - Opted Out`.
+1. **Record**: the native CRM **Email Opt Out** checkbox on the Lead and Patient records
+   (no new field; Patients has no room), whose built-in timestamp gives the date, plus one new
+   `Milestone_Instances.Status` value, `Skipped - Opted Out`.
 2. **Opt out**: each feedback email gets a second link to a new Zoho Forms page
    ("Feedback Email Opt-Out"). The page carries only the hidden token already issued for
    that email. Opening it does nothing; pressing the one button submits it. A new Flow,
@@ -22,8 +22,8 @@ product:
    trigger flow right before `issueFeedbackToken`. If the person is opted out it writes a
    `Skipped - Opted Out` Milestone_Instances record and tells the flow to stop; otherwise
    the flow carries on exactly as today.
-4. **Other channels**: staff tick the same CRM field (a CRM workflow fills in date and
-   a short CRM note about how it arrived), following a short written procedure. Resubscribe is staff clearing the field.
+4. **Other channels**: staff tick the same CRM field and add a short CRM note about how it arrived,
+   following a short written procedure. Resubscribe is staff clearing the field (the timeline keeps both dates).
 
 Nothing about what the emails ask, when milestones fire, or how scores are stored changes
 (spec FR-016). `issueFeedbackToken` is not edited.
@@ -37,7 +37,7 @@ CRM field and workflow configuration
 forms), Zoho CRM (`crm_connection`), Zoho Mail (existing "Send email" steps). No new
 product (spec Assumptions; constitution Principle V).
 
-**Storage**: CRM only. Four new fields on `Leads` and on `Patients1`; one new picklist
+**Storage**: CRM only. No new field: native `Email_Opt_Out` on `Leads` and `Patients1`; one new picklist
 value on `Milestone_Instances.Status`. Nothing new in Analytics (see "Reporting").
 
 **Testing**: Structural checks via Execute and flow Test (quickstart.md §A, §B), then a
@@ -58,8 +58,7 @@ see opt-out status; nothing synced to Campaigns or Analytics; `issueFeedbackToke
 write-back functions untouched.
 
 **Scale/Scope**: 2 new custom functions, 1 new flow, 1 new Forms form, 5 trigger flows
-edited (M0, M2, M3, M4, M5), 5 email bodies edited, 8 CRM fields (4 per module, checkbox and date types only), 1 picklist value (the new Status), 1 CRM
-workflow rule, 1 staff procedure, doc updates.
+edited (M0, M2, M3, M4, M5), 5 email bodies edited, 0 new CRM fields, 1 picklist value (the new Status), no workflow rule, 1 staff procedure, doc updates.
 
 ## Design decisions
 
@@ -91,7 +90,7 @@ the tasks assume.
   retroactive send and advances M3's checkpoint index. No change to those functions. See
   research.md §3.
 - **D5: opt-out status stays in CRM, out of Analytics.** FR-010 reporting comes from the
-  skip rows already in `Milestone_Instances`, so the new person-level fields are not added
+  skip rows already in `Milestone_Instances`, so the native opt-out fields are not added
   to the Analytics sync and need no hiding, since contractors have no CRM access.
 
 ## Constitution Check
@@ -103,7 +102,7 @@ the tasks assume.
 | I. De-identification by design | Pass. The opt-out form has one hidden field, the opaque token, and nothing else; the page never shows or asks for name, email, phone. The only thing the form stores is the same kind of token the survey forms already hold. |
 | II. Single rejoin point | Pass. The token is matched to a person only inside the Flow custom function using the CRM connection, exactly as the survey write-back does. No other system sees token plus identity. |
 | III. Automated milestone triggers | Pass. Skipping is automatic and rule-based; no clinician decides. Staff actions only record a person's own request. |
-| IV. Contractor blindness | Pass. Contractors have no CRM access (Costin, 2026-10-01), and opt-out status appears in no Analytics table or contractor view. If a contractor ever gets CRM access, the four fields must be hidden from that profile first. |
+| IV. Contractor blindness | Pass. Contractors have no CRM access (Costin, 2026-10-01), and opt-out status appears in no Analytics table or contractor view. If a contractor ever gets CRM access, the opt-out flag must be hidden from that profile first. |
 | V. BAA-gated adoption | Pass. Only Forms, Flow, CRM and Mail are used, all already in the pipeline. No new product. BAA confirmation (still open, constitution TODO) gates go-live exactly as for the existing pipeline. |
 | VI. Internal use only | Pass. Nothing is sent to Campaigns, the website or any marketing tool; the opt-out is deliberately independent of marketing preferences (spec FR-012, FR-017). |
 | VII. Analytics computes derived values | **Deviation, justified, same as feature 004.** `skipIfOptedOut` is a yes/no gate that must be answered at trigger-decision time, before any Analytics value exists. It derives no score or flag. The reporting side (counts of "opted out") is computed in Analytics from the Status column, per the principle. Recorded here per the Development Workflow. |
@@ -134,11 +133,8 @@ specs/006-feedback-email-opt-out/
 
 ```text
 Zoho CRM
-├── [NEW]  Leads and Patients1 fields: Feedback_Opt_Out, Feedback_Opt_Out_Date,
-│          Feedback_Opt_Out_Via_Link, Feedback_Resubscribe_Date
+├── [USE]  Native Email_Opt_Out (+ read-only Unsubscribed_Time) on Leads and Patients1; no new field
 ├── [EDIT] Milestone_Instances.Status picklist: + "Skipped - Opted Out"
-├── [NEW]  Workflow rule on Leads and Patients1: fill the date when the flag is set,
-│          fill resubscribe date when it is cleared
 (no profile change: contractors have no CRM access)
 
 Zoho Forms
@@ -158,7 +154,8 @@ Zoho Flow (workspace 872426000000002011 / Customer Feedback System)
     isCreatedAfterCutoff
 
 Zoho Analytics: Status Breakdown reports reviewed for the new value; no sync change
-Zoho Campaigns: no change
+Zoho Campaigns: no change by this feature. Note: Campaigns is used with Leads only, and on Leads the
+native flag is also Campaigns' unsubscribe (coupling, tasks T042).
 ```
 
 **Structure Decision**: a separate feature directory (006), same reasoning as 002 and 004:
@@ -168,8 +165,8 @@ added to each milestone's own `m*-implementation-notes.md` when the flows are ed
 
 ## Build order
 
-1. **CRM first** (nothing else works without it): fields, status value, workflow rule,
-   contractor visibility (Phase 1 of tasks).
+1. **CRM first** (nothing else works without it): the Status value and the timeline check
+   (Phase 1 of tasks). The native field needs no setup.
 2. **Functions**, each verified with Execute before any flow uses it: `skipIfOptedOut`,
    then `recordFeedbackOptOut`.
 3. **Opt-out form and handler flow**, built and tested while still switched OFF, so the
@@ -201,6 +198,12 @@ the window.
 - **Unknown intake mechanism (FR-018).** Where patient intake is captured, and whether it
   already asks about feedback emails, is not documented in this repo. Task T028 resolves it
   before go-live; it does not block the build.
+- **Shared native field.** `Email_Opt_Out` also suppresses CRM mass email, and on Leads it syncs
+  with Campaigns. Accepted by Costin 2026-10-02 (spec, Resolved questions); coupling on Leads to
+  be confirmed (T042).
+- **No stored resubscribe date, and Mode cannot tell link from staff.** Verified on PT000:
+  clearing the flag empties the date and mode; both UI and API ticks show `Manual`. The record
+  timeline (source `crm_ui` or `crm_api`) and a CRM note carry the rest.
 - **Live changes need Costin.** CRM Setup pages do not load for browser automation, and
   `createFields` over the CRM tool may be refused in some modes, so the CRM tasks are marked
   as Costin's to run or approve.

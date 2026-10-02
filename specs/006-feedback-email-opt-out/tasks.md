@@ -19,23 +19,19 @@ No other patient or lead record is read or changed.
 
 ## Phase 1: CRM setup (blocks everything)
 
-- [ ] T001 [Costin or Claude via CRM connection, with approval] Create the four fields on
-      **Leads**: `Feedback_Opt_Out` (checkbox), `Feedback_Opt_Out_Date` (date),
-      `Feedback_Opt_Out_Via_Link` (checkbox), `Feedback_Resubscribe_Date` (date). Checkbox and
-      date types only, no text or picklist (Option B, decided 2026-10-01). Before creating,
-      confirm in Setup, Modules and Fields that room remains in the checkbox and date pools.
-      See data-model.md §1.
-- [ ] T002 [Costin] Same four fields on **Patients1** (module label "Patients").
+- [x] T001 ~~Create four fields on Leads~~ **Replaced 2026-10-02**: no new fields. Patients has no
+      room for any custom field (Costin), so the feature uses the native `Email_Opt_Out` field
+      and its `Unsubscribed_Time` / `Unsubscribed_Mode` metadata (data-model.md §1).
+- [x] T002 [Claude] Verified on PT000 (2026-10-02): an API write sets and clears `Email_Opt_Out`;
+      `Unsubscribed_Time` is stamped and `Unsubscribed_Mode` shows `Manual` for UI and API alike;
+      clearing empties both; the timeline records each change with `source` `crm_ui` or
+      `crm_api`. PT000 left opted out, as Costin had it. Same check on the test lead is T042.
 - [ ] T003 [Costin] Add `Skipped - Opted Out` to the `Milestone_Instances.Status` picklist
       (same way `Send Failed` was added). [Claude] then confirms with a read-only `getFields`.
-- [ ] T004 [Costin] Put the four fields in a "Feedback preferences" section on the Leads and
-      Patients layouts.
-- [ ] T005 [Costin] Create the two workflow rules on each of Leads and Patients1 (opt-out set
-      fills the date; opt-out cleared fills the resubscribe date and unticks via-link),
-      data-model.md §1. If Standard blocks the rules, build a small Zoho Flow flow instead.
-- [ ] T006 [Costin] If the CRM plan allows, turn on field-history tracking for
-      `Feedback_Opt_Out`. Record whether it was available; if not, the date fields and the CRM
-      timeline are the history (research.md §6).
+- [x] T004 ~~Feedback preferences layout section~~ **Dropped 2026-10-02**: no new fields.
+- [x] T005 ~~Workflow rules for the dates~~ **Dropped 2026-10-02**: the CRM stamps the date itself.
+- [ ] T006 [Costin] Confirm the timeline (field history) is on for `Email Opt Out` on Leads and
+      Patients. It already records changes on PT000. Record the answer for Leads.
 - [x] T007 ~~Hide the four fields from contractor profiles~~ **Dropped 2026-10-01**: contractors
       have no CRM access (Costin). If that changes, hide the fields from that profile first
       (constitution Principle IV, spec FR-012).
@@ -123,16 +119,16 @@ to the same literal the flow passes to `issueFeedbackToken`, `patientId` to `${t
       and where the procedure lives for staff.
 - [ ] T028 [US1] [Costin] Intake is decided in the Campaigns project (its decisions of
       2026-10-01 and tasks T027 and T028): an optional "feedback requests" item in the EHR
-      intake packet, recorded by staff in this feature's field, plus a notice (no checkbox)
-      on the booking form; record only, no gate. Confirm that is still the plan, record the
-      final field API names from T001 and T002 and tell the Campaigns build once (do not edit
+      intake packet, recorded by staff by ticking the native Email Opt Out field, plus a notice (no checkbox)
+      on the booking form; record only, no gate. Confirm that is still the plan, tell
+      the Campaigns build once that this feature uses native `Email_Opt_Out` on Patients1 and Leads
+      (Campaigns used with Leads only) and must never copy it into Email Audience (do not edit
       that repo from here), and note in implementation-notes.md. Also confirm that creating a patient from a lead copies no
       field from the Lead's feedback fields (there should be none; the new fields are not in
       any field mapping).
 - [ ] T029 [US1] [Costin] When the optional intake item is added to the packet (Campaigns T027),
       add to the staff procedure that a "no" answer is recorded by checking
-      `Patients1.Feedback_Opt_Out` (the date fills itself in; "via email link" stays
-      unchecked, and the CRM note says "intake"). Patients with no answer stay not opted out.
+      `Patients1.Email_Opt_Out` (the CRM stamps the time; add a CRM note saying "intake"). Patients with no answer stay not opted out.
 
 **Checkpoint**: staff can record and clear opt-outs by procedure; intake sets the patient's
 status.
@@ -145,7 +141,7 @@ status.
       "Flagged for Review" report) and confirm none counts a skip as a non-response, a
       completion, or a score. Fix any that do and record each in the notes. (Respect the
       deletion-order rules in `CLAUDE.md` if any report must change.)
-- [ ] T031 [Costin] Confirm the four new fields are not in the Analytics CRM sync field list
+- [ ] T031 [Costin] Confirm `Email_Opt_Out`, `Unsubscribed_Time` and `Unsubscribed_Mode` are not in the Analytics CRM sync field list
       (they should be unchecked) and not in any Zoho Campaigns audience mapping; tell the
       Campaigns build once, as a note, that these fields must stay out (do not change the
       Campaigns repo from here).
@@ -194,3 +190,8 @@ exist) → T033-T034 → T035-T039 (T035 and T036 run alongside the build, not a
 
 Go-live is gated on: T017, T025, T033, the BAA confirmation (constitution TODO), and Liana's
 approvals (T016, T023).
+- [ ] T042 [Costin] Confirm the Leads coupling: because Campaigns is used with Leads, the native
+      `Email_Opt_Out` on a Lead is also the Campaigns unsubscribe. A lead opted out of feedback
+      will show as unsubscribed in Campaigns, and a Campaigns unsubscribe suppresses M0 feedback.
+      Accept it, or tell me and we use a tag on Leads only. [Claude] then repeats the T002
+      check on the test lead.

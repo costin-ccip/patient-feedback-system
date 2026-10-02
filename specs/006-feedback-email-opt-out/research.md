@@ -100,7 +100,7 @@ contact line are tone-of-voice items for Liana.
 
 ## 6. Where the opt-out data lives and who can see it
 
-- **Fields on the person's record** (Leads and Patients1): easy for staff to set by hand
+- **Native Email Opt Out field on the person's record** (Leads and Patients1; revised 2026-10-02, see §10): easy for staff to set by hand
   (FR-013), read live by the flow at firing time, no sync lag.
 - **CRM field history**: the date fields give "when", and the CRM timeline shows who changed
   the flag and when. Whether field-history tracking is available on the current CRM plan is
@@ -114,7 +114,7 @@ contact line are tone-of-voice items for Liana.
 - **Contractors**: contractors have no feedback access (constitution Principle IV). Whether any
   contractor profile can open Leads or Patients in CRM at all was not recorded in this repo;
   Costin confirmed 2026-10-01 that contractors have no CRM access, so no field-level hiding
-  is needed (T007 dropped). If that changes, hide the four fields first.
+  is needed (T007 dropped). If that changes, hide the opt-out flag first.
 
 ## 7. Reporting (FR-010)
 
@@ -163,3 +163,23 @@ What that changed here:
 - Both projects plan CRM workflow rules on Leads and Patients1. Standard may limit the number
   of rules or what they can do; if a limit blocks the two rules here, a small Zoho Flow flow
   can fill the dates instead.
+
+## 10. Revision 2026-10-02: native Email Opt Out instead of new fields
+
+Costin cannot add any more fields of any type to Patients, so section 9's four-field design is
+replaced. Checked on PT000 (the designated test record) through the CRM connection:
+
+- `getFields` on Patients1: `Email_Opt_Out` (boolean, writable), `Unsubscribed_Mode` (picklist,
+  read-only), `Unsubscribed_Time` (datetime, read-only) all exist.
+- An API write of `Email_Opt_Out` true stamps `Unsubscribed_Time` and sets `Unsubscribed_Mode` to
+  `Manual`, the same as a UI tick. Writing false clears both.
+- The timeline (`getTimelines`) records every change with old and new values and a `source`:
+  `crm_ui` (a staff tick) or `crm_api` (a function). That is how link and staff are told apart,
+  with a CRM note as the visible hint.
+- Result: no new field, no workflow rule, no stored resubscribe date (timeline instead).
+- PT000 was left opted out, the state Costin had set earlier that morning.
+
+Trade-offs accepted (Costin, 2026-10-02): the native flag also suppresses CRM mass email; Campaigns
+is used with Leads only and must not copy the flag into Email Audience from Patients. Still to
+confirm: on Leads the flag is Campaigns' unsubscribe too (tasks T042). A Leads-only fallback would be
+a CRM tag.

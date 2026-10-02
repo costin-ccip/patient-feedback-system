@@ -18,5 +18,12 @@
   the flow "Feedback Opt-Out - Form Submitted" with its alerts (T013 to T017).
 - Per flow (M0, M2, M3, M4, M5): the nodes added, output variable names, On Error branch,
   and any builder gotcha (T018 to T022), plus the email body edits (T024).
-- Where intake is captured and how the intake answer sets `Feedback_Opt_Out` (T028, T029).
+- Where intake is captured and how the intake answer sets native `Email_Opt_Out` (T028, T029).
 - Analytics audit results (T030) and live test results (T033).
+
+## PT000 check of the native field (2026-10-02, Claude via the CRM connection)
+
+- Fields `Email_Opt_Out`, `Unsubscribed_Mode`, `Unsubscribed_Time` confirmed on Patients1 (getFields).
+- API false then true on PT000: timeline entries 6825601000004647001 and 6825601000004648001, source
+  `crm_api`; Mode `Manual`, Time stamped on set, both emptied on clear. Earlier UI entry source `crm_ui`.
+- PT000 was already opted out (Costin, 09:52) and was left opted out. Not yet run on the test lead (T042).

@@ -6,39 +6,49 @@ Everything below is a draft until built. Deluge in particular must be saved and 
 Execute in the function editor before any flow uses it (T009 to T012), as with features 002
 and 004.
 
-## 1. CRM fields (Leads and Patients1, identical on both)
+## 1. CRM fields: none added (native `Email Opt Out`)
 
-| Field label | API name (proposed) | Type | Notes |
-|---|---|---|---|
-| Feedback Opt-Out | `Feedback_Opt_Out` | Checkbox | The one flag every check reads. Default unchecked. |
-| Feedback Opt-Out Date | `Feedback_Opt_Out_Date` | Date | Filled by the flow (email link) or the CRM workflow (staff). |
-| Opted Out Via Email Link | `Feedback_Opt_Out_Via_Link` | Checkbox | Set only by the flow. Staff-recorded opt-outs leave it unchecked, and staff add a short CRM note saying how it arrived (phone, in person, reply). |
-| Feedback Resubscribe Date | `Feedback_Resubscribe_Date` | Date | Filled by the CRM workflow when the flag is cleared. |
+Patients has no room for any new field of any type (Costin, 2026-10-02), so this feature adds
+no CRM field. It uses the native **Email Opt Out** field (`Email_Opt_Out`, boolean) that already
+exists on Leads and Patients1, together with its two read-only system fields. Verified on
+PT000 on 2026-10-02 (implementation-notes.md):
 
-**Field budget (decided 2026-10-01, Option B):** four new fields per module, all in the
-checkbox and date pools (2 checkboxes, 2 dates). No text or picklist field is used, because
-that pool is nearly full on Leads and Patients1 (research.md §9). A "source" picklist was
-considered and dropped.
-
-Placement: a small "Feedback preferences" section on the record layout, visible to admin and
-staff profiles only. Contractors have no CRM access (Costin, 2026-10-01), so no field-level
-hiding is needed; if that ever changes, hide these four fields from contractor profiles first
-(constitution Principle IV, spec FR-012). Turn on field-history tracking for the checkbox if
-the plan allows.
-
-Not added to: the Zoho Analytics sync field list, any Campaigns audience mapping, any export.
-
-### CRM workflow rule (one per module)
-
-| Rule | Condition | Action |
+| Native field | API name | What it gives us |
 |---|---|---|
-| Opt-out set | `Feedback_Opt_Out` changed to checked | If `Feedback_Opt_Out_Date` is empty, set it to today. |
-| Opt-out cleared | `Feedback_Opt_Out` changed to unchecked | Set `Feedback_Resubscribe_Date` to today and uncheck `Feedback_Opt_Out_Via_Link`. Leave the opt-out date in place so the history stays readable. |
+| Email Opt Out | `Email_Opt_Out` | The one flag every check reads. Writable through the API and Deluge. |
+| Unsubscribed Time | `Unsubscribed_Time` | Opt-out date and time. Set by the CRM when the flag is ticked, whoever ticks it. Read-only. |
+| Unsubscribed Mode | `Unsubscribed_Mode` | Shows `Manual` for both a UI tick and an API tick, so it does NOT tell link from staff. Not used. |
 
-When the flow sets the flag it sets the date and the via-link checkbox itself in the same
-update, so the first rule does not overwrite them. When someone opts out again after a resubscribe, the old date is
-overwritten by the flow or by staff clearing and re-entering it; the CRM timeline holds the
-earlier values.
+**Where the other facts live**
+
+- **Opted out via the email link vs recorded by staff**: the record timeline entry for the
+  change carries a `source`: `crm_api` when the function set it (link), `crm_ui` when staff
+  ticked it. `recordFeedbackOptOut` also adds a short CRM note ("Feedback emails stopped via
+  the email link") so staff can see it without opening the timeline. Staff add a note for phone,
+  in-person and reply requests (staff-procedure.md).
+- **Resubscribe**: unticking clears `Unsubscribed_Mode` and `Unsubscribed_Time` (verified), so no
+  resubscribe date remains on the record. The timeline keeps both events with their times
+  (`Email_Opt_Out` true to false, who, when). Staff also add a note when they resubscribe someone.
+  Spec FR-015 ("discoverable") is met by the timeline plus the note.
+- **Earlier opt-out after a resubscribe**: the timeline keeps every opt-out and resubscribe in order.
+
+**Shared field, shared consequence.** `Email_Opt_Out` is a general CRM field: ticking it also
+stops CRM mass email to that person. Feedback emails go out through the Zoho Mail step in
+Flow, so they are unaffected by CRM's own suppression and this feature reads the flag itself.
+Costin accepted this on 2026-10-02. Rules that follow:
+
+- Campaigns is used with Leads only (Costin, 2026-10-02). Patients1 is not synced to Campaigns.
+- On **Leads** the native flag is also what Campaigns syncs as "unsubscribed". A lead who ticks
+  feedback opt-out is therefore also shown as unsubscribed in Campaigns, and a lead who
+  unsubscribes from a Campaigns email will be skipped for M0 feedback. This coupling is real on
+  Leads; Costin to confirm it is acceptable (spec Open decision, tasks T042).
+- The Campaigns build must not copy `Email_Opt_Out` from a Patient into Email Audience.
+- Staff must not use the flag for marketing preferences on Patients1 (staff-procedure.md).
+
+Placement: no layout change (the field is already on the record). Not added to the Analytics
+sync field list, as before.
+
+No CRM workflow rule is needed: the date comes from the CRM itself.
 
 ## 2. `Milestone_Instances` change
 
@@ -93,7 +103,7 @@ bool skipIfOptedOut(string milestone,string patientId,string leadId,string clini
 	{
 		throw "skipIfOptedOut: person record could not be read";
 	}
-	optedOut = personRec.get("Feedback_Opt_Out");
+	optedOut = personRec.get("Email_Opt_Out");
 	if(optedOut == null || optedOut != true)
 	{
 		return false;
@@ -197,16 +207,30 @@ map recordFeedbackOptOut(string token)
 		return resp;
 	}
 	personRec = zoho.crm.getRecordById(moduleName,personId.toLong(),Map(),"crm_connection");
-	if(personRec != null && personRec.get("Feedback_Opt_Out") == true)
+	if(personRec != null && personRec.get("Email_Opt_Out") == true)
 	{
 		resp.put("status","already");
 		return resp;
 	}
 	upd = Map();
-	upd.put("Feedback_Opt_Out",true);
-	upd.put("Feedback_Opt_Out_Date",zoho.currentdate.toString("yyyy-MM-dd"));
-	upd.put("Feedback_Opt_Out_Via_Link",true);
+	upd.put("Email_Opt_Out",true);
 	updResp = zoho.crm.updateRecord(moduleName,personId,upd,Map(),"crm_connection");
+	// Best-effort note so staff can see how it arrived (does not affect the result if it fails)
+	try
+	{
+		parentMap = Map();
+		parentMap.put("module",{"api_name":moduleName});
+		parentMap.put("id",personId);
+		noteMap = Map();
+		noteMap.put("Parent_Id",parentMap);
+		noteMap.put("Note_Title","Feedback emails stopped via email link");
+		noteMap.put("Note_Content","Opt-out recorded from the link in a feedback email on " + zoho.currentdate.toString("yyyy-MM-dd") + ".");
+		zoho.crm.createRecord("Notes",noteMap,Map(),"crm_connection");
+	}
+	catch (e)
+	{
+		info "note not written";
+	}
 	resp.put("status","recorded");
 	return resp;
 }

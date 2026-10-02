@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-01
 
-**Status**: Draft (open questions answered 2026-10-01)
+**Status**: Draft (open questions answered 2026-10-01; storage revised 2026-10-02)
 
 **Input**: User description: "Currently our feedback system works, but there's no way for
 patients to unsubscribe if they wish to stop receiving these emails. I'd like to create
@@ -231,10 +231,11 @@ do not.
 **Other channels and resubscribe (Stories 3 and 4)**
 
 - **FR-013**: CRM MUST let staff record a feedback opt-out directly on a patient or lead
-  record, with the same effect as the email link, and MUST capture the date and whether it
-  came from the email link of every opt-out. How a staff-recorded request arrived (phone, in
-  person, reply) goes in a short CRM note, not a field (decided 2026-10-01 to save scarce
-  CRM custom-field slots).
+  record, with the same effect as the email link, and MUST capture the date of every
+  opt-out and whether it came from the email link. The opt-out is the native CRM Email Opt
+  Out field, whose timestamp gives the date and whose record timeline tells a link opt-out
+  (set by the system) from a staff one. How a staff-recorded request arrived (phone, in
+  person, reply) goes in a short CRM note. No new CRM field is used (Patients has no room).
 - **FR-014**: A stop request received by phone, in person, or as a reply to a feedback
   email MUST be recorded in CRM within one business day of the practice receiving it,
   following a written staff procedure.
@@ -326,11 +327,14 @@ do not.
 
 ### Resolved questions
 
-- **Source of an opt-out (decided 2026-10-01)**: recorded as an "opted out via email link"
-  checkbox, not a three-value picklist, because CRM Standard caps custom fields per type and
-  the text/picklist pool on Leads and Patients is nearly used up. Staff-recorded and reply
-  requests are told apart by a short CRM note. (Same approach the Campaigns project took
-  when it dropped its do-not-contact reason picklist.)
+- **Where the opt-out is stored (decided 2026-10-02, replaces the 2026-10-01 "Option B"
+  fields)**: Costin cannot add any field of any type to Patients, so the opt-out is the native
+  CRM Email Opt Out field on Leads and Patients, with its own timestamp. Link vs staff comes from
+  the timeline's source and a short note; the resubscribe date comes from the timeline. Costin
+  accepted that this native field also stops CRM mass email to the person, and that Campaigns
+  is used with Leads only and must never copy it from a Patient. On Leads the same field is
+  Campaigns' unsubscribe flag, so a lead's feedback opt-out and marketing unsubscribe are
+  coupled there (open: plan tasks T042).
 
 - **Q1 (lead to patient)**: decided 2026-10-01. A Lead's opt-out does not carry over. The
   person is asked again during intake and the intake answer is authoritative, whether it

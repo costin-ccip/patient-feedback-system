@@ -13,9 +13,8 @@ Applies to: a phone call, a message at the front desk, or a reply to a feedback 
 
 1. Find the person's record in CRM: Patients if they are a patient, Leads if they are a
    prospect. If they are both, set it on both.
-2. Check **Feedback Opt-Out**. The date fills itself in. Add a short CRM note on the record
-   saying how it arrived (phone, in person, or reply to a feedback email). Leave "Opted Out
-   Via Email Link" unchecked; only the system sets that.
+2. Tick **Email Opt Out** on the record. The CRM fills in the date itself. Add a short CRM
+   note on the record saying how it arrived (phone, in person, or reply to a feedback email).
 3. If more than one record uses the same email address (for example a family member), set it
    on each record the person is on. Do not set it on someone who did not ask.
 4. Reply to a reply, or tell a caller: "We've stopped the feedback emails. If you'd like them
@@ -30,7 +29,8 @@ stays valid until it expires on its own; the person simply gets no new ones.
 ## If someone wants them back
 
 1. Confirm it is the person themselves asking.
-2. Uncheck **Feedback Opt-Out**. The resubscribe date fills itself in.
+2. Untick **Email Opt Out**, and add a short CRM note ("resubscribed at the person's request").
+   The record timeline keeps the date of the opt-out and of the resubscribe.
 3. Feedback requests skipped while they were opted out are not sent later. Only future ones
    are.
 
@@ -54,5 +54,6 @@ replies itself.
 - Do not copy an opt-out from a lead to a patient. A new patient is asked again at intake and
   that answer is the one that counts.
 - Do not mention opt-out status in any note a contractor can read.
-- Do not use this field for marketing email. Marketing unsubscribes are separate and handled
-  in Zoho Campaigns; stopping one does not stop the other.
+- Email Opt Out is one shared CRM field. Ticking it stops feedback emails and CRM mass email to
+  that person. On Leads it is also the Campaigns unsubscribe. Do not tick it for any other reason,
+  and do not untick it to fix a marketing preference without checking first.
