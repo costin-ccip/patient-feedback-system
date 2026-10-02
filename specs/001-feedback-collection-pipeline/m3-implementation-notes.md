@@ -1011,3 +1011,27 @@ comparison and a short changelog note appended to this file (a `## 12.
 Change (<date>): intro/Description field added by Costin` section, matching
 this file's usual per-change format) would close this out — flagging so a
 future session doesn't need to rediscover the convention.
+
+## Feature 006: opt-out gate added to "M3 - Periodic Check-In Trigger" (T021)
+
+Edited in the Zoho Flow builder; the flow stayed OFF throughout (status "Draft",
+as before).
+
+Structure after the edit: Updated module entry -> checkPeriodicCheckInDue ->
+If else (existing, True branch; isCreatedAfterCutoff untouched) ->
+**skipIfOptedOut** -> **If else (`skipIfOptedOut_1` is false)** ->
+issueFeedbackToken -> Send email. Existing token-issuance-failed alert is
+untouched. skipIfOptedOut inputs: milestone literal `3 - Periodic Consolidated`
+(same literal issueFeedbackToken gets), patientId = Updated module entry ->
+Entry ID, leadId blank, clinician = Updated module entry -> Assigned Therapist.
+Its On Error branch goes to a new Zoho Mail alert (cloned from the
+token-issuance-failed alert, variable `alertOptOutCheckFailed`, subject "Cape
+Clarity feedback pipeline: opt-out check failed (3 - Periodic Consolidated)").
+The clone's body was rewritten: it names only the flow and milestone, with no
+patient or trigger identity.
+
+Checkpoint note (research.md section 3): when a patient is opted out,
+skipIfOptedOut writes a skip row to Milestone_Instances, and skip rows advance
+the M3 checkpoint index. An opted-out patient therefore does not get a backlog
+of M3 requests if they are later resubscribed; the next M3 is the next
+scheduled checkpoint.
