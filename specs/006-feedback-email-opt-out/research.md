@@ -112,8 +112,9 @@ contact line are tone-of-voice items for Liana.
 - **Not in Campaigns**: the Campaigns audience contract maps a fixed field list; the new
   fields are not added. A note in this feature's quickstart reminds the Campaigns build not to.
 - **Contractors**: contractors have no feedback access (constitution Principle IV). Whether any
-  contractor profile can open Leads or Patients in CRM at all is not recorded in this repo, so
-  the plan sets the four fields invisible on contractor profiles regardless (T007).
+  contractor profile can open Leads or Patients in CRM at all was not recorded in this repo;
+  Costin confirmed 2026-10-01 that contractors have no CRM access, so no field-level hiding
+  is needed (T007 dropped). If that changes, hide the four fields first.
 
 ## 7. Reporting (FR-010)
 
@@ -133,3 +134,32 @@ formula that touches Status, including feature 005's contractor reports, and rec
   patterns already used in this pipeline, but the 4-argument `getRecordById` form is the one
   call not yet used elsewhere here.
 - Pre-existing 200-record scan limit in older functions: T040.
+
+## 9. Field budget and the Campaigns project (added 2026-10-01)
+
+Read from the Campaigns repo (`costin-ccip/cape-clarity-zoho-campaigns`, main, research R13 and
+data-model): Zoho CRM Standard caps custom fields at about ten per field type, counted
+separately by type; the text, picklist and multi-select types share one pool, and checkbox,
+date and date/time are other pools. Leads has about 3 slots left in the text/picklist pool and
+Patients1 about 2; the checkbox pool is empty on both, Leads uses 2 date fields and Patients1
+none. Exact remaining counts are not available through the API and are to be confirmed in
+Setup, Modules and Fields. The Campaigns project plans one checkbox, `Do_Not_Contact`, on each
+of Leads and Patients1 and keeps its consent record on a new Email Audience module.
+
+What that changed here:
+
+- **Not reusing Email Audience** (Costin's question): that module holds only people who opted
+  in to marketing and syncs to Campaigns; putting feedback opt-outs there would load patients
+  into the marketing tool. The Campaigns project already decided (2026-10-01) that feedback
+  consent is never stored in Email Audience or Campaigns, and that the feedback system owns a
+  CRM field for the optional intake item. The fields on Leads and Patients1 are that field.
+- **No text or picklist field**: a three-value "source" picklist was dropped in favor of an
+  "opted out via email link" checkbox (decision 2026-10-01, Option B); the Campaigns project
+  made the same trade for its do-not-contact reason.
+- **Intake (FR-018)**: the Campaigns spec adds an optional "feedback requests" item to the EHR
+  intake packet (its T027), recorded by staff in this feature's field, and a notice (no
+  checkbox) on the booking form (its T028). Record only, no gate. This answers where intake
+  is captured; see T028 and T029.
+- Both projects plan CRM workflow rules on Leads and Patients1. Standard may limit the number
+  of rules or what they can do; if a limit blocks the two rules here, a small Zoho Flow flow
+  can fill the dates instead.

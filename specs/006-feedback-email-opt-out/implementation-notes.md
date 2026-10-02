@@ -9,8 +9,7 @@
 ## To record here as the work happens
 
 - Final CRM field API names on Leads and Patients1, the Status value as saved, the layout
-  section, the workflow rule names, contractor profiles that exist and how the fields were
-  hidden (T001 to T007).
+  section, the workflow rule names, that no contractor hiding was needed (T007 dropped) (T001 to T006).
 - Whether CRM field-history tracking was available on the current plan (T006).
 - Whether tokens persist on Submitted and Expired rows (T008).
 - `skipIfOptedOut` and `recordFeedbackOptOut` source exactly as saved, with any syntax changes

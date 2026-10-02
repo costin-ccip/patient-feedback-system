@@ -130,10 +130,11 @@ milestone for that patient and confirm it is suppressed exactly as in Story 2.
 1. **Given** a staff member sets the feedback opt-out on a patient's or lead's record,
    **When** the next milestone would fire, **Then** it is suppressed (Story 2).
 2. **Given** a recipient replies asking to stop, **When** staff process the reply,
-   **Then** the opt-out is recorded within one business day, with its source noted as a
-   reply.
+   **Then** the opt-out is recorded within one business day, with a short CRM note that it
+   came as a reply.
 3. **Given** an opt-out of any source, **When** an admin looks at the record, **Then** the
-   date and source (email link, staff-recorded, reply) are visible.
+   date and whether it came from the email link are visible; phone and reply requests carry
+   a short CRM note saying how they arrived.
 
 ---
 
@@ -230,8 +231,10 @@ do not.
 **Other channels and resubscribe (Stories 3 and 4)**
 
 - **FR-013**: CRM MUST let staff record a feedback opt-out directly on a patient or lead
-  record, with the same effect as the email link, and MUST capture the date and source
-  (email link, staff-recorded, reply) of every opt-out.
+  record, with the same effect as the email link, and MUST capture the date and whether it
+  came from the email link of every opt-out. How a staff-recorded request arrived (phone, in
+  person, reply) goes in a short CRM note, not a field (decided 2026-10-01 to save scarce
+  CRM custom-field slots).
 - **FR-014**: A stop request received by phone, in person, or as a reply to a feedback
   email MUST be recorded in CRM within one business day of the practice receiving it,
   following a written staff procedure.
@@ -255,8 +258,8 @@ do not.
 ### Key Entities
 
 - **Feedback Opt-Out**: A recorded decision, held on the person's CRM record (patient or
-  lead), that no automated feedback email may be sent to them. Has a date, a source (email
-  link, staff-recorded, reply), and can be cleared by staff.
+  lead), that no automated feedback email may be sent to them. Has a date, a record of whether it
+  came from the email link, and can be cleared by staff.
 - **Unsubscribe Link**: A de-identified link in every feedback email that carries only an
   opaque token and leads to a confirmation step. Its token identifies the person inside
   CRM only.
@@ -322,6 +325,12 @@ do not.
 - A combined preferences page covering both feedback and marketing.
 
 ### Resolved questions
+
+- **Source of an opt-out (decided 2026-10-01)**: recorded as an "opted out via email link"
+  checkbox, not a three-value picklist, because CRM Standard caps custom fields per type and
+  the text/picklist pool on Leads and Patients is nearly used up. Staff-recorded and reply
+  requests are told apart by a short CRM note. (Same approach the Campaigns project took
+  when it dropped its do-not-contact reason picklist.)
 
 - **Q1 (lead to patient)**: decided 2026-10-01. A Lead's opt-out does not carry over. The
   person is asked again during intake and the intake answer is authoritative, whether it

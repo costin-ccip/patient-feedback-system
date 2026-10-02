@@ -12,11 +12,17 @@ and 004.
 |---|---|---|---|
 | Feedback Opt-Out | `Feedback_Opt_Out` | Checkbox | The one flag every check reads. Default unchecked. |
 | Feedback Opt-Out Date | `Feedback_Opt_Out_Date` | Date | Filled by the flow (email link) or the CRM workflow (staff). |
-| Feedback Opt-Out Source | `Feedback_Opt_Out_Source` | Picklist | `Email link`, `Staff-recorded`, `Reply`. Staff pick `Staff-recorded` or `Reply`; the flow sets `Email link`. |
+| Opted Out Via Email Link | `Feedback_Opt_Out_Via_Link` | Checkbox | Set only by the flow. Staff-recorded opt-outs leave it unchecked, and staff add a short CRM note saying how it arrived (phone, in person, reply). |
 | Feedback Resubscribe Date | `Feedback_Resubscribe_Date` | Date | Filled by the CRM workflow when the flag is cleared. |
 
+**Field budget (decided 2026-10-01, Option B):** four new fields per module, all in the
+checkbox and date pools (2 checkboxes, 2 dates). No text or picklist field is used, because
+that pool is nearly full on Leads and Patients1 (research.md §9). A "source" picklist was
+considered and dropped.
+
 Placement: a small "Feedback preferences" section on the record layout, visible to admin and
-staff profiles only. Field-level permission: **Invisible** for every contractor profile
+staff profiles only. Contractors have no CRM access (Costin, 2026-10-01), so no field-level
+hiding is needed; if that ever changes, hide these four fields from contractor profiles first
 (constitution Principle IV, spec FR-012). Turn on field-history tracking for the checkbox if
 the plan allows.
 
@@ -26,11 +32,11 @@ Not added to: the Zoho Analytics sync field list, any Campaigns audience mapping
 
 | Rule | Condition | Action |
 |---|---|---|
-| Opt-out set | `Feedback_Opt_Out` changed to checked | If `Feedback_Opt_Out_Date` is empty, set it to today. If `Feedback_Opt_Out_Source` is empty, set it to `Staff-recorded`. |
-| Opt-out cleared | `Feedback_Opt_Out` changed to unchecked | Set `Feedback_Resubscribe_Date` to today. Leave the opt-out date and source in place so the history stays readable. |
+| Opt-out set | `Feedback_Opt_Out` changed to checked | If `Feedback_Opt_Out_Date` is empty, set it to today. |
+| Opt-out cleared | `Feedback_Opt_Out` changed to unchecked | Set `Feedback_Resubscribe_Date` to today and uncheck `Feedback_Opt_Out_Via_Link`. Leave the opt-out date in place so the history stays readable. |
 
-When the flow sets the flag it sets date and source itself in the same update, so the first
-rule does not overwrite them. When someone opts out again after a resubscribe, the old date is
+When the flow sets the flag it sets the date and the via-link checkbox itself in the same
+update, so the first rule does not overwrite them. When someone opts out again after a resubscribe, the old date is
 overwritten by the flow or by staff clearing and re-entering it; the CRM timeline holds the
 earlier values.
 
@@ -150,14 +156,13 @@ Notes:
 
 ## 4. `recordFeedbackOptOut` (new custom function), draft
 
-Signature: name `recordFeedbackOptOut`, return type `map`, inputs `token` (string),
-`source` (string, the flow passes `Email link`).
+Signature: name `recordFeedbackOptOut`, return type `map`, input `token` (string).
 
 Returns `status` of `"recorded"` (set now), `"already"` (was already opted out, nothing
 changed), or `"no_match"` (token empty or not found).
 
 ```text
-map recordFeedbackOptOut(string token,string source)
+map recordFeedbackOptOut(string token)
 {
 	resp = Map();
 	if(token == null || token.trim() == "")
@@ -200,7 +205,7 @@ map recordFeedbackOptOut(string token,string source)
 	upd = Map();
 	upd.put("Feedback_Opt_Out",true);
 	upd.put("Feedback_Opt_Out_Date",zoho.currentdate.toString("yyyy-MM-dd"));
-	upd.put("Feedback_Opt_Out_Source",source);
+	upd.put("Feedback_Opt_Out_Via_Link",true);
 	updResp = zoho.crm.updateRecord(moduleName,personId,upd,Map(),"crm_connection");
 	resp.put("status","recorded");
 	return resp;
@@ -238,7 +243,7 @@ pressed (spec FR-002).
 
 ```text
 Trigger: Zoho Forms, "Form entry submitted" (realtime), form "Feedback Email Opt-Out"
-   -> Custom function recordFeedbackOptOut(token = ${trigger.<Token field>}, source = "Email link")
+   -> Custom function recordFeedbackOptOut(token = ${trigger.<Token field>})
    -> If else: recordFeedbackOptOut_1.status is "no_match"
         True  -> Zoho Mail "Send email" to costin@capeclarity.com:
                  subject "Feedback opt-out link did not match a record", body states only

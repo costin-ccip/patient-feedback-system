@@ -19,21 +19,26 @@ No other patient or lead record is read or changed.
 
 ## Phase 1: CRM setup (blocks everything)
 
-- [ ] T001 [Costin] Create the four fields on **Leads**: `Feedback_Opt_Out` (checkbox),
-      `Feedback_Opt_Out_Date` (date), `Feedback_Opt_Out_Source` (picklist: Email link,
-      Staff-recorded, Reply), `Feedback_Resubscribe_Date` (date). See data-model.md §1.
+- [ ] T001 [Costin or Claude via CRM connection, with approval] Create the four fields on
+      **Leads**: `Feedback_Opt_Out` (checkbox), `Feedback_Opt_Out_Date` (date),
+      `Feedback_Opt_Out_Via_Link` (checkbox), `Feedback_Resubscribe_Date` (date). Checkbox and
+      date types only, no text or picklist (Option B, decided 2026-10-01). Before creating,
+      confirm in Setup, Modules and Fields that room remains in the checkbox and date pools.
+      See data-model.md §1.
 - [ ] T002 [Costin] Same four fields on **Patients1** (module label "Patients").
 - [ ] T003 [Costin] Add `Skipped - Opted Out` to the `Milestone_Instances.Status` picklist
       (same way `Send Failed` was added). [Claude] then confirms with a read-only `getFields`.
 - [ ] T004 [Costin] Put the four fields in a "Feedback preferences" section on the Leads and
       Patients layouts.
 - [ ] T005 [Costin] Create the two workflow rules on each of Leads and Patients1 (opt-out set
-      fills date and default source; opt-out cleared fills resubscribe date), data-model.md §1.
+      fills the date; opt-out cleared fills the resubscribe date and unticks via-link),
+      data-model.md §1. If Standard blocks the rules, build a small Zoho Flow flow instead.
 - [ ] T006 [Costin] If the CRM plan allows, turn on field-history tracking for
       `Feedback_Opt_Out`. Record whether it was available; if not, the date fields and the CRM
       timeline are the history (research.md §6).
-- [ ] T007 [Costin] Set the four fields **Invisible** for every contractor profile on both
-      modules (constitution Principle IV, spec FR-012). Record which profiles exist.
+- [x] T007 ~~Hide the four fields from contractor profiles~~ **Dropped 2026-10-01**: contractors
+      have no CRM access (Costin). If that changes, hide the fields from that profile first
+      (constitution Principle IV, spec FR-012).
 - [ ] T008 [Claude] Confirm tokens persist on closed rows: read-only look at one `Submitted`
       and one `Expired` test `Milestone_Instances` row to check `Token` is still populated
       (non-PII module). If a write-back clears it, stop and revise design decision D1 with
@@ -49,7 +54,7 @@ persistence confirmed.
       `milestone`, `patientId`, `leadId`, `clinician`), paste the body from data-model.md §3,
       save. Fix any Deluge syntax the editor rejects (in particular the 4-argument
       `getRecordById`) and update data-model.md to the version that saved.
-- [ ] T010 [Claude] Create `recordFeedbackOptOut` (return `map`, inputs `token`, `source`),
+- [ ] T010 [Claude] Create `recordFeedbackOptOut` (return `map`, input `token`),
       body from data-model.md §4, save; same rule about updating data-model.md.
 - [ ] T011 [Claude] Execute checks for `skipIfOptedOut`: quickstart.md §A steps 1 to 5. Also
       confirm the `Status:equals:Skipped - Opted Out` search criterion matches (data-model.md
@@ -116,15 +121,18 @@ to the same literal the flow passes to `issueFeedbackToken`, `patientId` to `${t
       one-business-day rule is what the practice will actually keep (spec FR-014).
 - [ ] T027 [US3] [Costin] Name who checks the `info@capeclarity.com` replies each business day
       and where the procedure lives for staff.
-- [ ] T028 [US1] [Costin] Find out where patient intake is captured and whether it already asks
-      about feedback emails (spec FR-018, plan.md Risks). Record the answer in
-      implementation-notes.md. Also confirm that creating a patient from a lead copies no
+- [ ] T028 [US1] [Costin] Intake is decided in the Campaigns project (its decisions of
+      2026-10-01 and tasks T027 and T028): an optional "feedback requests" item in the EHR
+      intake packet, recorded by staff in this feature's field, plus a notice (no checkbox)
+      on the booking form; record only, no gate. Confirm that is still the plan, record the
+      final field API names from T001 and T002 and tell the Campaigns build once (do not edit
+      that repo from here), and note in implementation-notes.md. Also confirm that creating a patient from a lead copies no
       field from the Lead's feedback fields (there should be none; the new fields are not in
       any field mapping).
-- [ ] T029 [US1] [Costin] Add or confirm a "may we send feedback emails" question at intake and
-      make its answer set `Patients1.Feedback_Opt_Out` (and date and source `Staff-recorded`
-      if recorded by staff, or a new `Intake` source value if you want it separate), however
-      intake is captured. Patients with no answer stay not opted out.
+- [ ] T029 [US1] [Costin] When the optional intake item is added to the packet (Campaigns T027),
+      add to the staff procedure that a "no" answer is recorded by checking
+      `Patients1.Feedback_Opt_Out` (the date fills itself in; "via email link" stays
+      unchecked, and the CRM note says "intake"). Patients with no answer stay not opted out.
 
 **Checkpoint**: staff can record and clear opt-outs by procedure; intake sets the patient's
 status.
@@ -150,8 +158,8 @@ status.
 - [ ] T033 [Costin] Run quickstart.md §C, folded into the coordinated live test, once the
       milestone flows are switched ON for that test. Record results, including the scenario 9
       outcome.
-- [ ] T034 [Costin] Confirm quickstart.md §C scenario 11 (contractor profile cannot see the
-      fields), if any contractor profile has CRM access.
+- [x] T034 ~~Contractor-profile check~~ **Not needed 2026-10-01**: contractors have no CRM
+      access. Revisit only if that changes.
 
 ## Phase 8: Documentation
 

@@ -13,8 +13,9 @@ Applies to: a phone call, a message at the front desk, or a reply to a feedback 
 
 1. Find the person's record in CRM: Patients if they are a patient, Leads if they are a
    prospect. If they are both, set it on both.
-2. Check **Feedback Opt-Out**. Set **Feedback Opt-Out Source** to `Reply` if it came as an email
-   reply, otherwise `Staff-recorded`. The date fills itself in.
+2. Check **Feedback Opt-Out**. The date fills itself in. Add a short CRM note on the record
+   saying how it arrived (phone, in person, or reply to a feedback email). Leave "Opted Out
+   Via Email Link" unchecked; only the system sets that.
 3. If more than one record uses the same email address (for example a family member), set it
    on each record the person is on. Do not set it on someone who did not ask.
 4. Reply to a reply, or tell a caller: "We've stopped the feedback emails. If you'd like them

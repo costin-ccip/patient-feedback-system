@@ -39,4 +39,4 @@
 
 ## Notes
 
-- Q1/Q2 answered 2026-10-01. Open item for planning: whether intake already asks about feedback emails (FR-018).
+- Q1/Q2 answered 2026-10-01. Source recorded as a checkbox plus CRM note (Option B, 2026-10-01). Intake mechanism decided in the Campaigns repo (see plan tasks T028, T029).

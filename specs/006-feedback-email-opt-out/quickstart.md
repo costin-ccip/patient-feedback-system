@@ -24,8 +24,8 @@ Prereq: CRM fields and the new Status value exist (tasks T001 to T005).
    time it is run (M3 counts every skip).
 5. Run it with both IDs empty. **Expect** the function throws; nothing is written.
 6. `recordFeedbackOptOut` with a token taken from an existing test `Milestone_Instances` row
-   for PT000 and source `Email link`, with PT000 currently unchecked. **Expect** `recorded`;
-   PT000 now shows Feedback_Opt_Out checked, today's date, source `Email link`; the
+   for PT000, with PT000 currently unchecked. **Expect** `recorded`;
+   PT000 now shows Feedback_Opt_Out checked, today's date, and "Opted Out Via Email Link" checked; the
    Milestone_Instances row it matched is unchanged.
 7. Run it again. **Expect** `already`; no field changed.
 8. Run it with an empty string, and with `not-a-real-token`. **Expect** `no_match`; nothing
@@ -33,7 +33,7 @@ Prereq: CRM fields and the new Status value exist (tasks T001 to T005).
 9. Repeat 6 to 8 with a token whose row is `Expired` and one that is `Submitted`.
    **Expect** the same results (FR-006).
 10. Clear PT000's flag. **Expect** the workflow fills `Feedback_Resubscribe_Date`; the
-    earlier opt-out date and source are still there.
+    earlier opt-out date is still there and "via email link" is unchecked.
 
 **Proves**: US1 scenarios 4 to 6 (idempotent, any token status, unknown token), US2 scenario 3
 (skip rows persist), US4 scenario 2 (history discoverable).
@@ -47,7 +47,7 @@ Prereq: CRM fields and the new Status value exist (tasks T001 to T005).
    pressing the button. **Expect** no change on PT000 and no flow run. Also fetch the link
    with `curl` (a stand-in for a link scanner). **Expect** no change. **Proves** FR-002, SC-003.
 3. Press the button. **Expect** the thank-you message, the flow runs once, PT000 shows the
-   opt-out with source `Email link`. **Proves** US1 scenario 3.
+   opt-out with "via email link" checked. **Proves** US1 scenario 3.
 4. Submit the form with a made-up token. **Expect** the thank-you message, no CRM change,
    and an alert email to Costin containing no token or identity. **Proves** FR-007 (with D3).
 5. Confirm the Forms entry, the flow's task history and the alert contain only a token, never
@@ -61,16 +61,16 @@ the time comes. Each uses PT000 or the test lead.
 | # | Do | Expect |
 |---|---|---|
 | 1 | Trigger M2 for PT000 normally (not opted out). | Email arrives with the survey link and the opt-out link; both carry the same token. (SC-001) |
-| 2 | Use that email's opt-out link; confirm. | PT000 opted out, source `Email link`. |
+| 2 | Use that email's opt-out link; confirm. | PT000 opted out, "via email link" checked. |
 | 3 | Re-trigger M2 for PT000. | No token issued, no email; one `Skipped - Opted Out` row for M2. |
 | 4 | Drive M4 for PT000, then M5. | Each: no email, one skip row. |
 | 5 | Drive M3 to the next checkpoint. | No email; one M3 skip row. Drive the next checkpoint: another skip row. |
 | 6 | Move the test lead to Lost Lead with an opt-out set; update the lead twice more. | No email; exactly one M0 skip row. |
 | 7 | Clear PT000's opt-out; trigger the next M3 checkpoint. | The next checkpoint after the skipped ones sends normally; skipped checkpoints do not send. (SC-007) |
-| 8 | Staff-record an opt-out on the test lead by hand (no link). | The CRM workflow fills date and source `Staff-recorded`; M0 for that lead is suppressed. (US3) |
+| 8 | Staff-record an opt-out on the test lead by hand (no link). | The CRM workflow fills the date; "via email link" stays unchecked; M0 for that lead is suppressed. (US3) |
 | 9 | Opt PT000 out, then raise PT000's session count by a large jump past several checkpoints in one update, then resubscribe and update again. | Confirm what happens against research.md §3 (one skip per update; later checkpoints may still send one per update after a resubscribe) and record the actual behavior. |
 | 10 | Open the Analytics Status Breakdown reports after the next sync. | `Skipped - Opted Out` appears as its own count in each milestone's report and is not counted as a non-response. (SC-007) |
-| 11 | Sign in or preview as a contractor profile, if one exists. | The four opt-out fields are not visible on Leads or Patients. (SC-008) |
+| 11 | Only if a contractor ever gets CRM access: preview as that profile. | The four opt-out fields are not visible on Leads or Patients. (SC-008; not needed while contractors have no CRM access) |
 
 SC-002 wording for testing: after an opt-out has been recorded, no milestone that fires
 afterward sends. An email already in flight in the few seconds around the opt-out may still
