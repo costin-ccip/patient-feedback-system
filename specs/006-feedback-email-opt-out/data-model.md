@@ -41,7 +41,7 @@ Costin accepted this on 2026-10-02. Rules that follow:
 - On **Leads** the native flag is also what Campaigns syncs as "unsubscribed". A lead who ticks
   feedback opt-out is therefore also shown as unsubscribed in Campaigns, and a lead who
   unsubscribes from a Campaigns email will be skipped for M0 feedback. This coupling is real on
-  Leads; Costin to confirm it is acceptable (spec Open decision, tasks T042).
+  Leads; Costin accepted this on 2026-10-02 (tasks T042).
 - The Campaigns build must not copy `Email_Opt_Out` from a Patient into Email Audience.
 - Staff must not use the flag for marketing preferences on Patients1 (staff-procedure.md).
 

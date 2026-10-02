@@ -190,8 +190,7 @@ exist) → T033-T034 → T035-T039 (T035 and T036 run alongside the build, not a
 
 Go-live is gated on: T017, T025, T033, the BAA confirmation (constitution TODO), and Liana's
 approvals (T016, T023).
-- [ ] T042 [Costin] Confirm the Leads coupling: because Campaigns is used with Leads, the native
-      `Email_Opt_Out` on a Lead is also the Campaigns unsubscribe. A lead opted out of feedback
-      will show as unsubscribed in Campaigns, and a Campaigns unsubscribe suppresses M0 feedback.
-      Accept it, or tell me and we use a tag on Leads only. [Claude] then repeats the T002
-      check on the test lead.
+- [x] T042 Leads coupling **accepted 2026-10-02 (Costin)**: a lead who says no to communication
+      emails (Campaigns unsubscribe) also gets no feedback emails, and the reverse. [ ] Still to do,
+      only with Costin's OK to touch the test lead: repeat the PT000 check (set, clear, timeline
+      source) on the existing test lead.

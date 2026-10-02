@@ -334,7 +334,7 @@ do not.
   accepted that this native field also stops CRM mass email to the person, and that Campaigns
   is used with Leads only and must never copy it from a Patient. On Leads the same field is
   Campaigns' unsubscribe flag, so a lead's feedback opt-out and marketing unsubscribe are
-  coupled there (open: plan tasks T042).
+  coupled there (accepted by Costin 2026-10-02: a lead who declines communication emails also gets no feedback emails).
 
 - **Q1 (lead to patient)**: decided 2026-10-01. A Lead's opt-out does not carry over. The
   person is asked again during intake and the intake answer is authoritative, whether it
