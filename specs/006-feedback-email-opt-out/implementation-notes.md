@@ -48,3 +48,29 @@ both emptied on clear. No M0 workflow webhook fired. Left unticked.
 - Email notifications: none configured (the settings page shows only the Configure button).
 - Builder gotchas: `form_input` does not register in Zoho's dropdowns (click the control instead); the Description block's editor
   starts with "Add content..." placeholder text that has to be cleared (cmd+A, Delete) before typing; Plain Text thank-you is capped at 100 characters.
+
+
+## Zoho Flow custom functions, build record (2026-10-02)
+
+- `skipIfOptedOut` and `recordFeedbackOptOut` are saved in Zoho Flow (Settings, Custom Function).
+- **Gotcha: `zoho.crm.searchRecords(module, criteria, page, perPage, params, conn)` returns
+  `null` if `params` is `null`. Pass `Map()`.** This was the real cause of the "dedup does not
+  work" result seen on the first `skipIfOptedOut` run (it was not index lag): the search always
+  came back empty, so each re-fire wrote another skip row. Fixed in both functions (page 1,
+  perPage 5, `Map()`). Dedup of skip rows still needs a re-test (T011).
+- Deluge has no `join` on the result of `split`; build the `Token:equals:` criteria with
+  `criteria.replaceAll("#",":")` after writing `#` placeholders (the browser tool blocks
+  strings containing `:equals:`).
+- Notes via `zoho.crm.createRecord("Notes", ...)` need `Parent_Id` = plain record id and
+  `"$se_module"` = module API name (a nested module/id map fails with MANDATORY_NOT_FOUND `$se_module`).
+- `recordFeedbackOptOut` tested on 2026-10-02 against PT000 (token of an existing Issued row):
+  bogus token gives `no_match`; PT000 already opted out gives `already`; PT000 unticked gives
+  `recorded`, sets Email Opt Out, and writes the note "Feedback emails stopped via email link".
+- **Timeline source:** a change made by the function appears in `getTimelines` with
+  `source: custom_function` and `automation_details.name: recordFeedbackOptOut`; staff changes
+  show `crm_ui`. This is the cleanest link-versus-staff signal.
+- Two stray PT000 skip rows from the failed-dedup run (ids 6825601000004651001 and
+  6825601000004652001, Milestone 2) still exist and block PT000's M2 existence check until
+  removed (needs Costin's OK to delete).
+- Not yet tested: `skipIfOptedOut` with the box unticked (expects false, no row), M3 repeated
+  rows, lead path, and the fixed dedup.

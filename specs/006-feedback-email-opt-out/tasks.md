@@ -26,7 +26,7 @@ No other patient or lead record is read or changed.
       `Unsubscribed_Time` is stamped and `Unsubscribed_Mode` shows `Manual` for UI and API alike;
       clearing empties both; the timeline records each change with `source` `crm_ui` or
       `crm_api`. PT000 left opted out, as Costin had it. Same check on the test lead is T042.
-- [ ] T003 [Costin] Add `Skipped - Opted Out` to the `Milestone_Instances.Status` picklist
+- [x] T003 [Costin] Add `Skipped - Opted Out` to the `Milestone_Instances.Status` picklist
       (same way `Send Failed` was added). [Claude] then confirms with a read-only `getFields`.
 - [x] T004 ~~Feedback preferences layout section~~ **Dropped 2026-10-02**: no new fields.
 - [x] T005 ~~Workflow rules for the dates~~ **Dropped 2026-10-02**: the CRM stamps the date itself.
@@ -45,12 +45,12 @@ persistence confirmed.
 
 ## Phase 2: Shared functions (blocks both user stories)
 
-- [ ] T009 [Claude] Create the custom function `skipIfOptedOut` in Zoho Flow (Built-ins,
+- [x] T009 [Claude] Create the custom function `skipIfOptedOut` in Zoho Flow (Built-ins,
       Developer Tools, Custom Functions, "+ Custom Function"; return `bool`, inputs
       `milestone`, `patientId`, `leadId`, `clinician`), paste the body from data-model.md §3,
       save. Fix any Deluge syntax the editor rejects (in particular the 4-argument
       `getRecordById`) and update data-model.md to the version that saved.
-- [ ] T010 [Claude] Create `recordFeedbackOptOut` (return `map`, input `token`),
+- [x] T010 [Claude] Create `recordFeedbackOptOut` (return `map`, input `token`),
       body from data-model.md §4, save; same rule about updating data-model.md.
 - [ ] T011 [Claude] Execute checks for `skipIfOptedOut`: quickstart.md §A steps 1 to 5. Also
       confirm the `Status:equals:Skipped - Opted Out` search criterion matches (data-model.md
