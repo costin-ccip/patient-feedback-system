@@ -52,10 +52,10 @@ persistence confirmed.
       `getRecordById`) and update data-model.md to the version that saved.
 - [x] T010 [Claude] Create `recordFeedbackOptOut` (return `map`, input `token`),
       body from data-model.md §4, save; same rule about updating data-model.md.
-- [ ] T011 [Claude] Execute checks for `skipIfOptedOut`: quickstart.md §A steps 1 to 5. Also
+- [x] T011 [Claude] Execute checks for `skipIfOptedOut`: quickstart.md §A steps 1 to 5. Also
       confirm the `Status:equals:Skipped - Opted Out` search criterion matches (data-model.md
       §3 note). Needs T001 to T003 and Costin's OK to write to PT000.
-- [ ] T012 [Claude] Execute checks for `recordFeedbackOptOut`: quickstart.md §A steps 6 to 10,
+- [x] T012 [Claude] Execute checks for `recordFeedbackOptOut`: quickstart.md §A steps 6 to 10,
       including an `Expired` token and a `Submitted` token. Confirm `Token:equals:` search
       works on this text field, or switch to the looped read and note the 200 cap.
 

@@ -69,8 +69,13 @@ both emptied on clear. No M0 workflow webhook fired. Left unticked.
 - **Timeline source:** a change made by the function appears in `getTimelines` with
   `source: custom_function` and `automation_details.name: recordFeedbackOptOut`; staff changes
   show `crm_ui`. This is the cleanest link-versus-staff signal.
-- Two stray PT000 skip rows from the failed-dedup run (ids 6825601000004651001 and
-  6825601000004652001, Milestone 2) still exist and block PT000's M2 existence check until
-  removed (needs Costin's OK to delete).
-- Not yet tested: `skipIfOptedOut` with the box unticked (expects false, no row), M3 repeated
-  rows, lead path, and the fixed dedup.
+- The two stray PT000 M2 skip rows were deleted with Costin's OK (2026-10-02).
+- **`skipIfOptedOut` tests (2026-10-02, PT000 and the test lead only):** opted out gives `true`
+  and writes a `Skipped - Opted Out` row; M3 writes a row each time (by design); unticked
+  gives `false` and writes nothing; lead path (test lead, M0) gives `true` and the row carries
+  `Lead_Reference`. The test skip rows were deleted afterwards and both test records were left unticked.
+- **Dedup limitation (accepted):** the `Status`/`Milestone`/`Patient` search criterion matches
+  correctly (checked via MCP), but the CRM search index lags writes and returned only one of
+  two rows even minutes later, so back-to-back runs for the same person and milestone can write
+  a duplicate skip row. Harmless: existence checks only test for any row, and a duplicate only
+  inflates skip counts for rapid re-fires. Not worth a workaround.
