@@ -107,12 +107,14 @@ to the same literal the flow passes to `issueFeedbackToken`, `patientId` to `${t
 - [x] T023 [US2] [Costin] Get Liana's approval of the opt-out line added to the five emails
       (data-model.md §7).
       **Done 2026-10-02**: Liana approved the email line (2026-10-02). Wording final; goes into the five emails at T024.
-- [ ] T024 [US2] [Claude] Add that line and link to each of the five "Send email" bodies
+- [x] T024 [US2] [Claude] Add that line and link to each of the five "Send email" bodies
       (HTML code view; see `m0-implementation-notes.md` for the builder gotchas), using the
       form permalink and `?token=${issueFeedbackToken_1.token}`. Check each saved body.
-- [ ] T025 [US2] [Claude] Structural verification of all five flows: wiring via
+      **Done 2026-10-02**: line added in the HTML code view of the patient "Send email" in M0, M2, M3, M4, M5, as a new footer row directly above the existing "This email may contain information..." disclaimer, same styling. Each flow reloaded from Zoho and the body re-read: exactly one "stop them here" link, body length = original + 619 characters (M0 3335->3954, M2 3406->4025, M3 3278->3897, M4 3345->3964, M5 3354->3973).
+- [x] T025 [US2] [Claude] Structural verification of all five flows: wiring via
       `jsplumb-connected`, `issueFeedbackToken` and `isCreatedAfterCutoff` untouched, no flow's
       ON/OFF state changed, no `${trigger.*}` identity in any new alert.
+      **Done 2026-10-02**: checked by screenshot of each saved canvas plus re-reading dialogs, not by a DOM-level `jsplumb-connected` scan. Each flow: trigger path -> skipIfOptedOut -> If else (`skipIfOptedOut_1` is false) -> issueFeedbackToken -> patient Send email; skipIfOptedOut On Error -> alertOptOutCheckFailed. issueFeedbackToken and isCreatedAfterCutoff were not edited (M0's issueFeedbackToken was opened to read its mappings, then cancelled). All five flows still show OFF, status Draft. The five new alert bodies name only flow and milestone; no `${trigger.*}` values.
 
 **Checkpoint**: SC-001 and SC-002 verifiable structurally on all five flows.
 
