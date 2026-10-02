@@ -95,7 +95,7 @@ leading to the existing `issueFeedbackToken` and Send email steps, then an On Er
 to the same literal the flow passes to `issueFeedbackToken`, `patientId` to `${trigger.id}`
 (or `leadId` for M0), `clinician` to the same literal.
 
-- [ ] T018 [US2] [Claude] M2 - Session 3 Trigger (simplest; do first). Update
+- [x] T018 [US2] [Claude] M2 - Session 3 Trigger (simplest; do first). Update
       `m2-implementation-notes.md` in the same session.
 - [ ] T019 [US2] [Claude] M4 trigger flow. Update `m4-implementation-notes.md`.
 - [ ] T020 [US2] [Claude] M5 trigger flow. Update `m5-implementation-notes.md`.

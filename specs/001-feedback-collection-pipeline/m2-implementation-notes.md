@@ -1100,3 +1100,27 @@ No CRM, Flow, or Analytics changes accompanied this — it's a Zoho Forms-only
 content edit. M2's two flows ("M2 - Session 3 Trigger" and the write-back
 flow) were already OFF going into this change (per this project's
 still-in-testing status) and remain OFF.
+
+## Feature 006: opt-out gate added to "M2 - Session 3 Trigger" (T018)
+
+Edited in the Zoho Flow builder; the flow stayed OFF throughout (builder status
+now shows "Draft", it showed "Paused" before the edit).
+
+Structure after the edit: Updated module entry -> checkAllianceCheckExists ->
+isCreatedAfterCutoff -> If else (existing, True branch) -> **skipIfOptedOut** ->
+**If else (`skipIfOptedOut_1` is false)** -> issueFeedbackToken -> Send email
+(existing On Error alerts unchanged). skipIfOptedOut inputs: milestone literal
+`2 - Early Alliance Check` (same literal issueFeedbackToken gets), patientId =
+Updated module entry -> Entry ID, leadId blank, clinician = Updated module
+entry -> Assigned Therapist (same mapping as issueFeedbackToken). Its On Error
+branch goes to a new Zoho Mail alert (cloned from the existing issuance-failure
+alert, variable `alertOptOutCheckFailed`), subject "opt-out check failed (2 -
+Early Alliance Check)", body names only the flow and milestone, no patient or
+trigger identity.
+
+Builder notes: the old True -> issueFeedbackToken wire had to be detached first
+(scissors icon on the wire, then confirm Delete); dragging from the palette onto
+an existing On Error connector auto-creates an unintended node, so drop onto
+empty canvas and wire by hand. The palette scrolls after expanding Custom
+Functions; use JS scrollIntoView to reach skipIfOptedOut. The new If else
+overlaps the old one visually (cosmetic only).
