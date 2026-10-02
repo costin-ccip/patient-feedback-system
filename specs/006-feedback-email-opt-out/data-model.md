@@ -257,7 +257,7 @@ Notes:
 | Thank-you message | the single neutral message in research.md §4 (Liana to approve) |
 | Prefill | Settings, Prefill, Field Alias, URL parameter `token` mapped to the Token field (see `m2-implementation-notes.md` §13: the alias, not the field name, must match) |
 | Notifications | none to the submitter; no emails from Forms |
-| Permalink | recorded in implementation-notes.md when created |
+| Permalink | recorded in implementation-notes.md (created 2026-10-02) |
 
 The link used in each email is `<form permalink>?token=${issueFeedbackToken_1.token}`.
 Opening the link only displays the page. Nothing is recorded until the submit button is

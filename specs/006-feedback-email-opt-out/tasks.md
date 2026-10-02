@@ -65,15 +65,18 @@ persistence confirmed.
 
 **Independent test**: quickstart.md §B.
 
-- [ ] T013 [US1] [Claude] Create the Zoho Forms form "Feedback Email Opt-Out" (data-model.md §5):
+- [x] T013 [US1] [Claude] Create the Zoho Forms form "Feedback Email Opt-Out" (data-model.md §5):
       hidden Token field, explanation text, "Stop feedback emails" button, no notifications.
-- [ ] T014 [US1] [Claude] Set up the Prefill field alias so `?token=` fills the hidden field
+      **Done 2026-10-02**: form "Feedback Email Opt-Out" created (public title "Stop feedback emails"), hidden Token field, approved explanation text, button "Stop feedback emails", no email notifications configured.
+- [x] T014 [US1] [Claude] Set up the Prefill field alias so `?token=` fills the hidden field
       (the alias must match the URL parameter, `m2-implementation-notes.md` §13). Record the
       form permalink in implementation-notes.md.
+      **Done 2026-10-02**: Prefill alias `token` on the Token field saved and checked (opening the permalink with ?token=TESTONLY fills the hidden field; nothing submitted). Permalink in implementation-notes.md.
 - [ ] T015 [US1] [Claude] Build the flow "Feedback Opt-Out - Form Submitted" (data-model.md §6),
       including the no-match alert and an On Error branch, both free of `${trigger.*}` values.
-- [ ] T016 [US1] [Costin] Get Liana's approval of the page explanation, button label and
+- [x] T016 [US1] [Costin] Get Liana's approval of the page explanation, button label and
       thank-you message (research.md §4), then enter the final text in the form.
+      **Done 2026-10-02**: Liana approved the page text, button and thank-you message (2026-10-02); final text entered in the form (thank-you set as Rich Text, since Plain Text caps at 100 characters).
 - [ ] T017 [US1] [Claude] Run quickstart.md §B (with Costin's go-ahead): page content, scanner
       stand-in does nothing, confirm records opt-out, bogus token alerts without identity,
       no identifier anywhere.
@@ -100,8 +103,9 @@ to the same literal the flow passes to `issueFeedbackToken`, `patientId` to `${t
 - [ ] T022 [US2] [Claude] M0 - Lost Lead Feedback Token. It has no If-else today, so add the
       function and If-else between the trigger and `issueFeedbackToken` (milestone
       `0 - No Conversion`, `leadId` from the trigger). Update `m0-implementation-notes.md`.
-- [ ] T023 [US2] [Costin] Get Liana's approval of the opt-out line added to the five emails
+- [x] T023 [US2] [Costin] Get Liana's approval of the opt-out line added to the five emails
       (data-model.md §7).
+      **Done 2026-10-02**: Liana approved the email line (2026-10-02). Wording final; goes into the five emails at T024.
 - [ ] T024 [US2] [Claude] Add that line and link to each of the five "Send email" bodies
       (HTML code view; see `m0-implementation-notes.md` for the builder gotchas), using the
       form permalink and `?token=${issueFeedbackToken_1.token}`. Check each saved body.

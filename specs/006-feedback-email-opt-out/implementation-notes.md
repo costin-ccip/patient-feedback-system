@@ -34,3 +34,17 @@ Costin designated Leads record 6825601000004448011 as the test lead (no other le
 `Email_Opt_Out` true then false through the API: timeline entries 6825601000004622003 and
 6825601000004649001, source `crm_api`; Unsubscribed_Mode `Manual` and Unsubscribed_Time stamped on set,
 both emptied on clear. No M0 workflow webhook fired. Left unticked.
+
+## Zoho Forms: "Feedback Email Opt-Out" (built 2026-10-02, T013, T014, T016)
+
+- Form link name `FeedbackEmailOptOut`, account `lianapreudhommecapec1`, plan Basic. Public title "Stop feedback emails";
+  internal nickname "Feedback Email Opt-Out".
+- Permalink (public): `https://forms.zohopublic.com/lianapreudhommecapec1/form/FeedbackEmailOptOut/formperma/e9lBXeE306VUUcd4IJ3XJ8S3wZfSwUiYi5iS2XCVUs4`
+  (careful: the characters after `e9lBXeE306VUUcd4` are a capital I then `J3`; the lowercase-l variant returns "Page not found").
+  Email link format: `<permalink>?token=${issueFeedbackToken_1.token}`.
+- Fields: one Single Line "Token", visibility Hide, Prefill alias `token`. Plus a Description block with the approved text.
+  Checked: `?token=TESTONLY` fills the hidden field. The form was only opened, never submitted.
+- Submit button label "Stop feedback emails". Thank-you page: Rich Text with the approved message; the "add another response" link is off.
+- Email notifications: none configured (the settings page shows only the Configure button).
+- Builder gotchas: `form_input` does not register in Zoho's dropdowns (click the control instead); the Description block's editor
+  starts with "Add content..." placeholder text that has to be cleared (cmd+A, Delete) before typing; Plain Text thank-you is capped at 100 characters.
