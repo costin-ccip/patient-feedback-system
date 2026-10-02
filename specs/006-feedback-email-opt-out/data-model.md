@@ -252,7 +252,7 @@ Notes:
 |---|---|
 | Account | the same Zoho Forms account as the survey forms (`lianapreudhommecapec1`) |
 | Fields | one hidden Single Line field `Token` (label and field alias `token`). Nothing else collects data. |
-| Page content | a short plain-language explanation above the button (what will stop; that nothing else changes; how to reach the practice) |
+| Page content | heading "Stop feedback emails" and a short explanation above the button (draft in 5a, for Liana) |
 | Submit button label | "Stop feedback emails" |
 | Thank-you message | the single neutral message in research.md §4 (Liana to approve) |
 | Prefill | Settings, Prefill, Field Alias, URL parameter `token` mapped to the Token field (see `m2-implementation-notes.md` §13: the alias, not the field name, must match) |
@@ -262,6 +262,25 @@ Notes:
 The link used in each email is `<form permalink>?token=${issueFeedbackToken_1.token}`.
 Opening the link only displays the page. Nothing is recorded until the submit button is
 pressed (spec FR-002).
+
+### 5a. Draft page text (for Liana's approval, T016)
+
+> **Stop feedback emails**
+>
+> We send short feedback requests so we can keep improving the care and service you receive.
+> If you'd rather not get them, you can stop them here. Pressing the button below stops our
+> feedback emails. It doesn't affect your care or your appointments, and appointment messages
+> such as reminders will still reach you. You don't need to enter any information.
+>
+> [Stop feedback emails]
+
+Thank-you message (same text whether or not the link matched anyone):
+
+> Thank you. We've received your request and will stop sending feedback emails. If you pressed
+> this by mistake, or would like to start receiving them again, just email info@capeclarity.com.
+
+Wording note: on Leads the opt-out field is also the Campaigns unsubscribe (accepted, T042), so
+the page does not promise that other non-appointment emails will continue.
 
 ## 6. Flow: "Feedback Opt-Out - Form Submitted"
 
@@ -286,6 +305,8 @@ may contain information..." disclaimer. Draft wording, to be put through Liana's
 voice before use:
 
 > If you'd rather not receive these feedback requests, you can <a href="{form permalink}?token=${issueFeedbackToken_1.token}">stop them here</a>, or simply reply to this email and let us know.
+
+Plain-text rendering for review: "If you'd rather not receive these feedback requests, you can stop them here, or simply reply to this email and let us know." (the words "stop them here" are the link).
 
 Rules: same link target in every milestone; nothing in the link but the token; the line
 appears whether or not the milestone is the first email a person gets.

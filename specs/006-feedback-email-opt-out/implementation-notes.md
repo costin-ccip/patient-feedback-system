@@ -27,3 +27,10 @@
 - API false then true on PT000: timeline entries 6825601000004647001 and 6825601000004648001, source
   `crm_api`; Mode `Manual`, Time stamped on set, both emptied on clear. Earlier UI entry source `crm_ui`.
 - PT000 was already opted out (Costin, 09:52) and was left opted out. Not yet run on the test lead (T042).
+
+## Test lead check (2026-10-02)
+
+Costin designated Leads record 6825601000004448011 as the test lead (no other lead may be read or changed).
+`Email_Opt_Out` true then false through the API: timeline entries 6825601000004622003 and
+6825601000004649001, source `crm_api`; Unsubscribed_Mode `Manual` and Unsubscribed_Time stamped on set,
+both emptied on clear. No M0 workflow webhook fired. Left unticked.
