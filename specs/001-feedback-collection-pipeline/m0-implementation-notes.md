@@ -827,3 +827,29 @@ changes" prompt, and apply it if it does, so the live version carries the new fi
   nothing created).
 - `CLAUDE.md`: no change needed (its M0 references are about the cutoff gate, which M0
   still does not use).
+
+## 17. Change (2026-10-02): opt-out gate added to "M0 - Lost Lead Feedback Token" (feature 006, T022)
+
+Edited in the Zoho Flow builder; the flow stayed OFF throughout (status "Draft",
+as before). Unlike M2-M5, this flow had no If-else, so the gate was inserted
+between the trigger and `issueFeedbackToken`.
+
+Structure after the edit: Updated module entry (Leads) -> **skipIfOptedOut** ->
+**If else (`skipIfOptedOut_1` is false)** -> issueFeedbackToken -> Send email.
+The existing On Error branches from feature 003 are untouched, and the trigger
+filter from section 16 is unchanged. skipIfOptedOut inputs: milestone literal
+`0 - No Conversion` (same literal issueFeedbackToken gets), patientId blank,
+leadId = Updated module entry -> Entry ID, clinician = literal `Liana
+Preudhomme` (the same literal issueFeedbackToken uses). Its On Error branch goes
+to a new Zoho Mail alert (cloned from the existing alert, variable
+`alertOptOutCheckFailed`, subject "Cape Clarity feedback pipeline: opt-out check
+failed (0 - No Conversion)"). The clone's body was fully rewritten: it names only
+the flow and milestone, with no prospect identity.
+
+The check reads the native `Email_Opt_Out` field on the Lead. When opted out,
+skipIfOptedOut writes a skip row to Milestone_Instances and the If-else's True
+branch is not taken, so no token is issued and no email is sent.
+
+Builder note: the Builder page can end up with its outer containers scrolled
+(canvas coordinates then no longer match screenshots); resetting `scrollTop` on
+`body`, `.singleFlow` and `.liquid-child` restores them.
