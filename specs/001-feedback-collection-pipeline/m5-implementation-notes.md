@@ -908,3 +908,23 @@ CLAUDE.md's documentation-accuracy convention. Full context: feature 005's
 `research.md` Decision 1, which needed this clarification to resolve a
 different question (a safe per-patient grouping key for Analytics) and
 surfaced this correction as a side effect.
+
+## Feature 006: opt-out gate added to "M5 - Discontinuation Trigger" (T020)
+
+Edited in the Zoho Flow builder; the flow stayed OFF throughout.
+
+Structure after the edit: Updated module entry -> checkDiscontinuationExists ->
+isCreatedAfterCutoff -> If else (existing, True branch) -> **skipIfOptedOut** ->
+**If else (`skipIfOptedOut_1` is false)** -> issueFeedbackToken -> Send email.
+Existing error handling (Update module entry marking Send Failed, the two
+existing alerts) is untouched. skipIfOptedOut inputs: milestone literal
+`5B - Discontinuation, Email Fallback` (verified against issueFeedbackToken's
+own milestone input), patientId = Updated module entry -> Entry ID, leadId
+blank, clinician = Updated module entry -> Assigned Therapist. Its On Error
+branch goes to a new Zoho Mail alert (cloned from the existing token-issuance
+alert, variable `alertOptOutCheckFailed`, subject "opt-out check failed (5B -
+Discontinuation, Email Fallback)"), body names only flow and milestone, no
+patient or trigger identity.
+
+The M5 flow lists no separate write-back changes; the M5 write-back flow was not
+touched.
