@@ -38,12 +38,10 @@ Flow, so they are unaffected by CRM's own suppression and this feature reads the
 Costin accepted this on 2026-10-02. Rules that follow:
 
 - Campaigns marketing uses the Audience module, not Leads or Patients1. Leads and Patients1 are not the Campaigns audience (updated 2026-10-04 from the Campaigns project, PR #33).
-- On **Leads** the native flag is also what Campaigns syncs as "unsubscribed". A lead who ticks
-  feedback opt-out is therefore also shown as unsubscribed in Campaigns, and a lead who
-  unsubscribes from a Campaigns email will be skipped for M0 feedback. This coupling is real on
-  Leads; Costin accepted this on 2026-10-02 (tasks T042).
+- Leads are no longer synced to Campaigns for marketing (Costin confirmed 2026-10-04), so a
+  feedback opt-out on a Lead is not a marketing unsubscribe, and a marketing unsubscribe does not
+  suppress M0 feedback. The earlier coupling on Leads (accepted 2026-10-02, T042) no longer applies.
 - The Campaigns build must not copy `Email_Opt_Out` from a Lead or Patient into the Audience module, and must not copy the Audience opt-out (Marketing_Consent, the module's own Email Opt Out) into Leads or Patients1.
-- **Pending Costin's confirmation (2026-10-04):** the Leads coupling above (and T042, the wording note near the end of this file, staff-procedure.md, plan.md and spec.md) holds only while Leads are synced to Campaigns. Under the Audience design they are not. Once Costin confirms Leads are no longer synced to Campaigns for marketing, remove the coupling everywhere it is stated.
 - Staff must not use the flag for marketing preferences on Patients1 (staff-procedure.md).
 
 Placement: no layout change (the field is already on the record). Not added to the Analytics
@@ -280,8 +278,8 @@ Thank-you message (same text whether or not the link matched anyone):
 > Thank you. We've received your request and will stop sending feedback emails. If you pressed
 > this by mistake, or would like to start receiving them again, just email info@capeclarity.com.
 
-Wording note: on Leads the opt-out field is also the Campaigns unsubscribe (accepted, T042), so
-the page does not promise that other non-appointment emails will continue.
+Wording note: the native opt-out field also stops CRM mass email to the person, so the page does not
+promise that other non-appointment emails will continue. It does not mention marketing or Campaigns.
 
 ## 6. Flow: "Feedback Opt-Out - Form Submitted"
 

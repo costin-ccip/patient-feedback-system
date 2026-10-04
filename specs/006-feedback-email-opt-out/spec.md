@@ -331,10 +331,11 @@ do not.
   fields)**: Costin cannot add any field of any type to Patients, so the opt-out is the native
   CRM Email Opt Out field on Leads and Patients, with its own timestamp. Link vs staff comes from
   the timeline's source and a short note; the resubscribe date comes from the timeline. Costin
-  accepted that this native field also stops CRM mass email to the person, and that Campaigns
-  is used with Leads only and must never copy it from a Patient. On Leads the same field is
-  Campaigns' unsubscribe flag, so a lead's feedback opt-out and marketing unsubscribe are
-  coupled there (accepted by Costin 2026-10-02: a lead who declines communication emails also gets no feedback emails).
+  accepted that this native field also stops CRM mass email to the person. Updated 2026-10-04:
+  Campaigns marketing uses the Audience module and Leads are no longer synced to Campaigns, so a
+  lead's feedback opt-out and marketing unsubscribe are independent (this replaces the 2026-10-02
+  coupling on Leads). The Campaigns build must never copy this field into Audience from a Lead or
+  Patient, nor copy the Audience opt-out into Leads or Patients1.
 
 - **Q1 (lead to patient)**: decided 2026-10-01. A Lead's opt-out does not carry over. The
   person is asked again during intake and the intake answer is authoritative, whether it

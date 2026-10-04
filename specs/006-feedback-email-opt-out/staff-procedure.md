@@ -55,5 +55,5 @@ replies itself.
   that answer is the one that counts.
 - Do not mention opt-out status in any note a contractor can read.
 - Email Opt Out is one shared CRM field. Ticking it stops feedback emails and CRM mass email to
-  that person. On Leads it is also the Campaigns unsubscribe. Do not tick it for any other reason,
+  that person. It is separate from marketing email, which is managed in the Audience module. Do not tick it for any other reason,
   and do not untick it to fix a marketing preference without checking first.

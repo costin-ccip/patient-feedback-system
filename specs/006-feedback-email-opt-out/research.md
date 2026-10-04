@@ -144,14 +144,14 @@ date and date/time are other pools. Leads has about 3 slots left in the text/pic
 Patients1 about 2; the checkbox pool is empty on both, Leads uses 2 date fields and Patients1
 none. Exact remaining counts are not available through the API and are to be confirmed in
 Setup, Modules and Fields. The Campaigns project plans one checkbox, `Do_Not_Contact`, on each
-of Leads and Patients1 and keeps its consent record on a new Email Audience module.
+of Leads and Patients1 and keeps its consent record on a new Audience module.
 
 What that changed here:
 
-- **Not reusing Email Audience** (Costin's question): that module holds only people who opted
+- **Not reusing Audience** (Costin's question): that module holds only people who opted
   in to marketing and syncs to Campaigns; putting feedback opt-outs there would load patients
   into the marketing tool. The Campaigns project already decided (2026-10-01) that feedback
-  consent is never stored in Email Audience or Campaigns, and that the feedback system owns a
+  consent is never stored in Audience or Campaigns, and that the feedback system owns a
   CRM field for the optional intake item. The fields on Leads and Patients1 are that field.
 - **No text or picklist field**: a three-value "source" picklist was dropped in favor of an
   "opted out via email link" checkbox (decision 2026-10-01, Option B); the Campaigns project
@@ -180,5 +180,5 @@ replaced. Checked on PT000 (the designated test record) through the CRM connecti
 - PT000 was left opted out, the state Costin had set earlier that morning.
 
 Trade-offs accepted (Costin, 2026-10-02): the native flag also suppresses CRM mass email; Campaigns
-uses the Audience module (updated 2026-10-04) and must not copy the flag into Audience from Leads or Patients, nor copy the Audience opt-out into Leads or Patients1. At the time, on Leads the flag was
-Campaigns' unsubscribe too and Costin accepted that coupling (tasks T042); that is pending reconfirmation, see data-model.md.
+uses the Audience module (updated 2026-10-04) and must not copy the flag into Audience from Leads or Patients, nor copy the Audience opt-out into Leads or Patients1. The 2026-10-02 coupling on Leads
+(flag as Campaigns' unsubscribe, T042) no longer applies: Leads are not synced to Campaigns (Costin, 2026-10-04).

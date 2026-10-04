@@ -197,8 +197,8 @@ exist) → T033-T034 → T035-T039 (T035 and T036 run alongside the build, not a
 
 Go-live is gated on: T017, T025, T033, the BAA confirmation (constitution TODO), and Liana's
 approvals (T016, T023).
-- [x] T042 **Pending reconfirmation 2026-10-04**: the Campaigns project moved marketing consent to a new Audience module, so Leads may no longer be synced to Campaigns. If Costin confirms, mark this not applicable and remove the coupling wording. Leads coupling **accepted 2026-10-02 (Costin)**: a lead who says no to communication
-      emails (Campaigns unsubscribe) also gets no feedback emails, and the reverse. Test-lead check
+- [x] T042 ~~Leads coupling~~ **No longer applicable 2026-10-04 (Costin)**: the Campaigns project moved marketing consent to the Audience module and Leads are no longer synced to Campaigns, so a feedback opt-out and a marketing unsubscribe are independent. Original note, 2026-10-02: coupling accepted (a lead who says no to communication emails also got no feedback emails, and the reverse).
+      Test-lead check
       done 2026-10-02 (Costin designated lead 6825601000004448011): same behavior as PT000, source
       `crm_api`, Time and Mode stamped on set and emptied on clear; no M0 webhook fired (Consult Call
       Date empty). Test lead left unticked, as found.

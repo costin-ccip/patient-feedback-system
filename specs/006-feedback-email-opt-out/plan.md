@@ -154,8 +154,8 @@ Zoho Flow (workspace 872426000000002011 / Customer Feedback System)
     isCreatedAfterCutoff
 
 Zoho Analytics: Status Breakdown reports reviewed for the new value; no sync change
-Zoho Campaigns: no change by this feature. Note: Campaigns is used with Leads only, and on Leads the
-native flag is also Campaigns' unsubscribe (coupling accepted, tasks T042).
+Zoho Campaigns: no change by this feature. Campaigns marketing uses the Audience module, and Leads are no
+longer synced to Campaigns (Costin, 2026-10-04), so the feedback opt-out is independent of marketing.
 ```
 
 **Structure Decision**: a separate feature directory (006), same reasoning as 002 and 004:
@@ -198,9 +198,9 @@ the window.
 - **Unknown intake mechanism (FR-018).** Where patient intake is captured, and whether it
   already asks about feedback emails, is not documented in this repo. Task T028 resolves it
   before go-live; it does not block the build.
-- **Shared native field.** `Email_Opt_Out` also suppresses CRM mass email, and on Leads it syncs
-  with Campaigns. Accepted by Costin 2026-10-02 (spec, Resolved questions); coupling on Leads
-  accepted too (T042).
+- **Shared native field.** `Email_Opt_Out` also suppresses CRM mass email. Accepted by Costin 2026-10-02
+  (spec, Resolved questions). The 2026-10-02 Leads/Campaigns coupling (T042) no longer applies:
+  Leads are not synced to Campaigns (Costin, 2026-10-04).
 - **No stored resubscribe date, and Mode cannot tell link from staff.** Verified on PT000:
   clearing the flag empties the date and mode; both UI and API ticks show `Manual`. The record
   timeline (source `crm_ui` or `crm_api`) and a CRM note carry the rest.
