@@ -180,5 +180,5 @@ replaced. Checked on PT000 (the designated test record) through the CRM connecti
 - PT000 was left opted out, the state Costin had set earlier that morning.
 
 Trade-offs accepted (Costin, 2026-10-02): the native flag also suppresses CRM mass email; Campaigns
-is used with Leads only and must not copy the flag into Email Audience from Patients. On Leads the flag is
-Campaigns' unsubscribe too; Costin accepted that coupling the same day (tasks T042).
+uses the Audience module (updated 2026-10-04) and must not copy the flag into Audience from Leads or Patients, nor copy the Audience opt-out into Leads or Patients1. At the time, on Leads the flag was
+Campaigns' unsubscribe too and Costin accepted that coupling (tasks T042); that is pending reconfirmation, see data-model.md.

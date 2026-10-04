@@ -129,7 +129,7 @@ to the same literal the flow passes to `issueFeedbackToken`, `patientId` to `${t
       intake packet, recorded by staff by ticking the native Email Opt Out field, plus a notice (no checkbox)
       on the booking form; record only, no gate. Confirm that is still the plan, tell
       the Campaigns build once that this feature uses native `Email_Opt_Out` on Patients1 and Leads
-      (Campaigns used with Leads only) and must never copy it into Email Audience (do not edit
+      and must never copy it into the Audience module, nor copy the Audience opt-out into Leads or Patients1 (do not edit
       that repo from here), and note in implementation-notes.md. Also confirm that creating a patient from a lead copies no
       field from the Lead's feedback fields (there should be none; the new fields are not in
       any field mapping).
@@ -197,7 +197,7 @@ exist) → T033-T034 → T035-T039 (T035 and T036 run alongside the build, not a
 
 Go-live is gated on: T017, T025, T033, the BAA confirmation (constitution TODO), and Liana's
 approvals (T016, T023).
-- [x] T042 Leads coupling **accepted 2026-10-02 (Costin)**: a lead who says no to communication
+- [x] T042 **Pending reconfirmation 2026-10-04**: the Campaigns project moved marketing consent to a new Audience module, so Leads may no longer be synced to Campaigns. If Costin confirms, mark this not applicable and remove the coupling wording. Leads coupling **accepted 2026-10-02 (Costin)**: a lead who says no to communication
       emails (Campaigns unsubscribe) also gets no feedback emails, and the reverse. Test-lead check
       done 2026-10-02 (Costin designated lead 6825601000004448011): same behavior as PT000, source
       `crm_api`, Time and Mode stamped on set and emptied on clear; no M0 webhook fired (Consult Call

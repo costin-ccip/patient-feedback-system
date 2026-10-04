@@ -82,4 +82,4 @@ arrive (plan.md, Risks).
 - `issueFeedbackToken` source unchanged; every idempotency check function unchanged.
 - Native `Email_Opt_Out`, `Unsubscribed_Time` and `Unsubscribed_Mode` are not added to the Analytics CRM sync; the Leads table in Analytics still has no "@"
   anywhere (feature 003, T013 check).
-- The Campaigns audience mapping does not copy `Email_Opt_Out` from a Patient into Email Audience (Campaigns is used with Leads only).
+- The Campaigns build does not copy `Email_Opt_Out` from a Lead or Patient into the Audience module, and does not copy the Audience opt-out into Leads or Patients1.
