@@ -174,7 +174,7 @@ status.
 - [ ] T037 [Claude] Add a "Feedback opt-out convention" section to `CLAUDE.md`: every milestone
       flow, including future ones, calls `skipIfOptedOut` inside its fire-or-not True branch
       before issuing; do not copy its logic; do not edit it without updating data-model.md.
-- [ ] T038 [Claude] Add the §C scenarios to `coordinated-live-test-plan.md`.
+- [x] T038 [Claude] Add the §C scenarios to `coordinated-live-test-plan.md`. Done 2026-10-08 as Step E2.
 - [ ] T039 [Claude] In spec 001, add to FR-001 or Assumptions a pointer that every milestone
       email carries the opt-out link and is suppressed for opted-out people (the cross-reference
       already added at planning time covers the Assumptions side).

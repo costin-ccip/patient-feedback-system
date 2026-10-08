@@ -452,6 +452,35 @@ expired token — same as Step A. (Send-failure already covered once in Step A
 Scenario 6; M5 has no Clinical Safety Flag panel to re-check, per the dashboard
 note above.)
 
+### Step E2 — Feedback email opt-out (feature 006; run after Steps A-E, before Step F)
+
+Source of truth for the scenarios: `specs/006-feedback-email-opt-out/quickstart.md` §C
+(detail and rationale) and §B (opt-out page checks, task T017, which should already be
+done with the flows OFF). Use only the designated test Patient and test Lead from §1.
+Every milestone flow now carries the gate (`skipIfOptedOut`) and an opt-out line in its
+email, so the earlier steps double as the "not opted out, email still sends" control.
+
+Flip ON the flows for the milestones being exercised (M2, M3, M4, M5, M0) as in Steps A-E.
+
+| # | Do | Expect |
+|---|---|---|
+| 1 | Trigger M2 for the test Patient (not opted out). | Email arrives with the survey link and the opt-out link, both carrying the same token. |
+| 2 | Press the opt-out link in that email and confirm. | Patient shows Email Opt Out checked; timeline source `crm_api`; link note present. |
+| 3 | Re-trigger M2. | No token, no email; one `Skipped - Opted Out` row for M2. |
+| 4 | Drive M4, then M5. | Each: no email, one skip row. |
+| 5 | Drive M3 to the next checkpoint, then the one after. | No email; one M3 skip row per checkpoint. |
+| 6 | Opt the test Lead out, move it to Lost Lead, update it twice more. | No email; exactly one M0 skip row. |
+| 7 | Clear the Patient's opt-out; trigger the next M3 checkpoint. | The next checkpoint sends normally; skipped checkpoints do not resend (SC-007). |
+| 8 | Staff-record an opt-out on the test Lead by hand (no link). | Unsubscribed Time stamped; timeline source `crm_ui`; M0 suppressed. |
+| 9 | Opt the Patient out, jump Session_Count past several checkpoints in one update, resubscribe, update again. | Record actual behavior against research.md §3 (one skip per update; later checkpoints may send one per update after a resubscribe). |
+| 10 | After a manual Sync Now, open each milestone's Status Breakdown report. | `Skipped - Opted Out` shows as its own count and is not counted as a non-response. |
+| 11 | Only if a contractor ever gets CRM access: preview as that profile. | Email Opt Out is not visible on Leads or Patients1 (SC-008). |
+
+Also confirm the quickstart §D "untouched" list (token function unchanged, no opt-out fields
+in the Analytics sync, Campaigns does not copy opt-out between Leads/Patients1 and Audience).
+
+Note: an email already in flight in the seconds around an opt-out may still arrive.
+
 ### Step F — Dashboard/access checks (Story 3/User Story 4, cuts across all of the above)
 1. As admin: open each milestone's dashboard (listed at the top of Steps A-E above),
    confirm the new test data renders in every panel (not just "No Data Available"
@@ -465,7 +494,9 @@ note above.)
    contractor to attempt it.
 
 ### Step G — Cleanup
-- Delete all test `Milestone_Instances` records created above via CRM MCP tools (not browser).
+- Delete all test `Milestone_Instances` records created above via CRM MCP tools (not browser),
+  including the `Skipped - Opted Out` rows from Step E2.
+- Clear Email Opt Out on the test Patient and test Lead (Step E2 leaves them opted out).
 - Decide, per flow, whether to leave it ON (go-live) or switch back OFF pending further
   review — record that decision in each milestone's implementation-notes file.
 
