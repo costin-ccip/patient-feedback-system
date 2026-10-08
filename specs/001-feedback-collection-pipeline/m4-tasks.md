@@ -281,6 +281,10 @@ per `m1-implementation-notes.md` §13 / `m2-implementation-notes.md` §9 /
       the change, per the existing convention.
       *Reconciled 2026-09-30: committed (see git history).*
 
+## Phase 10: Follow-up fix (found 2026-10-08)
+
+- [ ] T032 Fix the Entry Id mapping on the `markSendFailed` node (Zoho CRM "Update module entry", On Error branch of the patient "Send email") in "M4 - Discharge Trigger". It currently holds the whole `issueFeedbackToken` variable chip with `.recordId` typed after it as plain text, so a failed send resolves the id to the full JSON object and CRM rejects it ("Invalid input for id. The expected input type is long"). The row then stays `Issued` and the alert email never fires. Replace it with a single `issueFeedbackToken_1.recordId` expression chip, the way M0, M2 and M3 have it, then Save. Also check the `alertSendFailed` body's `${issueFeedbackToken_1.recordId}` for the same problem. Record the change in this milestone's implementation-notes file. Found when M4's 2026-10-08 7:09 PM run hit a one-off Zoho Mail error; M4 and M5 both have the bug, M0/M2/M3 were checked and are correct.
+
 ## Notes for whoever implements this
 
 - T002a's trigger-field mapping (`Patient_Status = "Completed Treatment"`)
