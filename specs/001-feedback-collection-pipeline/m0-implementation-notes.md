@@ -853,3 +853,22 @@ branch is not taken, so no token is issued and no email is sent.
 Builder note: the Builder page can end up with its outer containers scrolled
 (canvas coordinates then no longer match screenshots); resetting `scrollTop` on
 `body`, `.singleFlow` and `.liquid-child` restores them.
+
+## 18. Change (2026-10-08): patient email copy updated (subject and intro sentence only)
+
+Reason: the old copy ("what shaped your decision, whatever it was") implied we did not know the
+outcome. M0 only fires for Lost Leads who had a free consult and never booked a first appointment,
+so the copy now says so. Approved by Costin in chat. Copy only; no structural change.
+
+- **Subject**: `A note about your consultation with Cape Clarity` -> `Your free consultation with Cape Clarity`.
+- **Intro sentence** (body, after "Thank you for taking the time to talk with us about starting therapy."):
+  - old: `We'd love to hear what shaped your decision, whatever it was. It's quick and easy:`
+  - new: `Since you haven't scheduled a first appointment, we'd appreciate hearing how the consultation felt and what shaped your decision.`
+  Everything else is untouched: greeting, survey link (token), "stop them here" opt-out link, closing, logo header.
+  Straight apostrophes are used to match the rest of the body.
+- **Method**: Zoho Flow, patient-facing Zoho Mail "Send email" node of "M0 - Lost Lead Feedback Token". Subject edited
+  in the field; body edited in code view (the `textarea.ze_editor_textarea`) with a string replace, then Done, without
+  toggling back to the visual view (toggling regenerates the textarea and discards programmatic edits).
+- **Verification**: reopened the node after saving; the rendered body contains the new sentence, no "whatever it was",
+  no "quick and easy", and still has 2 links. The Apply dialog listed only "Configuration changed in Send email".
+  Flow applied and Live, toggle ON throughout. No end-to-end test run (Costin runs those).
