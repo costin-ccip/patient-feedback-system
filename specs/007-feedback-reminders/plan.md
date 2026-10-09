@@ -4,6 +4,13 @@
 
 **Input**: Feature specification from `specs/007-feedback-reminders/spec.md`
 
+> **ON HOLD (Costin, 2026-10-09).** This feature is paused for the foreseeable future. Nothing
+> here is to be built, switched on or scheduled until Costin lifts the hold, which he will
+> consider after seeing real response rates from the existing single-request emails. The design
+> below is kept as drafted so it can be resumed without rework. The only thing that exists
+> outside this repo is the CRM field `Reminder_Sent_Date_Time` on `Milestone_Instances` (created
+> 2026-10-09, label rename pending); it is unused and harmless, and can stay or be removed.
+
 ## Summary
 
 Add one automatic reminder per feedback request, sent at day 4 of the 7-day token life, for

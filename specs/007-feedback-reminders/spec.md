@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-09
 
-**Status**: Draft (design decisions and open questions answered by Costin 2026-10-09 except Flow task budget; nothing built except one CRM field)
+**Status**: ON HOLD since 2026-10-09 (design drafted and approved in principle; to be revisited based on response rates; nothing built except one unused CRM field)
 
 **Input**: User description: "Think through a follow-up mechanism for when a person does not
 respond to the feedback email. Propose follow-up behavior by milestone, considering all
@@ -31,6 +31,13 @@ milestones together."
   Feature 002 (shared token issuance) is deliberately NOT reused or changed: a reminder
   re-uses the original token and row and never issues a new one (FR-002).
 -->
+
+> **ON HOLD (Costin, 2026-10-09).** This feature is paused for the foreseeable future. Nothing
+> here is to be built, switched on or scheduled until Costin lifts the hold, which he will
+> consider after seeing real response rates from the existing single-request emails. The design
+> below is kept as drafted so it can be resumed without rework. The only thing that exists
+> outside this repo is the CRM field `Reminder_Sent_Date_Time` on `Milestone_Instances` (created
+> 2026-10-09, label rename pending); it is unused and harmless, and can stay or be removed.
 
 ## User Scenarios & Testing *(mandatory)*
 

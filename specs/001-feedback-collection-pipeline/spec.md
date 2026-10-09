@@ -129,6 +129,11 @@ leaving care) needs its own exit-reason capture, delivered by email."
   automatic reminder on the same token and the same row, at day 4 of the 7-day token life,
   for all five active milestones. No requirement was removed. FR-015's non-response
   visibility is unchanged and gains a reminder-aware report in feature 007.
+
+  Update 2026-10-09 (same day): feature 007 is ON HOLD at the operations lead's direction,
+  to be revisited based on observed response rates. Until the hold is lifted, no reminder is
+  built or sent, and the FR-002 clarification below is dormant: the system continues to send
+  exactly one request per milestone instance and no reminder.
 -->
 
 ## User Scenarios & Testing *(mandatory)*
@@ -416,7 +421,7 @@ configurable (see Assumptions).
   prospect record crosses one of the five active milestone conditions defined above, and MUST
   generate a feedback request for that milestone instance automatically.
 - **FR-002**: The system MUST NOT send more than one feedback request for the same
-  milestone instance for the same patient or prospect. (Clarified 2026-10-09, feature 007:
+  milestone instance for the same patient or prospect. (Clarified 2026-10-09, feature 007, ON HOLD and dormant until lifted:
   "one request" means one issued token and one `Milestone_Instances` row. The system MAY
   additionally send at most one automatic reminder email for that same request, re-using
   the same token and row, without issuing a new token or creating a new instance.)
@@ -574,8 +579,9 @@ configurable (see Assumptions).
   before the pipeline existed do not get a request the moment their existing session
   count or status crosses a threshold. SC-001's "100%" therefore applies to patients
   created after that cutoff. Milestone 0 (Lead-based) does not use the gate.
-- Feedback reminders (feature 007, `specs/007-feedback-reminders/`): one automatic reminder
-  per feedback request, at day 4 of the 7-day token life, for Milestones 0, 2, 3, 4 and 5
+- Feedback reminders (feature 007, `specs/007-feedback-reminders/`) are ON HOLD as of
+  2026-10-09 and not part of the current build; this entry records the paused design only.
+  The design is one automatic reminder per feedback request, at day 4 of the 7-day token life, for Milestones 0, 2, 3, 4 and 5
   (decided 2026-10-09), re-using the original token; suppressed for opted-out people
   (feature 006), non-`Issued` or expired requests, an M5 patient who returned to care, and
   an M3 request whose preceding request went unanswered. It does not change any trigger,

@@ -6,8 +6,11 @@ description: "Task list for 007 - Feedback Reminders"
 
 **Input**: `plan.md`, `spec.md`, `research.md`, `data-model.md`, `quickstart.md`
 
-**Status 2026-10-09**: planned. The one CRM field exists (T001); nothing else is built, and no
-flow has been created or switched ON.
+**Status 2026-10-09: ON HOLD.** Costin paused this feature for the foreseeable future and will
+revisit it based on response rates. Do not start any task below until he lifts the hold. The one CRM
+field exists (T001); nothing else is built, and no flow has been created or switched ON. Open
+items when resumed: T003 (field rename), T005 (Flow task budget), Liana's wording approval (T016),
+BAA confirmation (T020).
 
 **Who does what**: tasks marked **[Costin]** need his hands or approval. Tasks marked
 **[Claude]** can be done by a session with browser or CRM access once he approves. Live tests are

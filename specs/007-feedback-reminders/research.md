@@ -1,5 +1,7 @@
 # Research: Feedback Reminders
 
+> ON HOLD since 2026-10-09 (see spec.md). Kept for when the hold is lifted.
+
 Facts about the pipeline that this design rests on, with where each came from. Items marked
 **unverified** are assumptions to confirm during the build (tasks T007 to T010, T017).
 
