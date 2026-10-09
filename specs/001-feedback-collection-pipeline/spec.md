@@ -122,6 +122,13 @@ leaving care) needs its own exit-reason capture, delivered by email."
   shared "Flagged for Review" report, and the unified Admin Dashboard stays deferred
   until real data exists; (4) the FR-006 raw-submission purge is a manual periodic
   deletion by the operations lead (see `data-retention-purge.md`).
+
+  Revised 2026-10-09 (ninth pass), per operations-lead decisions on feature 007
+  (`specs/007-feedback-reminders/`): FR-002 is clarified, not weakened. A feedback request
+  is still sent once per milestone instance; the system may now also send at most ONE
+  automatic reminder on the same token and the same row, at day 4 of the 7-day token life,
+  for all five active milestones. No requirement was removed. FR-015's non-response
+  visibility is unchanged and gains a reminder-aware report in feature 007.
 -->
 
 ## User Scenarios & Testing *(mandatory)*
@@ -409,7 +416,10 @@ configurable (see Assumptions).
   prospect record crosses one of the five active milestone conditions defined above, and MUST
   generate a feedback request for that milestone instance automatically.
 - **FR-002**: The system MUST NOT send more than one feedback request for the same
-  milestone instance for the same patient or prospect.
+  milestone instance for the same patient or prospect. (Clarified 2026-10-09, feature 007:
+  "one request" means one issued token and one `Milestone_Instances` row. The system MAY
+  additionally send at most one automatic reminder email for that same request, re-using
+  the same token and row, without issuing a new token or creating a new instance.)
 - **FR-003**: The system MUST generate a single-use token unique to each feedback
   request and MUST NOT include any identifying field (name, email, phone, or other
   direct/indirect identifier) in the collection form presented to the patient or
@@ -564,6 +574,13 @@ configurable (see Assumptions).
   before the pipeline existed do not get a request the moment their existing session
   count or status crosses a threshold. SC-001's "100%" therefore applies to patients
   created after that cutoff. Milestone 0 (Lead-based) does not use the gate.
+- Feedback reminders (feature 007, `specs/007-feedback-reminders/`): one automatic reminder
+  per feedback request, at day 4 of the 7-day token life, for Milestones 0, 2, 3, 4 and 5
+  (decided 2026-10-09), re-using the original token; suppressed for opted-out people
+  (feature 006), non-`Issued` or expired requests, an M5 patient who returned to care, and
+  an M3 request whose preceding request went unanswered. It does not change any trigger,
+  cutoff, idempotency or clinical safety flag rule. Admin-only, with no contractor-facing
+  surface.
 - Per-contractor performance analytics (feature 005,
   `specs/005-contractor-performance-analytics/`) is an admin-only Analytics view built
   on this pipeline's data; it is not a contractor-facing view and does not change
