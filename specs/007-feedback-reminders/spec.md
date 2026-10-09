@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-09
 
-**Status**: Draft (design decisions answered by Costin 2026-10-09; nothing built except one CRM field)
+**Status**: Draft (design decisions and open questions answered by Costin 2026-10-09 except Flow task budget; nothing built except one CRM field)
 
 **Input**: User description: "Think through a follow-up mechanism for when a person does not
 respond to the feedback email. Propose follow-up behavior by milestone, considering all
@@ -20,7 +20,9 @@ milestones together."
   3. Milestone 3 gets a "fatigue brake": no reminder if the person's previous feedback
      request went unanswered.
   4. Reminder state is stored in one new custom field on Milestone_Instances, freed by
-     Costin for this purpose and created 2026-10-09 (see data-model.md section 1).
+     Costin for this purpose and created 2026-10-09 (see data-model.md section 1). Its
+     label becomes "Reminder Dispatched Date Time" (it records the send attempt, not
+     delivery); the API name `Reminder_Sent_Date_Time` does not change.
   5. Liana approves the reminder wording per milestone, as she did the opt-out page text
      in feature 006.
 
@@ -172,8 +174,7 @@ opted-out skips are not counted as non-response.
   becomes `Superseded` and is no longer eligible; the new row earns its own reminder at
   its own day 4.
 - A person has open requests for two different milestones at once (for example M2 and M3
-  close together): each is reminded independently. Whether to hold one back is an open
-  question (see Assumptions).
+  close together): each is reminded independently (decided 2026-10-09, see Assumptions).
 - A person opts out after a reminder was already sent: nothing is recalled; the already-sent
   link runs out its normal lifetime (same as feature 006).
 - A person re-subscribes while a request is still open and unreminded: they become
@@ -284,10 +285,9 @@ opted-out skips are not counted as non-response.
 - "Unanswered" for the M3 brake means the previous request was not `Submitted`. A previous
   request still inside its own 7 days (still open) is treated as not yet unanswered, so
   the brake only holds a reminder back once the earlier request has actually lapsed.
-- Open question, not decided: when one person has two open requests for different
-  milestones (for example M2 and M3 issued close together), both are reminded
-  independently in this version. Costin may want a rule that holds one back; see
-  plan.md Open Questions.
+- Decided 2026-10-09: when one person has two open requests for different milestones (for
+  example M2 and M3 issued close together), both are reminded independently. No rule holds
+  the older reminder back.
 - Reminder state is deliberately not shown to contractors; contractors have no CRM or
   dashboard access in this version (spec 001 FR-009), and this feature adds none.
 - A reminder never changes a milestone's trigger, cutoff, idempotency or clinical safety

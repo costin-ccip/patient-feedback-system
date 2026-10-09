@@ -121,18 +121,17 @@ Also updated in the same change: `specs/001-feedback-collection-pipeline/spec.md
 revision note, FR-002 clarification, Assumptions entry). Implementation notes for this
 feature (`implementation-notes.md`) are created when the build starts, per `CLAUDE.md`.
 
-## Open Questions
+## Open Questions and Resolutions
 
-1. **Two open requests at once.** If one person has open requests for two milestones (for
-   example M2 at session 3 and M3 at session 8 close together), both are reminded in this
-   version. Do you want the older reminder held back when a newer request is open? It is a
-   small addition to the eligibility function.
-2. **Flow task budget.** 9 scheduled runs a day is roughly 270 runs a month before any
-   reminder is sent. Please confirm the workspace's current monthly task usage (limit noted
-   as 5,000) so we can confirm there is room, or choose fewer runs (for example 4 a day).
-3. **Reminder skips in reporting.** Skips caused by the M3 brake or a returned M5 patient
-   are not stored (D4), so they cannot be reported. Is that acceptable, or should skips be
-   recorded?
-4. **Field label.** The field is labelled "Reminder Sent Date Time" but means "dispatched"
-   (D3). Rename to "Reminder Dispatched Date Time"? The API name `Reminder_Sent_Date_Time`
-   would stay, since CRM keeps the API name when a label changes.
+1. **Two open requests at once.** *Resolved 2026-10-09 (Costin):* both are reminded
+   independently; no hold-back rule.
+2. **Flow task budget.** *Still open.* 9 scheduled runs a day is roughly 270 runs a month
+   before any reminder is sent. Please confirm the workspace's current monthly task usage
+   (limit noted as 5,000) so we can confirm there is room, or choose fewer runs (for example
+   4 a day). Tracked as T005.
+3. **Reminder skips in reporting.** *Resolved 2026-10-09 (Costin):* acceptable that skips
+   caused by the M3 brake or a returned M5 patient leave no record and are not reported.
+4. **Field label.** *Resolved 2026-10-09 (Costin):* rename to "Reminder Dispatched Date Time".
+   The API name `Reminder_Sent_Date_Time` stays, since CRM keeps the API name when a label
+   changes. The rename is a CRM Setup change (T003); until it is made, docs may still show
+   the original label "Reminder Sent Date Time".

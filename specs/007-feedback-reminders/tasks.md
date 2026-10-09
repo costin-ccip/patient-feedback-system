@@ -22,12 +22,14 @@ No other patient or lead record is read or changed.
       Done 2026-10-09, field id `6825601000004791001`, with Costin's freed slot.
 - [ ] T002 [Costin] Confirm the field appears in the `Milestone_Instances` layout and in the Flow
       field picker. Add it to the layout if not.
-- [ ] T003 [Costin] Decide the label (plan open question 4): keep "Reminder Sent Date Time" or
-      rename to "Reminder Dispatched Date Time". The API name does not change.
+- [ ] T003 [Costin] Rename the field label to "Reminder Dispatched Date Time" in CRM Setup
+      (decided 2026-10-09). The API name `Reminder_Sent_Date_Time` does not change. No
+      field-update tool is available to Claude sessions, so this is a manual rename.
 - [ ] T004 [Claude] Read-only `getFields` on `Milestone_Instances` to confirm the API name,
       type and that it is writable via API. (Non-PII module, MCP only.)
 - [ ] T005 [Costin] Confirm the current monthly Flow task usage against the 5,000 limit and
-      choose the run frequency (plan open question 2). Default: hourly, 9 AM to 5 PM Eastern.
+      choose the run frequency (plan open question 2, the one still open). Default: hourly,
+      9 AM to 5 PM Eastern.
 
 ## Phase 2: Spec 001 update (done with this drafting session)
 

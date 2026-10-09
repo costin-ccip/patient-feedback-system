@@ -9,7 +9,7 @@ Deluge call marked "confirm" as unverified syntax.
 | Item | Value |
 |---|---|
 | Module | `Milestone_Instances` |
-| Label | Reminder Sent Date Time (means "reminder dispatched"; see plan D3, open question 4) |
+| Label | Reminder Dispatched Date Time (renamed from "Reminder Sent Date Time" by decision of 2026-10-09; the CRM rename is task T003; the field means "reminder dispatched", see plan D3) |
 | API name | `Reminder_Sent_Date_Time` |
 | Type | datetime |
 | Field id | `6825601000004791001` |
